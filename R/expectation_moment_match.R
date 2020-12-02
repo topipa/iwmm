@@ -444,3 +444,31 @@ update_quantities_ratio_expectation <- function(draws, orig_log_prob_prop,
   )
 }
 
+# for smc
+update_quantities_expectation <- function(draws, orig_log_prob_prop,
+                                          density_function_list,
+                                          expectation_fun, log_expectation_fun,
+                                          ...) {
+
+  log_prob_prop_draws_fun <- density_function_list$log_prob_prop_draws_fun
+
+  log_prop_new <- log_prob_prop_draws_fun(draws = draws, ...)
+  lw_new <- log_prop_new - orig_log_prob_prop
+
+  if (log_expectation_fun) {
+    lwf_new <- lw_new + expectation_fun(draws, ...)
+  }
+  else {
+    lwf_new <- lw_new + log(abs(expectation_fun(draws, ...)))
+  }
+
+  psisf_new <- suppressWarnings(loo::psis(lwf_new))
+  kf_new <- psisf_new$diagnostics$pareto_k
+  lwf_new <- as.vector(weights(psisf_new))
+
+  # gather results
+  list(
+    lwf = lwf_new,
+    kf = kf_new
+  )
+}
