@@ -2,10 +2,20 @@ Package: IWMM
 Title: Importance weighted moment matching
 Version: 0.0.1
 Authors@R: 
-    person(person("Topi", "Paananen", email = "topi.paananen@aalto.fi", role = c("cre", "aut")))
+    c(person("Topi", "Paananen", email = "topi.paananen@aalto.fi", role = c("cre", "aut")))
 Description: Importance weighted moment matching.
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Depends:
+    R (>= 3.1.2)
+Imports:
+    checkmate,
+    matrixStats (>= 0.52),
+    parallel,
+    stats,
+    loo (>= 2.3.1)
+Suggests: 
+    testthat
