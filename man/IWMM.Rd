@@ -2,9 +2,7 @@
 % Please edit documentation in R/IWMM.R
 \name{IWMM}
 \alias{IWMM}
-\title{Generic importance weighted moment matching (IWMM) importance sampling
-algorithm. Matches a matrix of draws to its importance weighted moments, but
-does not compute any expectation}
+\title{Generic importance weighted moment matching algorithm.}
 \usage{
 IWMM(
   draws,
@@ -33,7 +31,7 @@ matching algorithm is used. The default value is 0.5.}
 
 \item{cov_transform}{Logical; Indicates whether to match the covariance of
 the samples or not. If \code{FALSE}, only the mean and marginal variances are
-matched.}
+matched. Default is \code{TRUE}.}
 
 \item{...}{Further arguments passed to \code{log_ratio_draws_fun}
 and \code{log_prob_prop_draws_fun}.}
@@ -43,7 +41,6 @@ Returns a list with 3 elements: transformed draws, updated
 importance weights, and the pareto k diagnostic value.
 }
 \description{
-Generic importance weighted moment matching (IWMM) importance sampling
-algorithm. Matches a matrix of draws to its importance weighted moments, but
-does not compute any expectation
+Matches a matrix of draws to its importance weighted moments, but
+does not compute any expectation.
 }

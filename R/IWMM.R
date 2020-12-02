@@ -1,7 +1,8 @@
 
-#' Generic importance weighted moment matching (IWMM) importance sampling
-#' algorithm. Matches a matrix of draws to its importance weighted moments, but
-#' does not compute any expectation
+#' Generic importance weighted moment matching algorithm.
+#'
+#' Matches a matrix of draws to its importance weighted moments, but
+#' does not compute any expectation.
 #'
 #'
 #' @param draws A matrix of draws.
@@ -15,7 +16,7 @@
 #'   matching algorithm is used. The default value is 0.5.
 #' @param cov_transform Logical; Indicates whether to match the covariance of
 #' the samples or not. If `FALSE`, only the mean and marginal variances are
-#'   matched.
+#'   matched. Default is `TRUE`.
 #' @param ... Further arguments passed to `log_ratio_draws_fun`
 #' and `log_prob_prop_draws_fun`.
 #'
