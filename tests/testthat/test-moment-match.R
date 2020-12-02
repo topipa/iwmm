@@ -1,5 +1,5 @@
 
-test_that("IWMM works", {
+test_that("moment_match works", {
 
   set.seed(7)
 
@@ -26,7 +26,7 @@ test_that("IWMM works", {
 
   target_sample <- matrix(rnorm(2 * S, target_mean, target_var), S, 2)
 
-  iw <- IWMM(prop_sample,
+  iw <- moment_match(prop_sample,
               log_prob_prop_draws_fun = prop_density,
               log_ratio_draws_fun = ratio_density)
 
@@ -37,7 +37,7 @@ test_that("IWMM works", {
 
   # another definition
 
-  iw <- IWMM(prop_sample,
+  iw <- moment_match(prop_sample,
              log_prob_prop_draws_fun = prop_density,
              log_prob_target_draws_fun = target_density)
 

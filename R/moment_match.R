@@ -17,19 +17,20 @@
 #' @param cov_transform Logical; Indicates whether to match the covariance of
 #' the samples or not. If `FALSE`, only the mean and marginal variances are
 #'   matched. Default is `TRUE`.
-#' @param ... Further arguments passed to `log_ratio_draws_fun`
-#' and `log_prob_prop_draws_fun`.
+#' @param ... Further arguments passed to `log_prob_prop_draws_fun`,
+#' `log_prob_target_draws_fun` and `log_ratio_draws_fun`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
 #' importance weights, and the pareto k diagnostic value.
 #'
 #' @export
 #' @importFrom stats weights
-IWMM <- function(draws,
+moment_match <- function(draws,
                  log_prob_prop_draws_fun,
                  log_prob_target_draws_fun = NULL,
                  log_ratio_draws_fun = NULL,
-                 k_threshold = 0.5, cov_transform = TRUE, ...) {
+                 k_threshold = 0.5,
+                 cov_transform = TRUE, ...) {
 
   checkmate::assertMatrix(draws, any.missing = FALSE)
   checkmate::assertFunction(log_prob_prop_draws_fun)
