@@ -48,6 +48,7 @@ moment_match.matrix <- function(draws,
     stop("You must give either log_prob_target_draws_fun or log_ratio_draws_fun.")
   }
 
+
   orig_log_prob_prop <- log_prob_prop_draws_fun(draws = draws, ...)
 
   if (!is.null(log_prob_target_draws_fun)) {
@@ -210,24 +211,6 @@ update_quantities_target <- function(draws, orig_log_prob_prop,
 
 
 
-# TODO obs_weights is just one possibility along with ratio and target
-
-# TODO powersense takes in psis object. is that necessary? I think not
-
-# TODO r_eff ?
-
-# TODO max_iters?
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -308,6 +291,14 @@ unconstrain_pars.stanfit <- function(x, pars, ...) {
 #' The function takes argument `draws`.
 #' @param log_ratio_draws_fun Log of the density ratio (target/proposal).
 #' The function takes argument `draws`.
+#' @param obs_weights A vector with length equal to number of observations in
+#' the model `x`. The weights represent the target density for importance sampling.
+#' Each observation is given a nonnegative weight. A vector of all ones
+#' represents the original posterior distribution. A weight zero represents omitting
+#' a certain observation.
+#' @param log_lik_fun A function that takes `x` and returns a matrix of log-likelihood draws
+#'   based on the model `x`. The rows indicate draws and columns indicate observations.
+#'   Must be given if obs_weights are used.
 #' @param k_threshold Threshold value for Pareto k values above which the moment
 #'   matching algorithm is used. The default value is 0.5.
 #' @param cov_transform Logical; Indicates whether to match the covariance of
@@ -327,6 +318,8 @@ moment_match_modelfit <- function(x,
                                   log_prob_prop_draws_fun,
                                   log_prob_target_draws_fun = NULL,
                                   log_ratio_draws_fun = NULL,
+                                  obs_weights = NULL,
+                                  log_lik_fun = NULL,
                                   k_threshold = 0.5,
                                   cov_transform = TRUE, ...) {
 
@@ -337,8 +330,11 @@ moment_match_modelfit <- function(x,
   checkmate::assertLogical(cov_transform)
 
 
-  if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
-    stop("You must give either log_prob_target_draws_fun or log_ratio_draws_fun.")
+  if (is.null(log_prob_target_draws_fun) &&
+      is.null(log_ratio_draws_fun) &&
+      is.null(obs_weights)) {
+    stop("You must give either log_prob_target_draws_fun, log_ratio_draws_fun,
+         or obs_weights to determine your target density.")
   }
 
   pars <- post_draws(x, ...)
@@ -357,7 +353,20 @@ moment_match_modelfit <- function(x,
     density_function_list <- list(log_ratio_draws_fun = log_ratio_draws_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun)
     lw <- log_ratio_draws_fun(x, draws, ...)
   }
+  if (!is.null(obs_weights)) {
+    if (is.null(log_lik_fun)) {
+      stop("You must give log_lik_fun when using obs_weights.")
+    }
+    log_lik <- log_lik_fun(x, ...)
+    S <- nrow(log_lik)
+    N <- ncol(log_lik)
+    checkmate::assertNumeric(obs_weights, len = N)
+    obs_weights <- matrix(c(obs_weights), S, N, byrow = TRUE)
+    lw <- rowSums((obs_weights - 1) * log_lik)
 
+    update_quantities <- update_quantities_obs_weights_modelfit
+    density_function_list <- list(log_lik_fun = log_lik_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun, obs_weights = obs_weights)
+  }
 
 
   lw_psis <- suppressWarnings(loo::psis(lw))
@@ -501,6 +510,42 @@ update_quantities_target_modelfit <- function(x, draws, orig_log_prob_prop,
 }
 
 
+
+
+
+#' Function for updating importance weights and pareto k diagnostic
+#'
+#' @param x A fitted model object.
+#' @param draws A matrix of draws.
+#' @param orig_log_prob Log density of the proposal before moment matching.
+#' @param density_function_list List of functions for computing the log
+#' importance weights.
+#' @return List with the updated log importance weights and the Pareto k.
+#'
+#' @noRd
+update_quantities_obs_weights_modelfit <- function(x, draws, orig_log_prob_prop,
+                                              density_function_list,
+                                              ...) {
+
+  log_prob_prop_draws_fun <- density_function_list$log_prob_prop_draws_fun
+  log_lik_fun <- density_function_list$log_lik_fun
+  obs_weights <- density_function_list$obs_weights
+
+  log_prob_prop_new <- log_prob_prop_draws_fun(x, draws = draws, ...)
+  log_lik_new <- log_lik_fun(x, draws = draws, ...)
+
+  lw_new <- rowSums((obs_weights - 1) * log_lik_new) + log_prob_prop_new - orig_log_prob_prop
+
+  psis_new <- suppressWarnings(loo::psis(lw_new))
+  k_new <- psis_new$diagnostics$pareto_k
+  lw_new <- as.vector(weights(psis_new))
+
+  # gather results
+  list(
+    lw = lw_new,
+    k = k_new
+  )
+}
 
 
 

@@ -11,6 +11,8 @@ moment_match_modelfit(
   log_prob_prop_draws_fun,
   log_prob_target_draws_fun = NULL,
   log_ratio_draws_fun = NULL,
+  obs_weights = NULL,
+  log_lik_fun = NULL,
   k_threshold = 0.5,
   cov_transform = TRUE,
   ...
@@ -34,6 +36,16 @@ The function takes argument \code{draws}.}
 
 \item{log_ratio_draws_fun}{Log of the density ratio (target/proposal).
 The function takes argument \code{draws}.}
+
+\item{obs_weights}{A vector with length equal to number of observations in
+the model \code{x}. The weights represent the target density for importance sampling.
+Each observation is given a nonnegative weight. A vector of all ones
+represents the original posterior distribution. A weight zero represents omitting
+a certain observation.}
+
+\item{log_lik_fun}{A function that takes \code{x} and returns a matrix of log-likelihood draws
+based on the model \code{x}. The rows indicate draws and columns indicate observations.
+Must be given if obs_weights are used.}
 
 \item{k_threshold}{Threshold value for Pareto k values above which the moment
 matching algorithm is used. The default value is 0.5.}
