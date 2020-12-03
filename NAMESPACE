@@ -2,6 +2,7 @@
 
 S3method(moment_match,matrix)
 export(expectation_moment_match)
+export(moment_match_modelfit)
 export(shift)
 export(shift_and_cov)
 export(shift_and_scale)
