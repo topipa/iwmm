@@ -43,7 +43,7 @@ test_that("expectation_moment_match works", {
     draws[,1:2]},
     log_prob_prop_draws_fun = prop_density,
     log_prob_target_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = 0.0, cov_transform = TRUE)
+    k_threshold = 0.0)
 
 
 
@@ -51,37 +51,31 @@ test_that("expectation_moment_match works", {
     matrix(draws[,1])},
     log_prob_prop_draws_fun = prop_density,
     log_prob_target_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw3b_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
     log_prob_prop_draws_fun = prop_density,
     log_prob_target_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw4_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,1])},
     log_prob_prop_draws_fun = prop_density,
     log_prob_target_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
   iw4b_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
     log_prob_prop_draws_fun = prop_density,
     log_prob_target_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
-
-
-  # true means are (5,5)
-  iw_mean$expectation
-  iw2_mean$expectation
-  c(iw3_mean$expectation,iw3b_mean$expectation)
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
 
 
-expect_equal(iw_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
-expect_equal(iw2_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
-expect_equal(c(iw3_mean$expectation,iw3b_mean$expectation), c(5.005665, 5.000551), tolerance = 1e-6)
+  expect_equal(iw_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
+  expect_equal(iw2_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
+  expect_equal(c(iw3_mean$expectation,iw3b_mean$expectation), c(5.005665, 5.000551), tolerance = 1e-6)
 
 
 
@@ -94,55 +88,50 @@ expect_equal(c(iw3_mean$expectation,iw3b_mean$expectation), c(5.005665, 5.000551
 
 
 
-iw_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-  draws[,1:2]},
-  log_prob_prop_draws_fun = prop_density,
-  log_ratio_draws_fun = ratio_density)
+  iw_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
+    draws[,1:2]},
+    log_prob_prop_draws_fun = prop_density,
+    log_ratio_draws_fun = ratio_density)
 
 
-iw2_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-  draws[,1:2]},
-  log_prob_prop_draws_fun = prop_density,
-  log_ratio_draws_fun = ratio_density,
-  moment_match = TRUE, k_threshold = 0.0, cov_transform = TRUE)
-
-
-
-iw3_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-  matrix(draws[,1])},
-  log_prob_prop_draws_fun = prop_density,
-  log_ratio_draws_fun = ratio_density,
-  moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
-
-iw3b_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-  matrix(draws[,2])},
-  log_prob_prop_draws_fun = prop_density,
-  log_ratio_draws_fun = ratio_density,
-  moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
-
-iw4_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-  matrix(draws[,1])},
-  log_prob_prop_draws_fun = prop_density,
-  log_ratio_draws_fun = ratio_density,
-  moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
-
-iw4b_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-  matrix(draws[,2])},
-  log_prob_prop_draws_fun = prop_density,
-  log_ratio_draws_fun = ratio_density,
-  moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
-
-
-# true means are (5,5)
-iw_mean$expectation
-iw2_mean$expectation
-c(iw3_mean$expectation,iw3b_mean$expectation)
+  iw2_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
+    draws[,1:2]},
+    log_prob_prop_draws_fun = prop_density,
+    log_ratio_draws_fun = ratio_density,
+    k_threshold = 0.0, cov_transform = TRUE)
 
 
 
-expect_equal(iw_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
-expect_equal(iw2_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
-expect_equal(c(iw3_mean$expectation,iw3b_mean$expectation), c(5.005665, 5.000551), tolerance = 1e-6)
+  iw3_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
+    matrix(draws[,1])},
+    log_prob_prop_draws_fun = prop_density,
+    log_ratio_draws_fun = ratio_density,
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+
+  iw3b_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
+    matrix(draws[,2])},
+    log_prob_prop_draws_fun = prop_density,
+    log_ratio_draws_fun = ratio_density,
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+
+  iw4_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
+    matrix(draws[,1])},
+    log_prob_prop_draws_fun = prop_density,
+    log_ratio_draws_fun = ratio_density,
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+
+  iw4b_mean <- expectation_moment_match(prop_sample, expectation_fun =  function(draws, ...) {
+    matrix(draws[,2])},
+    log_prob_prop_draws_fun = prop_density,
+    log_ratio_draws_fun = ratio_density,
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+
+
+
+
+  expect_equal(iw_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
+  expect_equal(iw2_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
+  expect_equal(c(iw3_mean$expectation,iw3b_mean$expectation), c(5.005665, 5.000551), tolerance = 1e-6)
 
 
 
@@ -344,35 +333,29 @@ test_that("expectation_moment_match works for simple Monte Carlo case", {
   iw2_mean <- expectation_moment_match(target_sample, expectation_fun =  function(draws, ...) {
     draws[,1:2]},
     log_prob_prop_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = 0.0, cov_transform = TRUE)
+    k_threshold = 0.0, cov_transform = TRUE)
 
 
 
   iw3_mean <- expectation_moment_match(target_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,1])},
     log_prob_prop_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw3b_mean <- expectation_moment_match(target_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
     log_prob_prop_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw4_mean <- expectation_moment_match(target_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,1])},
     log_prob_prop_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
   iw4b_mean <- expectation_moment_match(target_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
     log_prob_prop_draws_fun = target_density,
-    moment_match = TRUE, k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
-
-
-  # true means are (5,5)
-  iw_mean$expectation
-  iw2_mean$expectation
-  c(iw3_mean$expectation,iw3b_mean$expectation)
+    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
 
 
