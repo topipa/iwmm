@@ -46,4 +46,10 @@ test_that("moment_match works", {
   expect_equal(iw$pareto_k, 0.3605297, tolerance = 1e-6)
 
 
+
+  iw <- moment_match(prop_sample,
+                     log_prob_prop_draws_fun = prop_density,
+                     log_prob_target_draws_fun = target_density,
+                     dummy_arg = 123)
+
 })

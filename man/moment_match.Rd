@@ -4,7 +4,12 @@
 \alias{moment_match}
 \title{Generic importance weighted moment matching algorithm.}
 \usage{
-moment_match(x, ...)
+moment_match(draws, ...)
+}
+\arguments{
+\item{draws}{A matrix of draws.}
+
+\item{...}{Further arguments passed.}
 }
 \description{
 Matches a matrix of draws to its importance weighted moments, but

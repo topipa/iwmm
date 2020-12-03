@@ -3,8 +3,9 @@
 #' Matches a matrix of draws to its importance weighted moments, but
 #' does not compute any expectation.
 #'
-#'
-moment_match <- function(x, ...) {
+#' @param draws A matrix of draws.
+#' @param ... Further arguments passed.
+moment_match <- function(draws, ...) {
   UseMethod("moment_match")
 }
 
