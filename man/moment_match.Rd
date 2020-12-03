@@ -4,41 +4,7 @@
 \alias{moment_match}
 \title{Generic importance weighted moment matching algorithm.}
 \usage{
-moment_match(
-  draws,
-  log_prob_prop_draws_fun,
-  log_prob_target_draws_fun = NULL,
-  log_ratio_draws_fun = NULL,
-  k_threshold = 0.5,
-  cov_transform = TRUE,
-  ...
-)
-}
-\arguments{
-\item{draws}{A matrix of draws.}
-
-\item{log_prob_prop_draws_fun}{Log density of the proposal.
-The function takes argument \code{draws}.}
-
-\item{log_prob_target_draws_fun}{Log density of the target.
-The function takes argument \code{draws}.}
-
-\item{log_ratio_draws_fun}{Log of the density ratio (target/proposal).
-The function takes argument \code{draws}.}
-
-\item{k_threshold}{Threshold value for Pareto k values above which the moment
-matching algorithm is used. The default value is 0.5.}
-
-\item{cov_transform}{Logical; Indicates whether to match the covariance of
-the samples or not. If \code{FALSE}, only the mean and marginal variances are
-matched. Default is \code{TRUE}.}
-
-\item{...}{Further arguments passed to \code{log_prob_prop_draws_fun},
-\code{log_prob_target_draws_fun} and \code{log_ratio_draws_fun}.}
-}
-\value{
-Returns a list with 3 elements: transformed draws, updated
-importance weights, and the pareto k diagnostic value.
+moment_match(x, ...)
 }
 \description{
 Matches a matrix of draws to its importance weighted moments, but

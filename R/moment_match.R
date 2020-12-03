@@ -1,9 +1,14 @@
-
 #' Generic importance weighted moment matching algorithm.
 #'
 #' Matches a matrix of draws to its importance weighted moments, but
 #' does not compute any expectation.
 #'
+#'
+moment_match <- function(x, ...) {
+  UseMethod("moment_match")
+}
+
+#' Generic importance weighted moment matching algorithm for matrices.
 #'
 #' @param draws A matrix of draws.
 #' @param log_prob_prop_draws_fun Log density of the proposal.
@@ -25,7 +30,7 @@
 #'
 #' @export
 #' @importFrom stats weights
-moment_match <- function(draws,
+moment_match.matrix <- function(draws,
                  log_prob_prop_draws_fun,
                  log_prob_target_draws_fun = NULL,
                  log_ratio_draws_fun = NULL,
