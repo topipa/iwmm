@@ -1,3 +1,8 @@
+
+# TODO add log1p formula and 2 choices
+
+
+
 #' Generic importance weighted moment matching algorithm.
 #'
 #' Matches a matrix of draws to its importance weighted moments, but
@@ -56,27 +61,12 @@ expectation_moment_match <- function(draws,
   checkmate::assertLogical(log_expectation_fun)
 
 
-  if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
-    stop("You must give either log_prob_target_draws_fun or log_ratio_draws_fun.")
+
+  if (!is.null(log_prob_target_draws_fun) && !is.null(log_ratio_draws_fun)) {
+    stop("You cannot give both log_prob_target_draws_fun and log_ratio_draws_fun.")
   }
 
   orig_log_prob_prop <- log_prob_prop_draws_fun(draws = draws, ...)
-
-  if (!is.null(log_prob_target_draws_fun)) {
-    update_quantities <- update_quantities_target
-    density_function_list <- list(log_prob_target_draws_fun = log_prob_target_draws_fun)
-    lw <- log_prob_target_draws_fun(draws, ...) - orig_log_prob_prop
-  }
-  if (!is.null(log_ratio_draws_fun)) {
-    update_quantities <- update_quantities_ratio
-    density_function_list <- list(log_ratio_draws_fun = log_ratio_draws_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun)
-    lw <- log_ratio_draws_fun(draws, ...)
-  }
-
-
-  lw_psis <- suppressWarnings(loo::psis(lw))
-  lw <- as.vector(weights(lw_psis))
-  k <- lw_psis$diagnostics$pareto_k
 
   npars <- ncol(draws)
   S <- nrow(draws)
@@ -88,49 +78,37 @@ expectation_moment_match <- function(draws,
   total_mapping <- diag(npars)
 
   draws_orig <- draws
-  lw_orig <- lw
 
-  while (k > k_threshold) {
+  if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
+    lw <- - matrixStats::logSumExp(rep(0,nrow(draws)))
+    k <- 0
 
-
-    # 1. match means
-    trans <- shift(draws, lw)
-    quantities <- update_quantities(
-      draws = trans$draws,
-      orig_log_prob_prop = orig_log_prob_prop,
-      density_function_list,
-      ...
-    )
-    if (quantities$k < k) {
-      draws <- trans$draws
-      total_shift <- total_shift + trans$shift
-
-      lw <- quantities$lw
-      k <- quantities$k
-      next
+    lw_orig <- lw
+  } else {
+    if (!is.null(log_prob_target_draws_fun)) {
+      update_quantities <- update_quantities_target
+      density_function_list <- list(log_prob_target_draws_fun = log_prob_target_draws_fun)
+      lw <- log_prob_target_draws_fun(draws, ...) - orig_log_prob_prop
+    }
+    if (!is.null(log_ratio_draws_fun)) {
+      update_quantities <- update_quantities_ratio
+      density_function_list <- list(log_ratio_draws_fun = log_ratio_draws_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun)
+      lw <- log_ratio_draws_fun(draws, ...)
     }
 
-    # 2. match means and marginal variances
-    trans <- shift_and_scale(draws, lw)
-    quantities <- update_quantities(
-      draws = trans$draws,
-      orig_log_prob_prop = orig_log_prob_prop,
-      density_function_list,
-      ...
-    )
-    if (quantities$k < k) {
-      draws <- trans$draws
-      total_shift <- total_shift + trans$shift
-      total_scaling <- total_scaling * trans$scaling
+    lw_psis <- suppressWarnings(loo::psis(lw))
+    lw <- as.vector(weights(lw_psis))
+    k <- lw_psis$diagnostics$pareto_k
 
-      lw <- quantities$lw
-      k <- quantities$k
-      next
-    }
+    lw_orig <- lw
 
-    if (cov_transform) {
-      # 3. match means and covariances
-      trans <- shift_and_cov(draws, lw)
+
+
+    while (k > k_threshold) {
+
+
+      # 1. match means
+      trans <- shift(draws, lw)
       quantities <- update_quantities(
         draws = trans$draws,
         orig_log_prob_prop = orig_log_prob_prop,
@@ -140,17 +118,56 @@ expectation_moment_match <- function(draws,
       if (quantities$k < k) {
         draws <- trans$draws
         total_shift <- total_shift + trans$shift
-        total_mapping <- trans$mapping %*% total_mapping
 
         lw <- quantities$lw
         k <- quantities$k
         next
       }
+
+      # 2. match means and marginal variances
+      trans <- shift_and_scale(draws, lw)
+      quantities <- update_quantities(
+        draws = trans$draws,
+        orig_log_prob_prop = orig_log_prob_prop,
+        density_function_list,
+        ...
+      )
+      if (quantities$k < k) {
+        draws <- trans$draws
+        total_shift <- total_shift + trans$shift
+        total_scaling <- total_scaling * trans$scaling
+
+        lw <- quantities$lw
+        k <- quantities$k
+        next
+      }
+
+      if (cov_transform) {
+        # 3. match means and covariances
+        trans <- shift_and_cov(draws, lw)
+        quantities <- update_quantities(
+          draws = trans$draws,
+          orig_log_prob_prop = orig_log_prob_prop,
+          density_function_list,
+          ...
+        )
+        if (quantities$k < k) {
+          draws <- trans$draws
+          total_shift <- total_shift + trans$shift
+          total_mapping <- trans$mapping %*% total_mapping
+
+          lw <- quantities$lw
+          k <- quantities$k
+          next
+        }
+      }
+
+
+      break
     }
 
-
-    break
   }
+
 
   # prepare for split and check kfs
   if (restart_transform) {
@@ -187,11 +204,13 @@ expectation_moment_match <- function(draws,
            As a workaround, you can wrap your function call using apply.')
     }
 
-    if (!is.null(log_prob_target_draws_fun)) {
+    if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
+      update_quantities_expectation <- update_quantities_expectation
+      density_function_list <- list(log_prob_prop_draws_fun = log_prob_prop_draws_fun)
+    } else if (!is.null(log_prob_target_draws_fun)) {
       update_quantities_expectation <- update_quantities_target_expectation
       density_function_list <- list(log_prob_target_draws_fun = log_prob_target_draws_fun)
-    }
-    if (!is.null(log_ratio_draws_fun)) {
+    } else if (!is.null(log_ratio_draws_fun)) {
       update_quantities_expectation <- update_quantities_ratio_expectation
       density_function_list <- list(log_ratio_draws_fun = log_ratio_draws_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun)
     }
@@ -326,16 +345,55 @@ expectation_moment_match <- function(draws,
     draws_trans_inv2 <- draws_T2_T1inv
     draws_trans_inv2[take, ] <- draws_orig[take, , drop = FALSE]
 
-    log_prob_target_trans <- log_prob_target_draws_fun(draws = draws_trans, ...)
+
+
 
     log_prob_trans_inv1 <- log_prob_prop_draws_fun(draws = draws_trans_inv1, ...)
     log_prob_trans_inv2 <- log_prob_prop_draws_fun(draws = draws_trans_inv2, ...)
 
-    lw_trans <-  log_prob_target_trans -
-      log(
-        exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
-          exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
-      )
+
+
+
+    if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
+      log_prob_prop_trans <- log_prob_prop_draws_fun(draws = draws_trans, ...)
+      lw_trans <-  log_prob_prop_trans -
+        log(
+          exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
+            exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
+        )
+    } else if (!is.null(log_prob_target_draws_fun)) {
+      log_prob_target_trans <- log_prob_target_draws_fun(draws = draws_trans, ...)
+      lw_trans <-  log_prob_target_trans -
+        log(
+          exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
+            exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
+        )
+    } else if (!is.null(log_ratio_draws_fun)) {
+      log_prob_ratio_trans <- log_ratio_draws_fun(draws = draws_trans, ...)
+      log_prob_prop_trans <- log_prob_prop_draws_fun(draws = draws_trans, ...)
+      lw_trans <-  log_prob_ratio_trans + log_prob_prop_trans -
+        log(
+          exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
+            exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
+        )
+    }
+
+
+
+
+
+
+
+
+
+
+    # log_prob_target_trans <- log_prob_target_draws_fun(draws = draws_trans, ...)
+    #
+    # lw_trans <-  log_prob_target_trans -
+    #   log(
+    #     exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
+    #       exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
+    #   )
 
 
     # lw_trans_psis <- suppressWarnings(loo::psis(lw_trans))
@@ -371,7 +429,8 @@ expectation_moment_match <- function(draws,
 
 
 #' Function for updating importance weights and pareto k diagnostic for
-#' expectation-specific weights.
+#' expectation-specific weights. For importance sampling expectations
+#' where we have the `log_prob_target_draws_fun`.
 #'
 #' @param draws A matrix of draws.
 #' @param orig_log_prob Log density of the proposal before moment matching.
@@ -413,6 +472,22 @@ update_quantities_target_expectation <- function(draws, orig_log_prob_prop,
   )
 }
 
+#' Function for updating importance weights and pareto k diagnostic for
+#' expectation-specific weights. For importance sampling expectations
+#' where we have the `log_ratio_draws_fun`.
+#'
+#' @param draws A matrix of draws.
+#' @param orig_log_prob Log density of the proposal before moment matching.
+#' @param density_function_list List of functions for computing the log
+#' importance weights.
+#' @param expectation_fun A function whose expectation is being computed.
+#' The function takes arguments `draws`.
+#' @param log_expectation_fun Logical indicating whether the expectation_fun
+#' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
+#' the expectation function must be nonnegative (before taking the logarithm).
+#' @return List with the updated log importance weights and the Pareto k.
+#'
+#' @noRd
 update_quantities_ratio_expectation <- function(draws, orig_log_prob_prop,
                                                  density_function_list,
                                                  expectation_fun, log_expectation_fun,
@@ -444,7 +519,21 @@ update_quantities_ratio_expectation <- function(draws, orig_log_prob_prop,
   )
 }
 
-# for smc
+#' Function for updating importance weights and pareto k diagnostic for
+#' expectation-specific weights. For simple Monte Carlo expectations.
+#'
+#' @param draws A matrix of draws.
+#' @param orig_log_prob Log density of the proposal before moment matching.
+#' @param density_function_list List of functions for computing the log
+#' importance weights.
+#' @param expectation_fun A function whose expectation is being computed.
+#' The function takes arguments `draws`.
+#' @param log_expectation_fun Logical indicating whether the expectation_fun
+#' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
+#' the expectation function must be nonnegative (before taking the logarithm).
+#' @return List with the updated log importance weights and the Pareto k.
+#'
+#' @noRd
 update_quantities_expectation <- function(draws, orig_log_prob_prop,
                                           density_function_list,
                                           expectation_fun, log_expectation_fun,
