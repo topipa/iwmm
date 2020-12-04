@@ -1,12 +1,17 @@
 
-# TODO add log1p formula and 2 choices
 
-
-
-#' Generic importance weighted moment matching algorithm.
+#' Generic importance weighted moment matching algorithm for a specific
+#' expectation.
 #'
-#' Matches a matrix of draws to its importance weighted moments, but
-#' does not compute any expectation.
+#'
+#' @param draws A matrix of draws.
+#' @param ... Further arguments passed.
+expectation_moment_match <- function(draws, ...) {
+  UseMethod("expectation_moment_match")
+}
+
+#' Generic importance weighted moment matching algorithm for a specific
+#' expectation for matrices.
 #'
 #'
 #' @param draws A matrix of draws.
@@ -39,7 +44,7 @@
 #'
 #' @export
 #' @importFrom stats weights
-expectation_moment_match <- function(draws,
+expectation_moment_match.matrix <- function(draws,
                          log_prob_prop_draws_fun,
                          expectation_fun,
                          log_expectation_fun = FALSE,

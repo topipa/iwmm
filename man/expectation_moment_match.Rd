@@ -2,63 +2,17 @@
 % Please edit documentation in R/expectation_moment_match.R
 \name{expectation_moment_match}
 \alias{expectation_moment_match}
-\title{Generic importance weighted moment matching algorithm.}
+\title{Generic importance weighted moment matching algorithm for a specific
+expectation.}
 \usage{
-expectation_moment_match(
-  draws,
-  log_prob_prop_draws_fun,
-  expectation_fun,
-  log_expectation_fun = FALSE,
-  log_prob_target_draws_fun = NULL,
-  log_ratio_draws_fun = NULL,
-  k_threshold = 0.5,
-  cov_transform = TRUE,
-  split = FALSE,
-  restart_transform = FALSE,
-  ...
-)
+expectation_moment_match(draws, ...)
 }
 \arguments{
 \item{draws}{A matrix of draws.}
 
-\item{log_prob_prop_draws_fun}{Log density of the proposal.
-The function takes argument \code{draws}.}
-
-\item{expectation_fun}{A function whose expectation is being computed.
-The function takes arguments \code{draws}.}
-
-\item{log_expectation_fun}{Logical indicating whether the expectation_fun
-returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
-the expectation function must be nonnegative (before taking the logarithm).}
-
-\item{log_prob_target_draws_fun}{Log density of the target.
-The function takes argument \code{draws}.}
-
-\item{log_ratio_draws_fun}{Log of the density ratio (target/proposal).
-The function takes argument \code{draws}.}
-
-\item{k_threshold}{Threshold value for Pareto k values above which the moment
-matching algorithm is used. The default value is 0.5.}
-
-\item{cov_transform}{Logical; Indicates whether to match the covariance of
-the samples or not. If \code{FALSE}, only the mean and marginal variances are
-matched. Default is \code{TRUE}.}
-
-\item{split}{Logical; Indicate whether to do the split transformation or not
-at the end of moment matching. FALSE by default.}
-
-\item{restart_transform}{Logical; When split is TRUE, indicates whether to
-start the second transformation from the original model parameters
-or the transformed parameters. If split is FALSE, this is ignored.}
-
-\item{...}{Further arguments passed to \code{log_prob_prop_draws_fun},
-\code{log_prob_target_draws_fun} and \code{log_ratio_draws_fun}.}
-}
-\value{
-Returns a list with 4 elements: the expectation, transformed draws, updated
-importance weights, and the pareto k diagnostic value.
+\item{...}{Further arguments passed.}
 }
 \description{
-Matches a matrix of draws to its importance weighted moments, but
-does not compute any expectation.
+Generic importance weighted moment matching algorithm for a specific
+expectation.
 }
