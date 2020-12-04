@@ -191,13 +191,9 @@ expectation_moment_match.matrix <- function(draws,
     total_mapping2 <- total_mapping
   }
 
-  if (log_expectation_fun) {
-    lwf <- lw + expectation_fun(draws2, ...)
-    # Here we expect that expectation_fun is nonnegative (before log)')
-  }
-  else {
-    lwf <- lw + log(abs(expectation_fun(draws2, ...)))
-  }
+  lwf <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
+
+
   psisf <- suppressWarnings(loo::psis(lwf))
   kf <- psisf$diagnostics$pareto_k
 
@@ -234,12 +230,12 @@ expectation_moment_match.matrix <- function(draws,
         log_expectation_fun = log_expectation_fun,
         ...
       )
-      if (quantities$kf < kf) {
+      if (quantities$k < kf) {
         draws2 <- trans$draws
         total_shift2 <- total_shift2 + trans$shift
 
-        lwf <- quantities$lwf
-        kf <- quantities$kf
+        lwf <- quantities$lw
+        kf <- quantities$k
         next
       }
 
@@ -253,13 +249,13 @@ expectation_moment_match.matrix <- function(draws,
         log_expectation_fun = log_expectation_fun,
         ...
       )
-      if (quantities$kf < kf) {
+      if (quantities$k < kf) {
         draws2 <- trans$draws
         total_shift2 <- total_shift2 + trans$shift
         total_scaling2 <- total_scaling2 * trans$scaling
 
-        lwf <- quantities$lwf
-        kf <- quantities$kf
+        lwf <- quantities$lw
+        kf <- quantities$k
         next
       }
 
@@ -274,13 +270,13 @@ expectation_moment_match.matrix <- function(draws,
           log_expectation_fun = log_expectation_fun,
           ...
         )
-        if (quantities$kf < kf) {
+        if (quantities$k < kf) {
           draws2 <- trans$draws
           total_shift2 <- total_shift2 + trans$shift
           total_mapping2 <- trans$mapping %*% total_mapping2
 
-          lwf <- quantities$lwf
-          kf <- quantities$kf
+          lwf <- quantities$lw
+          kf <- quantities$k
           next
         }
       }
@@ -432,137 +428,3 @@ expectation_moment_match.matrix <- function(draws,
 }
 
 
-
-#' Function for updating importance weights and pareto k diagnostic for
-#' expectation-specific weights. For importance sampling expectations
-#' where we have the `log_prob_target_draws_fun`.
-#'
-#' @param draws A matrix of draws.
-#' @param orig_log_prob Log density of the proposal before moment matching.
-#' @param density_function_list List of functions for computing the log
-#' importance weights.
-#' @param expectation_fun A function whose expectation is being computed.
-#' The function takes arguments `draws`.
-#' @param log_expectation_fun Logical indicating whether the expectation_fun
-#' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
-#' the expectation function must be nonnegative (before taking the logarithm).
-#' @return List with the updated log importance weights and the Pareto k.
-#'
-#' @noRd
-update_quantities_target_expectation <- function(draws, orig_log_prob_prop,
-                                                 density_function_list,
-                               expectation_fun, log_expectation_fun,
-                               ...) {
-
-  log_prob_target_draws_fun <- density_function_list$log_prob_target_draws_fun
-
-  log_prob_target_new <- log_prob_target_draws_fun(draws = draws, ...)
-  lw_new <- log_prob_target_new - orig_log_prob_prop
-
-  if (log_expectation_fun) {
-    lwf_new <- lw_new + expectation_fun(draws, ...)
-  }
-  else {
-    lwf_new <- lw_new + log(abs(expectation_fun(draws, ...)))
-  }
-
-  psisf_new <- suppressWarnings(loo::psis(lwf_new))
-  kf_new <- psisf_new$diagnostics$pareto_k
-  lwf_new <- as.vector(weights(psisf_new))
-
-  # gather results
-  list(
-    lwf = lwf_new,
-    kf = kf_new
-  )
-}
-
-#' Function for updating importance weights and pareto k diagnostic for
-#' expectation-specific weights. For importance sampling expectations
-#' where we have the `log_ratio_draws_fun`.
-#'
-#' @param draws A matrix of draws.
-#' @param orig_log_prob Log density of the proposal before moment matching.
-#' @param density_function_list List of functions for computing the log
-#' importance weights.
-#' @param expectation_fun A function whose expectation is being computed.
-#' The function takes arguments `draws`.
-#' @param log_expectation_fun Logical indicating whether the expectation_fun
-#' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
-#' the expectation function must be nonnegative (before taking the logarithm).
-#' @return List with the updated log importance weights and the Pareto k.
-#'
-#' @noRd
-update_quantities_ratio_expectation <- function(draws, orig_log_prob_prop,
-                                                 density_function_list,
-                                                 expectation_fun, log_expectation_fun,
-                                                 ...) {
-
-  log_ratio_draws_fun <- density_function_list$log_ratio_draws_fun
-  log_prob_prop_draws_fun <- density_function_list$log_prob_prop_draws_fun
-
-  log_ratio_new <- log_ratio_draws_fun(draws = draws, ...)
-  log_prop_new <- log_prob_prop_draws_fun(draws = draws, ...)
-
-  lw_new <- log_ratio_new + log_prop_new - orig_log_prob_prop
-
-  if (log_expectation_fun) {
-    lwf_new <- lw_new + expectation_fun(draws, ...)
-  }
-  else {
-    lwf_new <- lw_new + log(abs(expectation_fun(draws, ...)))
-  }
-
-  psisf_new <- suppressWarnings(loo::psis(lwf_new))
-  kf_new <- psisf_new$diagnostics$pareto_k
-  lwf_new <- as.vector(weights(psisf_new))
-
-  # gather results
-  list(
-    lwf = lwf_new,
-    kf = kf_new
-  )
-}
-
-#' Function for updating importance weights and pareto k diagnostic for
-#' expectation-specific weights. For simple Monte Carlo expectations.
-#'
-#' @param draws A matrix of draws.
-#' @param orig_log_prob Log density of the proposal before moment matching.
-#' @param density_function_list List of functions for computing the log
-#' importance weights.
-#' @param expectation_fun A function whose expectation is being computed.
-#' The function takes arguments `draws`.
-#' @param log_expectation_fun Logical indicating whether the expectation_fun
-#' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
-#' the expectation function must be nonnegative (before taking the logarithm).
-#' @return List with the updated log importance weights and the Pareto k.
-#'
-#' @noRd
-update_quantities_expectation <- function(draws, orig_log_prob_prop,
-                                          density_function_list,
-                                          expectation_fun, log_expectation_fun,
-                                          ...) {
-
-  log_prob_prop_draws_fun <- density_function_list$log_prob_prop_draws_fun
-
-  log_prop_new <- log_prob_prop_draws_fun(draws = draws, ...)
-  lw_new <- log_prop_new - orig_log_prob_prop
-
-  if (log_expectation_fun) {
-    lwf_new <- lw_new + expectation_fun(draws, ...)
-  }
-  else {
-    lwf_new <- lw_new + log(abs(expectation_fun(draws, ...)))
-  }
-
-  psisf_new <- suppressWarnings(loo::psis(lwf_new))
-  kf_new <- psisf_new$diagnostics$pareto_k
-  lwf_new <- as.vector(weights(psisf_new))
-
-  # gather results
-  list(
-    lwf = lwf_new,
-    kf = kf_new
-  )
-}
