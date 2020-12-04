@@ -1,7 +1,4 @@
-
-
-#' Generic importance weighted moment matching algorithm for a specific
-#' expectation.
+#' Generic importance weighted moment matching algorithm.
 #'
 #'
 #' @param draws A matrix of draws.
@@ -10,22 +7,22 @@ moment_match <- function(draws, ...) {
   UseMethod("moment_match")
 }
 
-#' Generic importance weighted moment matching algorithm for a specific
-#' expectation for matrices.
+#' Generic importance weighted moment matching algorithm for matrices.
 #'
 #'
-#' @param draws A matrix of draws.
+#' @param draws A matrix of draws. Must be unconstrained.
 #' @param log_prob_prop_draws_fun Log density of the proposal.
 #' The function takes argument `draws`.
-#' @param expectation_fun A function whose expectation is being computed.
-#' The function takes arguments `draws`.
+#' @param log_prob_target_draws_fun Log density of the target for
+#' importance sampling. The function takes argument `draws`.
+#' @param log_ratio_draws_fun Log of the density ratio for importance sampling
+#' (target/proposal). The function takes argument `draws`.
+#' @param expectation_fun Optional argument, NULL by default. A function whose expectation is
+#' being computed. The function takes arguments `draws`.
 #' @param log_expectation_fun Logical indicating whether the expectation_fun
 #' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
 #' the expectation function must be nonnegative (before taking the logarithm).
-#' @param log_prob_target_draws_fun Log density of the target.
-#' The function takes argument `draws`.
-#' @param log_ratio_draws_fun Log of the density ratio (target/proposal).
-#' The function takes argument `draws`.
+#' Ignored if `expectation_fun` is NULL.
 #' @param k_threshold Threshold value for Pareto k values above which the moment
 #'   matching algorithm is used. The default value is 0.5.
 #' @param cov_transform Logical; Indicates whether to match the covariance of
@@ -39,8 +36,9 @@ moment_match <- function(draws, ...) {
 #' @param ... Further arguments passed to `log_prob_prop_draws_fun`,
 #' `log_prob_target_draws_fun` and `log_ratio_draws_fun`.
 #'
-#' @return Returns a list with 4 elements: the expectation, transformed draws, updated
+#' @return Returns a list with: transformed draws, updated
 #' importance weights, and the pareto k diagnostic value.
+#' If expectation_fun is given, also returns the expectation.
 #'
 #' @export
 #' @importFrom stats weights
