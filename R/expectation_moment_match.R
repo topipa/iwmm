@@ -92,12 +92,15 @@ expectation_moment_match.matrix <- function(draws,
   } else {
     if (!is.null(log_prob_target_draws_fun)) {
       update_quantities <- update_quantities_target
-      density_function_list <- list(log_prob_target_draws_fun = log_prob_target_draws_fun)
+      density_function_list <- list(expectation = FALSE,
+                                    log_prob_target_draws_fun = log_prob_target_draws_fun)
       lw <- log_prob_target_draws_fun(draws, ...) - orig_log_prob_prop
     }
     if (!is.null(log_ratio_draws_fun)) {
       update_quantities <- update_quantities_ratio
-      density_function_list <- list(log_ratio_draws_fun = log_ratio_draws_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun)
+      density_function_list <- list(expectation = FALSE,
+                                    log_ratio_draws_fun = log_ratio_draws_fun,
+                                    log_prob_prop_draws_fun = log_prob_prop_draws_fun)
       lw <- log_ratio_draws_fun(draws, ...)
     }
 
@@ -107,69 +110,28 @@ expectation_moment_match.matrix <- function(draws,
 
     lw_orig <- lw
 
+    trans_loop <- transform_loop(draws,
+                                 lw,
+                                 k,
+                                 update_quantities,
+                                 density_function_list,
+                                 orig_log_prob_prop,
+                                 k_threshold,
+                                 cov_transform,
+                                 total_shift,
+                                 total_scaling,
+                                 total_mapping,
+                                 ...)
+
+    draws <- trans_loop$draws
+    lw <- trans_loop$log_weights
+    k <- trans_loop$pareto_k
+
+    total_shift <- trans_loop$total_shift
+    total_scaling <- trans_loop$total_scaling
+    total_mapping <- trans_loop$total_mapping
 
 
-    while (k > k_threshold) {
-
-
-      # 1. match means
-      trans <- shift(draws, lw)
-      quantities <- update_quantities(
-        draws = trans$draws,
-        orig_log_prob_prop = orig_log_prob_prop,
-        density_function_list,
-        ...
-      )
-      if (quantities$k < k) {
-        draws <- trans$draws
-        total_shift <- total_shift + trans$shift
-
-        lw <- quantities$lw
-        k <- quantities$k
-        next
-      }
-
-      # 2. match means and marginal variances
-      trans <- shift_and_scale(draws, lw)
-      quantities <- update_quantities(
-        draws = trans$draws,
-        orig_log_prob_prop = orig_log_prob_prop,
-        density_function_list,
-        ...
-      )
-      if (quantities$k < k) {
-        draws <- trans$draws
-        total_shift <- total_shift + trans$shift
-        total_scaling <- total_scaling * trans$scaling
-
-        lw <- quantities$lw
-        k <- quantities$k
-        next
-      }
-
-      if (cov_transform) {
-        # 3. match means and covariances
-        trans <- shift_and_cov(draws, lw)
-        quantities <- update_quantities(
-          draws = trans$draws,
-          orig_log_prob_prop = orig_log_prob_prop,
-          density_function_list,
-          ...
-        )
-        if (quantities$k < k) {
-          draws <- trans$draws
-          total_shift <- total_shift + trans$shift
-          total_mapping <- trans$mapping %*% total_mapping
-
-          lw <- quantities$lw
-          k <- quantities$k
-          next
-        }
-      }
-
-
-      break
-    }
 
   }
 
@@ -206,85 +168,54 @@ expectation_moment_match.matrix <- function(draws,
     }
 
     if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
-      update_quantities_expectation <- update_quantities_expectation
-      density_function_list <- list(log_prob_prop_draws_fun = log_prob_prop_draws_fun)
+      # update_quantities_expectation <- update_quantities_expectation
+      update_quantities <- update_quantities
+      density_function_list <- list(expectation = TRUE,
+                                    expectation_fun = expectation_fun,
+                                    log_expectation_fun = log_expectation_fun,
+                                    log_prob_prop_draws_fun = log_prob_prop_draws_fun)
     } else if (!is.null(log_prob_target_draws_fun)) {
-      update_quantities_expectation <- update_quantities_target_expectation
-      density_function_list <- list(log_prob_target_draws_fun = log_prob_target_draws_fun)
+      # update_quantities_expectation <- update_quantities_target_expectation
+      update_quantities <- update_quantities_target
+      density_function_list <- list(expectation = TRUE,
+                                    expectation_fun = expectation_fun,
+                                    log_expectation_fun = log_expectation_fun,
+                                    log_prob_target_draws_fun = log_prob_target_draws_fun)
     } else if (!is.null(log_ratio_draws_fun)) {
-      update_quantities_expectation <- update_quantities_ratio_expectation
-      density_function_list <- list(log_ratio_draws_fun = log_ratio_draws_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun)
+      # update_quantities_expectation <- update_quantities_ratio_expectation
+      update_quantities <- update_quantities_ratio
+      density_function_list <- list(expectation = TRUE,
+                                    expectation_fun = expectation_fun,
+                                    log_expectation_fun = log_expectation_fun,
+                                    log_ratio_draws_fun = log_ratio_draws_fun,
+                                    log_prob_prop_draws_fun = log_prob_prop_draws_fun)
     }
 
     lwf <- as.vector(weights(psisf))
 
-    while (kf > k_threshold) {
 
-      # 1. match means
-      trans <- shift(draws2, lwf)
-      quantities <- update_quantities_expectation(
-        draws = trans$draws,
-        orig_log_prob_prop = orig_log_prob_prop,
-        density_function_list = density_function_list,
-        expectation_fun = expectation_fun,
-        log_expectation_fun = log_expectation_fun,
-        ...
-      )
-      if (quantities$k < kf) {
-        draws2 <- trans$draws
-        total_shift2 <- total_shift2 + trans$shift
+    trans_loop <- transform_loop(draws2,
+                                 lwf,
+                                 kf,
+                                 update_quantities,
+                                 density_function_list,
+                                 orig_log_prob_prop,
+                                 k_threshold,
+                                 cov_transform,
+                                 total_shift2,
+                                 total_scaling2,
+                                 total_mapping2,
+                                 ...)
 
-        lwf <- quantities$lw
-        kf <- quantities$k
-        next
-      }
+    draws2 <- trans_loop$draws
+    lwf <- trans_loop$log_weights
+    kf <- trans_loop$pareto_k
 
-      # 2. match means and variances
-      trans <- shift_and_scale(draws2, lwf)
-      quantities <- update_quantities_expectation(
-        draws = trans$draws,
-        orig_log_prob_prop = orig_log_prob_prop,
-        density_function_list = density_function_list,
-        expectation_fun = expectation_fun,
-        log_expectation_fun = log_expectation_fun,
-        ...
-      )
-      if (quantities$k < kf) {
-        draws2 <- trans$draws
-        total_shift2 <- total_shift2 + trans$shift
-        total_scaling2 <- total_scaling2 * trans$scaling
-
-        lwf <- quantities$lw
-        kf <- quantities$k
-        next
-      }
-
-      if (cov_transform) {
-        # 3. match means and covariances
-        trans <- shift_and_cov(draws2, lwf)
-        quantities <- update_quantities_expectation(
-          draws = trans$draws,
-          orig_log_prob_prop = orig_log_prob_prop,
-          density_function_list = density_function_list,
-          expectation_fun = expectation_fun,
-          log_expectation_fun = log_expectation_fun,
-          ...
-        )
-        if (quantities$k < kf) {
-          draws2 <- trans$draws
-          total_shift2 <- total_shift2 + trans$shift
-          total_mapping2 <- trans$mapping %*% total_mapping2
-
-          lwf <- quantities$lw
-          kf <- quantities$k
-          next
-        }
-      }
+    total_shift2 <- trans_loop$total_shift
+    total_scaling2 <- trans_loop$total_scaling
+    total_mapping2 <- trans_loop$total_mapping
 
 
-
-      break
-    }
 
     # second trasnsformations are done
     # we have updated draws2, lwf and kf

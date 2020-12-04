@@ -55,12 +55,15 @@ moment_match.matrix <- function(draws,
 
   if (!is.null(log_prob_target_draws_fun)) {
     update_quantities <- update_quantities_target
-    density_function_list <- list(log_prob_target_draws_fun = log_prob_target_draws_fun)
+    density_function_list <- list(expectation = FALSE,
+                                  log_prob_target_draws_fun = log_prob_target_draws_fun)
     lw <- log_prob_target_draws_fun(draws, ...) - orig_log_prob_prop
   }
   if (!is.null(log_ratio_draws_fun)) {
     update_quantities <- update_quantities_ratio
-    density_function_list <- list(log_ratio_draws_fun = log_ratio_draws_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun)
+    density_function_list <- list(expectation = FALSE,
+                                  log_ratio_draws_fun = log_ratio_draws_fun,
+                                  log_prob_prop_draws_fun = log_prob_prop_draws_fun)
     lw <- log_ratio_draws_fun(draws, ...)
   }
 
@@ -73,6 +76,38 @@ moment_match.matrix <- function(draws,
   S <- nrow(draws)
   cov_transform <- cov_transform && S >= 10 * npars
 
+  trans_loop <- transform_loop(draws,
+                               lw,
+                               k,
+                               update_quantities,
+                               density_function_list,
+                               orig_log_prob_prop,
+                               k_threshold,
+                               cov_transform,
+                               total_shift = rep(0,npars),
+                               total_scaling = rep(1,npars),
+                               total_mapping = diag(npars),
+                               ...)
+  draws <- trans_loop$draws
+  lw <- trans_loop$log_weights
+  k <- trans_loop$pareto_k
+
+
+  list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
+}
+
+transform_loop <- function(draws,
+                      lw,
+                      k,
+                      update_quantities,
+                      density_function_list,
+                      orig_log_prob_prop,
+                      k_threshold,
+                      cov_transform,
+                      total_shift,
+                      total_scaling,
+                      total_mapping,
+                      ...) {
   while (k > k_threshold) {
 
 
@@ -86,6 +121,7 @@ moment_match.matrix <- function(draws,
     )
     if (quantities$k < k) {
       draws <- trans$draws
+      total_shift <- total_shift + trans$shift
 
       lw <- quantities$lw
       k <- quantities$k
@@ -102,6 +138,8 @@ moment_match.matrix <- function(draws,
     )
     if (quantities$k < k) {
       draws <- trans$draws
+      total_shift <- total_shift + trans$shift
+      total_scaling <- total_scaling * trans$scaling
 
       lw <- quantities$lw
       k <- quantities$k
@@ -119,6 +157,8 @@ moment_match.matrix <- function(draws,
       )
       if (quantities$k < k) {
         draws <- trans$draws
+        total_shift <- total_shift + trans$shift
+        total_mapping <- trans$mapping %*% total_mapping
 
         lw <- quantities$lw
         k <- quantities$k
@@ -130,5 +170,7 @@ moment_match.matrix <- function(draws,
     break
   }
 
-  list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
+  list("draws" = draws, "log_weights" = lw, "pareto_k" = k,
+       "total_shift" = total_shift, "total_scaling" = total_scaling,
+       "total_mapping" = total_mapping)
 }
