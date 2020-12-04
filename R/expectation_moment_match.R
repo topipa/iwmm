@@ -91,14 +91,14 @@ expectation_moment_match.matrix <- function(draws,
     lw_orig <- lw
   } else {
     if (!is.null(log_prob_target_draws_fun)) {
-      update_quantities <- update_quantities_target
-      density_function_list <- list(expectation = FALSE,
+      update_properties <- list(target_type = "target",
+                                    expectation = FALSE,
                                     log_prob_target_draws_fun = log_prob_target_draws_fun)
       lw <- log_prob_target_draws_fun(draws, ...) - orig_log_prob_prop
     }
     if (!is.null(log_ratio_draws_fun)) {
-      update_quantities <- update_quantities_ratio
-      density_function_list <- list(expectation = FALSE,
+      update_properties <- list(target_type = "ratio",
+                                    expectation = FALSE,
                                     log_ratio_draws_fun = log_ratio_draws_fun,
                                     log_prob_prop_draws_fun = log_prob_prop_draws_fun)
       lw <- log_ratio_draws_fun(draws, ...)
@@ -114,7 +114,7 @@ expectation_moment_match.matrix <- function(draws,
                                  lw,
                                  k,
                                  update_quantities,
-                                 density_function_list,
+                                 update_properties,
                                  orig_log_prob_prop,
                                  k_threshold,
                                  cov_transform,
@@ -168,23 +168,20 @@ expectation_moment_match.matrix <- function(draws,
     }
 
     if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
-      # update_quantities_expectation <- update_quantities_expectation
-      update_quantities <- update_quantities
-      density_function_list <- list(expectation = TRUE,
+      update_properties <- list(target_type = "simple",
+                                    expectation = TRUE,
                                     expectation_fun = expectation_fun,
                                     log_expectation_fun = log_expectation_fun,
                                     log_prob_prop_draws_fun = log_prob_prop_draws_fun)
     } else if (!is.null(log_prob_target_draws_fun)) {
-      # update_quantities_expectation <- update_quantities_target_expectation
-      update_quantities <- update_quantities_target
-      density_function_list <- list(expectation = TRUE,
+      update_properties <- list(target_type = "target",
+                                    expectation = TRUE,
                                     expectation_fun = expectation_fun,
                                     log_expectation_fun = log_expectation_fun,
                                     log_prob_target_draws_fun = log_prob_target_draws_fun)
     } else if (!is.null(log_ratio_draws_fun)) {
-      # update_quantities_expectation <- update_quantities_ratio_expectation
-      update_quantities <- update_quantities_ratio
-      density_function_list <- list(expectation = TRUE,
+      update_properties <- list(target_type = "ratio",
+                                    expectation = TRUE,
                                     expectation_fun = expectation_fun,
                                     log_expectation_fun = log_expectation_fun,
                                     log_ratio_draws_fun = log_ratio_draws_fun,
@@ -198,7 +195,7 @@ expectation_moment_match.matrix <- function(draws,
                                  lwf,
                                  kf,
                                  update_quantities,
-                                 density_function_list,
+                                 update_properties,
                                  orig_log_prob_prop,
                                  k_threshold,
                                  cov_transform,

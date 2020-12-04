@@ -1,10 +1,9 @@
-#' Function for updating importance weights and pareto k diagnostic for
-#' expectation-specific weights. For simple Monte Carlo expectations.
+#' Function for updating importance weights and pareto k diagnostic.
 #'
 #' @param draws A matrix of draws.
 #' @param orig_log_prob Log density of the proposal before moment matching.
-#' @param density_function_list List of functions for computing the log
-#' importance weights.
+#' @param update_properties List of properties to define how quantities
+#' are updated.
 #' @param expectation_fun A function whose expectation is being computed.
 #' The function takes arguments `draws`.
 #' @param log_expectation_fun Logical indicating whether the expectation_fun
@@ -14,90 +13,34 @@
 #'
 #' @noRd
 update_quantities <- function(draws, orig_log_prob_prop,
-                              density_function_list,
+                              update_properties,
                               ...) {
 
-  log_prob_prop_draws_fun <- density_function_list$log_prob_prop_draws_fun
+  if (update_properties$target_type == "simple") {
+    log_prob_prop_draws_fun <- update_properties$log_prob_prop_draws_fun
+    log_prop_new <- log_prob_prop_draws_fun(draws = draws, ...)
+    lw_new <- log_prop_new - orig_log_prob_prop
+  } else if (update_properties$target_type == "ratio") {
+    log_ratio_draws_fun <- update_properties$log_ratio_draws_fun
+    log_prob_prop_draws_fun <- update_properties$log_prob_prop_draws_fun
+    log_ratio_new <- log_ratio_draws_fun(draws = draws, ...)
+    log_prop_new <- log_prob_prop_draws_fun(draws = draws, ...)
+    lw_new <- log_ratio_new + log_prop_new - orig_log_prob_prop
+  } else if (update_properties$target_type == "target") {
+    log_prob_target_draws_fun <- update_properties$log_prob_target_draws_fun
+    log_prob_target_new <- log_prob_target_draws_fun(draws = draws, ...)
+    lw_new <- log_prob_target_new - orig_log_prob_prop
+  }
 
-  log_prop_new <- log_prob_prop_draws_fun(draws = draws, ...)
-  lw_new <- log_prop_new - orig_log_prob_prop
 
-  if (density_function_list$expectation) {
+  if (update_properties$expectation) {
     lw_new <- compute_lwf(draws, lw_new,
-                          density_function_list$expectation_fun,
-                          density_function_list$log_expectation_fun,
+                          update_properties$expectation_fun,
+                          update_properties$log_expectation_fun,
                           ...)
   }
 
-  update_quantities_core(lw_new)
-}
-
-#' Function for updating importance weights and pareto k diagnostic
-#'
-#' @param draws A matrix of draws.
-#' @param orig_log_prob Log density of the proposal before moment matching.
-#' @param density_function_list List of functions for computing the log
-#' importance weights.
-#' @return List with the updated log importance weights and the Pareto k.
-#'
-#' @noRd
-update_quantities_ratio <- function(draws, orig_log_prob_prop,
-                                    density_function_list,
-                                    ...) {
-  log_ratio_draws_fun <- density_function_list$log_ratio_draws_fun
-  log_prob_prop_draws_fun <- density_function_list$log_prob_prop_draws_fun
-
-  log_ratio_new <- log_ratio_draws_fun(draws = draws, ...)
-  log_prop_new <- log_prob_prop_draws_fun(draws = draws, ...)
-  lw_new <- log_ratio_new + log_prop_new - orig_log_prob_prop
-
-  if (density_function_list$expectation) {
-    lw_new <- compute_lwf(draws, lw_new,
-                          density_function_list$expectation_fun,
-                          density_function_list$log_expectation_fun,
-                          ...)
-  }
-
-  update_quantities_core(lw_new)
-}
-
-#' Function for updating importance weights and pareto k diagnostic
-#'
-#' @param draws A matrix of draws.
-#' @param orig_log_prob Log density of the proposal before moment matching.
-#' @param density_function_list List of functions for computing the log
-#' importance weights.
-#' @return List with the updated log importance weights and the Pareto k.
-#'
-#' @noRd
-update_quantities_target <- function(draws, orig_log_prob_prop,
-                                     density_function_list,
-                                     ...) {
-
-  log_prob_target_draws_fun <- density_function_list$log_prob_target_draws_fun
-
-  log_prob_target_new <- log_prob_target_draws_fun(draws = draws, ...)
-  lw_new <- log_prob_target_new - orig_log_prob_prop
-
-  if (density_function_list$expectation) {
-    lw_new <- compute_lwf(draws, lw_new,
-                          density_function_list$expectation_fun,
-                          density_function_list$log_expectation_fun,
-                          ...)
-  }
-
-  update_quantities_core(lw_new)
-}
-
-#' Function for updating importance weights and pareto k diagnostic
-#'
-#' @param lw log importance weights
-#' @return List with the updated log importance weights and the Pareto k.
-#'
-#' @noRd
-update_quantities_core <- function(lw, ...) {
-
-  psis <- suppressWarnings(loo::psis(lw))
+  psis <- suppressWarnings(loo::psis(lw_new))
   k <- psis$diagnostics$pareto_k
   lw <- as.vector(weights(psis))
 

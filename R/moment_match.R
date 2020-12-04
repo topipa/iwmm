@@ -54,14 +54,14 @@ moment_match.matrix <- function(draws,
   orig_log_prob_prop <- log_prob_prop_draws_fun(draws = draws, ...)
 
   if (!is.null(log_prob_target_draws_fun)) {
-    update_quantities <- update_quantities_target
-    density_function_list <- list(expectation = FALSE,
+    update_properties <- list(target_type = "target",
+                                  expectation = FALSE,
                                   log_prob_target_draws_fun = log_prob_target_draws_fun)
     lw <- log_prob_target_draws_fun(draws, ...) - orig_log_prob_prop
   }
   if (!is.null(log_ratio_draws_fun)) {
-    update_quantities <- update_quantities_ratio
-    density_function_list <- list(expectation = FALSE,
+    update_properties <- list(target_type = "ratio",
+                                  expectation = FALSE,
                                   log_ratio_draws_fun = log_ratio_draws_fun,
                                   log_prob_prop_draws_fun = log_prob_prop_draws_fun)
     lw <- log_ratio_draws_fun(draws, ...)
@@ -80,7 +80,7 @@ moment_match.matrix <- function(draws,
                                lw,
                                k,
                                update_quantities,
-                               density_function_list,
+                               update_properties,
                                orig_log_prob_prop,
                                k_threshold,
                                cov_transform,
@@ -94,83 +94,4 @@ moment_match.matrix <- function(draws,
 
 
   list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
-}
-
-transform_loop <- function(draws,
-                      lw,
-                      k,
-                      update_quantities,
-                      density_function_list,
-                      orig_log_prob_prop,
-                      k_threshold,
-                      cov_transform,
-                      total_shift,
-                      total_scaling,
-                      total_mapping,
-                      ...) {
-  while (k > k_threshold) {
-
-
-    # 1. match means
-    trans <- shift(draws, lw)
-    quantities <- update_quantities(
-      draws = trans$draws,
-      orig_log_prob_prop = orig_log_prob_prop,
-      density_function_list,
-      ...
-    )
-    if (quantities$k < k) {
-      draws <- trans$draws
-      total_shift <- total_shift + trans$shift
-
-      lw <- quantities$lw
-      k <- quantities$k
-      next
-    }
-
-    # 2. match means and marginal variances
-    trans <- shift_and_scale(draws, lw)
-    quantities <- update_quantities(
-      draws = trans$draws,
-      orig_log_prob_prop = orig_log_prob_prop,
-      density_function_list,
-      ...
-    )
-    if (quantities$k < k) {
-      draws <- trans$draws
-      total_shift <- total_shift + trans$shift
-      total_scaling <- total_scaling * trans$scaling
-
-      lw <- quantities$lw
-      k <- quantities$k
-      next
-    }
-
-    if (cov_transform) {
-      # 3. match means and covariances
-      trans <- shift_and_cov(draws, lw)
-      quantities <- update_quantities(
-        draws = trans$draws,
-        orig_log_prob_prop = orig_log_prob_prop,
-        density_function_list,
-        ...
-      )
-      if (quantities$k < k) {
-        draws <- trans$draws
-        total_shift <- total_shift + trans$shift
-        total_mapping <- trans$mapping %*% total_mapping
-
-        lw <- quantities$lw
-        k <- quantities$k
-        next
-      }
-    }
-
-
-    break
-  }
-
-  list("draws" = draws, "log_weights" = lw, "pareto_k" = k,
-       "total_shift" = total_shift, "total_scaling" = total_scaling,
-       "total_mapping" = total_mapping)
 }
