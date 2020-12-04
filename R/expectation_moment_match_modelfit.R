@@ -1,27 +1,23 @@
 
 
-
-
-# TODO put this in separate file
-
-# TODO add obs_weights option
-
 expectation_moment_match_modelfit <- function(x,
-                                              post_draws,
-                                              unconstrain_pars,
+                                              post_draws_fun,
+                                              unconstrain_pars_fun,
                                               log_prob_prop_draws_fun,
                                               expectation_fun,
                                               log_expectation_fun = FALSE,
                                               log_prob_target_draws_fun = NULL,
                                               log_ratio_draws_fun = NULL,
+                                              obs_weights = NULL,
+                                              log_lik_fun = NULL,
                                               k_threshold = 0.5,
                                               cov_transform = TRUE,
                                               split = FALSE,
                                               restart_transform = FALSE,
                                               ...) {
 
-  checkmate::assertFunction(post_draws)
-  checkmate::assertFunction(unconstrain_pars)
+  checkmate::assertFunction(post_draws_fun)
+  checkmate::assertFunction(unconstrain_pars_fun)
   checkmate::assertFunction(log_prob_prop_draws_fun)
   checkmate::assertFunction(expectation_fun)
   checkmate::assertNumber(k_threshold)
@@ -32,13 +28,14 @@ expectation_moment_match_modelfit <- function(x,
 
 
 
-  if (!is.null(log_prob_target_draws_fun) && !is.null(log_ratio_draws_fun)) {
-    stop("You cannot give both log_prob_target_draws_fun and log_ratio_draws_fun.")
+  if (!is.null(log_prob_target_draws_fun) + !is.null(log_ratio_draws_fun) + !is.null(obs_weights) > 1) {
+    stop("You canonly give one of the three options: log_prob_target_draws_fun,
+         log_ratio_draws_fun and obs_weights.")
   }
 
-  pars <- post_draws(x, ...)
+  pars <- post_draws_fun(x, ...)
   # transform the model parameters to unconstrained space
-  draws <- unconstrain_pars(x, pars = pars, ...)
+  draws <- unconstrain_pars_fun(x, pars = pars, ...)
 
   orig_log_prob_prop <- log_prob_prop_draws_fun(draws = draws, ...)
 
@@ -68,6 +65,20 @@ expectation_moment_match_modelfit <- function(x,
       update_quantities <- update_quantities_ratio_modelfit
       density_function_list <- list(log_ratio_draws_fun = log_ratio_draws_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun)
       lw <- log_ratio_draws_fun(x, draws, ...)
+    }
+    if (!is.null(obs_weights)) {
+      if (is.null(log_lik_fun)) {
+        stop("You must give log_lik_fun when using obs_weights.")
+      }
+      log_lik <- log_lik_fun(x, ...)
+      S <- nrow(log_lik)
+      N <- ncol(log_lik)
+      checkmate::assertNumeric(obs_weights, len = N)
+      obs_weights <- matrix(c(obs_weights), S, N, byrow = TRUE)
+      lw <- rowSums((obs_weights - 1) * log_lik)
+
+      update_quantities <- update_quantities_obs_weights_modelfit
+      density_function_list <- list(log_lik_fun = log_lik_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun, obs_weights = obs_weights)
     }
 
     lw_psis <- suppressWarnings(loo::psis(lw))
@@ -181,15 +192,18 @@ expectation_moment_match_modelfit <- function(x,
            As a workaround, you can wrap your function call using apply.')
     }
 
-    if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
-      update_quantities_expectation <- update_quantities_expectation
+    if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun) && is.null(obs_weights)) {
+      update_quantities_expectation <- update_quantities_expectation_modelfit
       density_function_list <- list(log_prob_prop_draws_fun = log_prob_prop_draws_fun)
     } else if (!is.null(log_prob_target_draws_fun)) {
-      update_quantities_expectation <- update_quantities_target_expectation
+      update_quantities_expectation <- update_quantities_target_expectation_modelfit
       density_function_list <- list(log_prob_target_draws_fun = log_prob_target_draws_fun)
     } else if (!is.null(log_ratio_draws_fun)) {
-      update_quantities_expectation <- update_quantities_ratio_expectation
+      update_quantities_expectation <- update_quantities_ratio_expectation_modelfit
       density_function_list <- list(log_ratio_draws_fun = log_ratio_draws_fun, log_prob_prop_draws_fun = log_prob_prop_draws_fun)
+    } else if (!is.null(obs_weights)) {
+      update_quantities_expectation <- update_quantities_obs_weights_expectation_modelfit
+      density_function_list <- list(log_prob_prop_draws_fun = log_prob_prop_draws_fun, log_lik_fun = log_lik_fun, obs_weights = obs_weights)
     }
 
     lwf <- as.vector(weights(psisf))
@@ -334,7 +348,7 @@ expectation_moment_match_modelfit <- function(x,
 
 
 
-    if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
+    if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun) && is.null(obs_weights)) {
       log_prob_prop_trans <- log_prob_prop_draws_fun(x, draws = draws_trans, ...)
       lw_trans <-  log_prob_prop_trans -
         log(
@@ -352,6 +366,13 @@ expectation_moment_match_modelfit <- function(x,
       log_prob_ratio_trans <- log_ratio_draws_fun(x, draws = draws_trans, ...)
       log_prob_prop_trans <- log_prob_prop_draws_fun(x, draws = draws_trans, ...)
       lw_trans <-  log_prob_ratio_trans + log_prob_prop_trans -
+        log(
+          exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
+            exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
+        )
+    } else if (!is.null(obs_weights)) {
+      log_lik_trans <- log_lik_fun(x, draws = draws_trans, ...)
+      lw_trans <-  rowSums((obs_weights - 1) * log_lik_trans) -
         log(
           exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
             exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
@@ -514,5 +535,46 @@ update_quantities_expectation_modelfit <- function(x, draws, orig_log_prob_prop,
 
 
 
+
+
+
+
+
+
+
+
+
+# this is here because it is not used in expectation_moment_match
+update_quantities_obs_weights_expectation_modelfit <- function(x, draws, orig_log_prob_prop,
+                                                density_function_list,
+                                                expectation_fun, log_expectation_fun,
+                                                ...) {
+
+  log_prob_prop_draws_fun <- density_function_list$log_prob_prop_draws_fun
+  log_lik_fun <- density_function_list$log_lik_fun
+  obs_weights <- density_function_list$obs_weights
+
+  log_prob_prop_new <- log_prob_prop_draws_fun(x, draws = draws, ...)
+  log_lik_new <- log_lik_fun(x, draws = draws, ...)
+
+  lw_new <- rowSums((obs_weights - 1) * log_lik_new) + log_prob_prop_new - orig_log_prob_prop
+
+  if (log_expectation_fun) {
+    lwf_new <- lw_new + expectation_fun(draws, ...)
+  }
+  else {
+    lwf_new <- lw_new + log(abs(expectation_fun(draws, ...)))
+  }
+
+  psisf_new <- suppressWarnings(loo::psis(lwf_new))
+  kf_new <- psisf_new$diagnostics$pareto_k
+  lwf_new <- as.vector(weights(psisf_new))
+
+  # gather results
+  list(
+    lwf = lwf_new,
+    kf = kf_new
+  )
+}
 
 
