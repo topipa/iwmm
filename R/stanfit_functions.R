@@ -34,6 +34,28 @@ moment_match.stanfit <- function(x,
   out
 }
 
+expectation_moment_match.stanfit <- function(x,
+                                             expectation_fun,
+                                             log_prob_target_draws_fun = NULL,
+                                             log_ratio_draws_fun = NULL,
+                                             ...) {
+
+  pars <- as.matrix(x)
+  # transform the model parameters to unconstrained space
+  draws <- unconstrain_pars.stanfit(x, pars = pars, ...)
+
+  out <- expectation_moment_match(
+    draws,
+    expectation_fun = expectation_fun,
+    log_prob_prop_draws_fun = log_prob_upars.stanfit,
+    log_prob_target_draws_fun = log_prob_target_draws_fun,
+    log_ratio_draws_fun = log_ratio_draws_fun,
+    x = x,
+    ...
+  )
+  out
+}
+
 
 
 log_prob_upars.stanfit <- function(draws, x, ...) {

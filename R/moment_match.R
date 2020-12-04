@@ -47,6 +47,9 @@ moment_match.matrix <- function(draws,
   if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
     stop("You must give either log_prob_target_draws_fun or log_ratio_draws_fun.")
   }
+  if (!is.null(log_prob_target_draws_fun) && !is.null(log_ratio_draws_fun)) {
+    stop("You cannot give both log_prob_target_draws_fun and log_ratio_draws_fun.")
+  }
 
   orig_log_prob_prop <- log_prob_prop_draws_fun(draws = draws, ...)
 
