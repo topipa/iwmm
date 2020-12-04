@@ -2,8 +2,7 @@
 % Please edit documentation in R/moment_match.R
 \name{moment_match}
 \alias{moment_match}
-\title{Generic importance weighted moment matching algorithm for a specific
-expectation.}
+\title{Generic importance weighted moment matching algorithm.}
 \usage{
 moment_match(draws, ...)
 }
@@ -13,6 +12,5 @@ moment_match(draws, ...)
 \item{...}{Further arguments passed.}
 }
 \description{
-Generic importance weighted moment matching algorithm for a specific
-expectation.
+Generic importance weighted moment matching algorithm.
 }

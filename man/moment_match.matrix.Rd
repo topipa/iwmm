@@ -2,8 +2,7 @@
 % Please edit documentation in R/moment_match.R
 \name{moment_match.matrix}
 \alias{moment_match.matrix}
-\title{Generic importance weighted moment matching algorithm for a specific
-expectation for matrices.}
+\title{Generic importance weighted moment matching algorithm for matrices.}
 \usage{
 \method{moment_match}{matrix}(
   draws,
@@ -20,23 +19,24 @@ expectation for matrices.}
 )
 }
 \arguments{
-\item{draws}{A matrix of draws.}
+\item{draws}{A matrix of draws. Must be unconstrained.}
 
 \item{log_prob_prop_draws_fun}{Log density of the proposal.
 The function takes argument \code{draws}.}
 
-\item{log_prob_target_draws_fun}{Log density of the target.
-The function takes argument \code{draws}.}
+\item{log_prob_target_draws_fun}{Log density of the target for
+importance sampling. The function takes argument \code{draws}.}
 
-\item{log_ratio_draws_fun}{Log of the density ratio (target/proposal).
-The function takes argument \code{draws}.}
+\item{log_ratio_draws_fun}{Log of the density ratio for importance sampling
+(target/proposal). The function takes argument \code{draws}.}
 
-\item{expectation_fun}{A function whose expectation is being computed.
-The function takes arguments \code{draws}.}
+\item{expectation_fun}{Optional argument, NULL by default. A function whose expectation is
+being computed. The function takes arguments \code{draws}.}
 
 \item{log_expectation_fun}{Logical indicating whether the expectation_fun
 returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
-the expectation function must be nonnegative (before taking the logarithm).}
+the expectation function must be nonnegative (before taking the logarithm).
+Ignored if \code{expectation_fun} is NULL.}
 
 \item{k_threshold}{Threshold value for Pareto k values above which the moment
 matching algorithm is used. The default value is 0.5.}
@@ -56,10 +56,10 @@ or the transformed parameters. If split is FALSE, this is ignored.}
 \code{log_prob_target_draws_fun} and \code{log_ratio_draws_fun}.}
 }
 \value{
-Returns a list with 4 elements: the expectation, transformed draws, updated
+Returns a list with: transformed draws, updated
 importance weights, and the pareto k diagnostic value.
+If expectation_fun is given, also returns the expectation.
 }
 \description{
-Generic importance weighted moment matching algorithm for a specific
-expectation for matrices.
+Generic importance weighted moment matching algorithm for matrices.
 }
