@@ -2,15 +2,20 @@
 % Please edit documentation in R/moment_match.R
 \name{moment_match.matrix}
 \alias{moment_match.matrix}
-\title{Generic importance weighted moment matching algorithm for matrices.}
+\title{Generic importance weighted moment matching algorithm for a specific
+expectation for matrices.}
 \usage{
 \method{moment_match}{matrix}(
   draws,
   log_prob_prop_draws_fun,
   log_prob_target_draws_fun = NULL,
   log_ratio_draws_fun = NULL,
+  expectation_fun = NULL,
+  log_expectation_fun = FALSE,
   k_threshold = 0.5,
   cov_transform = TRUE,
+  split = FALSE,
+  restart_transform = FALSE,
   ...
 )
 }
@@ -26,6 +31,13 @@ The function takes argument \code{draws}.}
 \item{log_ratio_draws_fun}{Log of the density ratio (target/proposal).
 The function takes argument \code{draws}.}
 
+\item{expectation_fun}{A function whose expectation is being computed.
+The function takes arguments \code{draws}.}
+
+\item{log_expectation_fun}{Logical indicating whether the expectation_fun
+returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
+the expectation function must be nonnegative (before taking the logarithm).}
+
 \item{k_threshold}{Threshold value for Pareto k values above which the moment
 matching algorithm is used. The default value is 0.5.}
 
@@ -33,13 +45,21 @@ matching algorithm is used. The default value is 0.5.}
 the samples or not. If \code{FALSE}, only the mean and marginal variances are
 matched. Default is \code{TRUE}.}
 
+\item{split}{Logical; Indicate whether to do the split transformation or not
+at the end of moment matching. FALSE by default.}
+
+\item{restart_transform}{Logical; When split is TRUE, indicates whether to
+start the second transformation from the original model parameters
+or the transformed parameters. If split is FALSE, this is ignored.}
+
 \item{...}{Further arguments passed to \code{log_prob_prop_draws_fun},
 \code{log_prob_target_draws_fun} and \code{log_ratio_draws_fun}.}
 }
 \value{
-Returns a list with 3 elements: transformed draws, updated
+Returns a list with 4 elements: the expectation, transformed draws, updated
 importance weights, and the pareto k diagnostic value.
 }
 \description{
-Generic importance weighted moment matching algorithm for matrices.
+Generic importance weighted moment matching algorithm for a specific
+expectation for matrices.
 }
