@@ -1,4 +1,6 @@
 
+
+
 test_that("moment_match works", {
 
   set.seed(7)
@@ -125,18 +127,14 @@ test_that("moment_match with model works", {
 })
 
 
+library(rstan)
+rstan_options(auto_write = TRUE)
+options(mc.cores = 1)
 
+# Very simple example model
+# Gaussian 1-dimensional data with unknown location and scale
 
-test_that("moment_match.stanfit works", {
-
-  library(rstan)
-  rstan_options(auto_write = TRUE)
-  options(mc.cores = 1)
-
-  # Very simple example model
-  # Gaussian 1-dimensional data with unknown location and scale
-
-  stancode <- "data {
+stancode <- "data {
   int<lower=0> N;
   vector[N] x;
   }
@@ -153,8 +151,11 @@ test_that("moment_match.stanfit works", {
       log_lik[n] = normal_lpdf(x[n] | mu, sigma);
   }"
 
-  stanmodel <- stan_model(model_code = stancode)
+stanmodel <- stan_model(model_code = stancode)
 
+
+
+test_that("moment_match.stanfit works", {
 
 
 
@@ -212,33 +213,8 @@ test_that("moment_match.stanfit works", {
 
 
 
-test_that("moment_match.stanfit BB works", {
+test_that("moment_match.stanfit works with obs_weights formulation", {
 
-  library(rstan)
-  rstan_options(auto_write = TRUE)
-  options(mc.cores = 1)
-
-  # Very simple example model
-  # Gaussian 1-dimensional data with unknown location and scale
-
-  stancode <- "data {
-  int<lower=0> N;
-  vector[N] x;
-  }
-  parameters {
-    real mu;
-    real<lower=0> sigma;
-  }
-  model {
-    x ~ normal(mu,sigma);
-  }
-  generated quantities {
-    vector[N] log_lik;
-    for (n in 1:N)
-      log_lik[n] = normal_lpdf(x[n] | mu, sigma);
-  }"
-
-  stanmodel <- stan_model(model_code = stancode)
 
 
 
@@ -292,7 +268,6 @@ test_that("moment_match.stanfit BB works", {
                              log_ratio_draws_fun = ratio_density,
                              k_threshold = 0.0)
 
-  matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(-0.1572105, -0.2797750), tolerance = 1e-6)
   expect_equal(matrixStats::colWeightedMeans(iw$draws^2,w = exp(iw$log_weights)) - matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))^2, c(0.01987301, 0.01801787), tolerance = 1e-6)
@@ -311,7 +286,6 @@ test_that("moment_match.stanfit BB works", {
                              log_prob_target_draws_fun = target_density,
                              k_threshold = 0.0)
 
-  matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(-0.1572105, -0.2797750), tolerance = 1e-6)
   expect_equal(matrixStats::colWeightedMeans(iw$draws^2,w = exp(iw$log_weights)) - matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))^2, c(0.01987301, 0.01801787), tolerance = 1e-6)
