@@ -217,14 +217,14 @@ update_quantities_target <- function(draws, orig_log_prob_prop,
 
 moment_match.stanfit <- function(x, ...) {
   # TODO: ensure compatibility with objects not created in the current R session
-  post_draws <- function(x, ...) {
+  post_draws_fun <- function(x, ...) {
     # ensure additional arguments are not passed further
     as.matrix(x)
   }
   out <- moment_match_modelfit(
     x,
-    post_draws = post_draws,
-    unconstrain_pars = unconstrain_pars.stanfit,
+    post_draws_fun = post_draws_fun,
+    unconstrain_pars_fun = unconstrain_pars.stanfit,
     log_prob_prop_draws_fun = log_prob_upars.stanfit,
     # log_ratio_upars = log_ratio_upars.stanfit,
     ...
@@ -280,9 +280,9 @@ unconstrain_pars.stanfit <- function(x, pars, ...) {
 #' Generic importance weighted moment matching algorithm for matrices.
 #'
 #' @param x A fitted model object.
-#' @param post_draws A function the takes `x` as the first argument and returns
+#' @param post_draws_fun A function the takes `x` as the first argument and returns
 #'   a matrix of posterior draws of the model parameters (`pars`).
-#' @param unconstrain_pars A function that takes arguments `x`, and `pars` and
+#' @param unconstrain_pars_fun A function that takes arguments `x`, and `pars` and
 #'   returns posterior draws on the unconstrained space based on the posterior
 #'   draws on the constrained space passed via `pars`.
 #' @param log_prob_prop_draws_fun Log density of the proposal.
@@ -313,8 +313,8 @@ unconstrain_pars.stanfit <- function(x, pars, ...) {
 #' @export
 #' @importFrom stats weights
 moment_match_modelfit <- function(x,
-                                  post_draws,
-                                  unconstrain_pars,
+                                  post_draws_fun,
+                                  unconstrain_pars_fun,
                                   log_prob_prop_draws_fun,
                                   log_prob_target_draws_fun = NULL,
                                   log_ratio_draws_fun = NULL,
@@ -323,8 +323,8 @@ moment_match_modelfit <- function(x,
                                   k_threshold = 0.5,
                                   cov_transform = TRUE, ...) {
 
-  checkmate::assertFunction(post_draws)
-  checkmate::assertFunction(unconstrain_pars)
+  checkmate::assertFunction(post_draws_fun)
+  checkmate::assertFunction(unconstrain_pars_fun)
   checkmate::assertFunction(log_prob_prop_draws_fun)
   checkmate::assertNumber(k_threshold)
   checkmate::assertLogical(cov_transform)
@@ -337,9 +337,9 @@ moment_match_modelfit <- function(x,
          or obs_weights to determine your target density.")
   }
 
-  pars <- post_draws(x, ...)
+  pars <- post_draws_fun(x, ...)
   # transform the model parameters to unconstrained space
-  draws <- unconstrain_pars(x, pars = pars, ...)
+  draws <- unconstrain_pars_fun(x, pars = pars, ...)
 
   orig_log_prob_prop <- log_prob_prop_draws_fun(x, draws = draws, ...)
 
@@ -357,7 +357,7 @@ moment_match_modelfit <- function(x,
     if (is.null(log_lik_fun)) {
       stop("You must give log_lik_fun when using obs_weights.")
     }
-    log_lik <- log_lik_fun(x, ...)
+    log_lik <- log_lik_fun(x, draws, ...)
     S <- nrow(log_lik)
     N <- ncol(log_lik)
     checkmate::assertNumeric(obs_weights, len = N)
