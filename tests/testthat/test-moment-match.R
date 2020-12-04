@@ -163,7 +163,6 @@ test_that("moment_match.stanfit works", {
 
 
   # Let us generate data from the true data generating mechanism
-  # Except set 1 observation by hand as an outlier
 
   SEED <- 24
   set.seed(SEED)
@@ -171,7 +170,7 @@ test_that("moment_match.stanfit works", {
   n = as.integer(30)
   x = rnorm(n = n, mean = 0,sd = data_var)
 
-  # fit a model with all the observations
+  # fit the model
   # We will use this model's posterior as the basis for importance sampling
   standata = list(N = n, x = x)
   fit <- sampling(stanmodel, data = standata, chains = 4, iter = 2000, refresh = 0)
