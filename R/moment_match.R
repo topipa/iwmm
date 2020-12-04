@@ -30,6 +30,7 @@ moment_match <- function(draws, ...) {
 #' importance weights, and the pareto k diagnostic value.
 #'
 #' @export
+#' @importFrom stats weights
 moment_match.matrix <- function(draws,
                                 log_prob_prop_draws_fun,
                                 log_prob_target_draws_fun = NULL,
@@ -63,24 +64,6 @@ moment_match.matrix <- function(draws,
     lw <- log_ratio_draws_fun(draws, ...)
   }
 
-  moment_match.default(draws,
-                       lw,
-                       update_quantities,
-                       orig_log_prob_prop,
-                       density_function_list,
-                       k_threshold,
-                       cov_transform,
-                       ...)
-}
-
-#' @importFrom stats weights
-moment_match.default <- function(draws,
-                                lw,
-                                update_quantities,
-                                orig_log_prob_prop,
-                                density_function_list,
-                                k_threshold,
-                                cov_transform, ...) {
 
   lw_psis <- suppressWarnings(loo::psis(lw))
   lw <- as.vector(weights(lw_psis))
@@ -91,6 +74,7 @@ moment_match.default <- function(draws,
   cov_transform <- cov_transform && S >= 10 * npars
 
   while (k > k_threshold) {
+
 
     # 1. match means
     trans <- shift(draws, lw)
@@ -141,11 +125,15 @@ moment_match.default <- function(draws,
         next
       }
     }
+
+
     break
   }
 
   list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
 }
+
+
 
 #' Function for updating importance weights and pareto k diagnostic
 #'
