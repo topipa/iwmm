@@ -1,18 +1,14 @@
 #' Generic importance weighted moment matching algorithm.
 #'
-#'
-#' @param draws A matrix of draws.
-#' @param ... Further arguments passed.
-#'
 #' @export
-moment_match <- function(draws, ...) {
+moment_match <- function(x, ...) {
   UseMethod("moment_match")
 }
 
 #' Generic importance weighted moment matching algorithm for matrices.
 #'
 #'
-#' @param draws A matrix of draws. Must be unconstrained.
+#' @param x A matrix of draws. Must be unconstrained.
 #' @param log_prob_prop_fun Log density of the proposal.
 #' The function takes argument `draws`.
 #' @param log_prob_target_fun Log density of the target for
@@ -45,7 +41,7 @@ moment_match <- function(draws, ...) {
 #' @rdname moment_match
 #' @export
 #' @importFrom stats weights
-moment_match.matrix <- function(draws,
+moment_match.matrix <- function(x,
                          log_prob_prop_fun,
                          log_prob_target_fun = NULL,
                          log_ratio_fun = NULL,
@@ -56,6 +52,8 @@ moment_match.matrix <- function(draws,
                          split = FALSE,
                          restart_transform = FALSE,
                          ...) {
+
+  draws <- x
 
   checkmate::assertMatrix(draws, any.missing = FALSE)
   checkmate::assertFunction(log_prob_prop_fun)

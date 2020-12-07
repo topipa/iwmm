@@ -71,25 +71,25 @@ test_that("moment_match with model works", {
   target_var <- 1
 
   prop_sample <- matrix(rnorm(2 * S, prop_mean, prop_var), S, 2)
-  prop_density <- function(draws, x, ...) {
-    # print(length(x$draws))
+  prop_density <- function(draws, model, ...) {
+    # print(length(model$draws))
     dnorm(draws[,1], prop_mean, prop_var, log = TRUE) + dnorm(draws[,2], prop_mean, prop_var, log = TRUE)
   }
 
-  target_density <- function(draws, x, ...) {
+  target_density <- function(draws, model, ...) {
     dnorm(draws[,1], target_mean, target_var, log = TRUE) + dnorm(draws[,2], target_mean, target_var, log = TRUE)
   }
 
-  ratio_density <- function(draws, x, ...) {
-    target_density(draws, x, ...) - prop_density(draws, x, ...)
+  ratio_density <- function(draws, model, ...) {
+    target_density(draws, model, ...) - prop_density(draws, model, ...)
   }
 
   test_model <- list()
   test_model$draws <- prop_sample
-  test_post_fun <- function(x, ...) {
-    x$draws
+  test_post_fun <- function(model, ...) {
+    model$draws
   }
-  unconstrain_pars_fun <- function(x, pars, ...) {
+  unconstrain_pars_fun <- function(model, pars, ...) {
     pars
   }
 
@@ -99,7 +99,7 @@ test_that("moment_match with model works", {
   iw <- moment_match(prop_sample,
                      log_prob_prop_fun = prop_density,
                      log_ratio_fun = ratio_density,
-                     x = test_model)
+                     model = test_model)
 
 
 
@@ -113,7 +113,7 @@ test_that("moment_match with model works", {
   iw <- moment_match(prop_sample,
                      log_prob_prop_fun = prop_density,
                      log_prob_target_fun = target_density,
-                     x = test_model)
+                     model = test_model)
 
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(4.988783, 4.996672), tolerance = 1e-6)
@@ -245,22 +245,22 @@ test_that("moment_match.stanfit works with obs_weights formulation", {
 
   obs_weights <- c(0, rep(1,n - 1))
 
-  log_lik_stanfit <- function(x, upars, parameter_name = "log_lik",
+  log_lik_stanfit <- function(stanfit, upars, parameter_name = "log_lik",
                                       ...) {
-    ll <- loo::extract_log_lik(x, parameter_name, merge_chains = TRUE)
+    ll <- loo::extract_log_lik(stanfit, parameter_name, merge_chains = TRUE)
     S <- nrow(upars)
     n <- ncol(ll)
     out <- matrix(0,S,n)
     for (s in seq_len(S)) {
-      out[s,] <- rstan::constrain_pars(x, upars = upars[s, ])[[parameter_name]]
+      out[s,] <- rstan::constrain_pars(stanfit, upars = upars[s, ])[[parameter_name]]
     }
     out
   }
 
 
 
-  ratio_density <- function(draws, x, ...) {
-    log_lik <- log_lik_stanfit(x, draws)
+  ratio_density <- function(draws, stanfit, ...) {
+    log_lik <- log_lik_stanfit(stanfit, draws)
     colSums((obs_weights - 1) * t(log_lik))
   }
 
@@ -518,25 +518,25 @@ test_that("moment_match with expectation with model works", {
   target_var <- 1
 
   prop_sample <- matrix(rnorm(2 * S, prop_mean, prop_var), S, 2)
-  prop_density <- function(draws, x, ...) {
-    # print(length(x$draws))
+  prop_density <- function(draws, model, ...) {
+    # print(length(model$draws))
     dnorm(draws[,1], prop_mean, prop_var, log = TRUE) + dnorm(draws[,2], prop_mean, prop_var, log = TRUE)
   }
 
-  target_density <- function(draws, x, ...) {
+  target_density <- function(draws, model, ...) {
     dnorm(draws[,1], target_mean, target_var, log = TRUE) + dnorm(draws[,2], target_mean, target_var, log = TRUE)
   }
 
-  ratio_density <- function(draws, x, ...) {
-    target_density(draws, x, ...) - prop_density(draws, x, ...)
+  ratio_density <- function(draws, model, ...) {
+    target_density(draws, model, ...) - prop_density(draws, model, ...)
   }
 
   test_model <- list()
   test_model$draws <- prop_sample
-  test_post_fun <- function(x, ...) {
-    x$draws
+  test_post_fun <- function(model, ...) {
+    model$draws
   }
-  unconstrain_pars_fun <- function(x, pars, ...) {
+  unconstrain_pars_fun <- function(model, pars, ...) {
     pars
   }
 
@@ -551,12 +551,12 @@ test_that("moment_match with expectation with model works", {
                           draws},
                         log_prob_prop_fun = prop_density,
                         log_ratio_fun = ratio_density,
-                        x = test_model)
+                        model = test_model)
 
   iw <- moment_match(prop_sample,
                      log_prob_prop_fun = prop_density,
                      log_ratio_fun = ratio_density,
-                     x = test_model)
+                     model = test_model)
 
 
 
@@ -574,12 +574,12 @@ test_that("moment_match with expectation with model works", {
                           draws},
                         log_prob_prop_fun = prop_density,
                         log_prob_target_fun = target_density,
-                        x = test_model)
+                        model = test_model)
 
   iw <- moment_match(prop_sample,
                      log_prob_prop_fun = prop_density,
                      log_prob_target_fun = target_density,
-                     x = test_model)
+                     model = test_model)
 
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), ex_mm$expectation, tolerance = 1e-6)
@@ -724,22 +724,22 @@ test_that("moment_match.stanfit with expectation works with obs_weights formulat
 
   obs_weights <- c(0, rep(1,n - 1))
 
-  log_lik_stanfit <- function(x, upars, parameter_name = "log_lik",
+  log_lik_stanfit <- function(stanfit, upars, parameter_name = "log_lik",
                               ...) {
-    ll <- loo::extract_log_lik(x, parameter_name, merge_chains = TRUE)
+    ll <- loo::extract_log_lik(stanfit, parameter_name, merge_chains = TRUE)
     S <- nrow(upars)
     n <- ncol(ll)
     out <- matrix(0,S,n)
     for (s in seq_len(S)) {
-      out[s,] <- rstan::constrain_pars(x, upars = upars[s, ])[[parameter_name]]
+      out[s,] <- rstan::constrain_pars(stanfit, upars = upars[s, ])[[parameter_name]]
     }
     out
   }
 
 
 
-  ratio_density <- function(draws, x, ...) {
-    log_lik <- log_lik_stanfit(x, draws)
+  ratio_density <- function(draws, stanfit, ...) {
+    log_lik <- log_lik_stanfit(stanfit, draws)
     colSums((obs_weights - 1) * t(log_lik))
   }
 

@@ -11,10 +11,10 @@ See additional arguments from \code{moment_match.matrix}}
 \item{x}{A fitted \code{stanfit} object.}
 
 \item{log_prob_target_fun}{Log density of the target.
-The function takes argument \code{draws}.}
+The function takes argument \code{draws}, which are the unconstrained parameters.}
 
 \item{log_ratio_fun}{Log of the density ratio (target/proposal).
-The function takes argument \code{draws}.}
+The function takes argument \code{draws}, which are the unconstrained parameters.}
 
 \item{...}{Further arguments passed to \code{moment_match.matrix}.}
 }

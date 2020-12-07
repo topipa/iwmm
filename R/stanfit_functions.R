@@ -5,9 +5,9 @@
 #'
 #' @param x A fitted `stanfit` object.
 #' @param log_prob_target_fun Log density of the target.
-#' The function takes argument `draws`.
+#' The function takes argument `draws`, which are the unconstrained parameters.
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
-#' The function takes argument `draws`.
+#' The function takes argument `draws`, which are the unconstrained parameters.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
@@ -21,32 +21,32 @@ moment_match.stanfit <- function(x,
 
   pars <- as.matrix(x)
   # transform the model parameters to unconstrained space
-  draws <- unconstrain_pars.stanfit(x, pars = pars, ...)
+  upars <- unconstrain_pars.stanfit(x, pars = pars, ...)
 
   out <- moment_match.matrix(
-    draws,
+    upars,
     log_prob_prop_fun = log_prob_upars.stanfit,
     log_prob_target_fun = log_prob_target_fun,
     log_ratio_fun = log_ratio_fun,
-    x = x,
+    stanfit = x,
     ...
   )
   out
 }
 
 
-log_prob_upars.stanfit <- function(draws, x, ...) {
+log_prob_upars.stanfit <- function(draws, stanfit, ...) {
   apply(draws, 1, rstan::log_prob,
-        object = x,
+        object = stanfit,
         adjust_transform = TRUE, gradient = FALSE
   )
 }
 
 
-unconstrain_pars.stanfit <- function(x, pars, ...) {
-  skeleton <- .create_skeleton(x@sim$pars_oi, x@par_dims[x@sim$pars_oi])
+unconstrain_pars.stanfit <- function(stanfit, pars, ...) {
+  skeleton <- .create_skeleton(stanfit@sim$pars_oi, stanfit@par_dims[stanfit@sim$pars_oi])
   upars <- apply(pars, 1, FUN = function(theta) {
-    rstan::unconstrain_pars(x, pars = .rstan_relist(theta, skeleton))
+    rstan::unconstrain_pars(stanfit, pars = .rstan_relist(theta, skeleton))
   })
   # for one parameter models
   if (is.null(dim(upars))) {
@@ -57,8 +57,8 @@ unconstrain_pars.stanfit <- function(x, pars, ...) {
 
 # -------- will be imported from rstan at some point -------
 # create a named list of draws for use with rstan methods
-.rstan_relist <- function(x, skeleton) {
-  out <- utils::relist(x, skeleton)
+.rstan_relist <- function(stanfit, skeleton) {
+  out <- utils::relist(stanfit, skeleton)
   for (i in seq_along(skeleton)) {
     dim(out[[i]]) <- dim(skeleton[[i]])
   }

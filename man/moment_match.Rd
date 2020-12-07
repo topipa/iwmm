@@ -5,10 +5,10 @@
 \alias{moment_match.matrix}
 \title{Generic importance weighted moment matching algorithm.}
 \usage{
-moment_match(draws, ...)
+moment_match(x, ...)
 
 \method{moment_match}{matrix}(
-  draws,
+  x,
   log_prob_prop_fun,
   log_prob_target_fun = NULL,
   log_ratio_fun = NULL,
@@ -22,7 +22,7 @@ moment_match(draws, ...)
 )
 }
 \arguments{
-\item{draws}{A matrix of draws. Must be unconstrained.}
+\item{x}{A matrix of draws. Must be unconstrained.}
 
 \item{...}{Further arguments passed to \code{log_prob_prop_fun},
 \code{log_prob_target_fun} and \code{log_ratio_fun}.}
