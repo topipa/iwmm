@@ -9,9 +9,9 @@ moment_match(draws, ...)
 
 \method{moment_match}{matrix}(
   draws,
-  log_prob_prop_draws_fun,
-  log_prob_target_draws_fun = NULL,
-  log_ratio_draws_fun = NULL,
+  log_prob_prop_fun,
+  log_prob_target_fun = NULL,
+  log_ratio_fun = NULL,
   expectation_fun = NULL,
   log_expectation_fun = FALSE,
   k_threshold = 0.5,
@@ -24,16 +24,16 @@ moment_match(draws, ...)
 \arguments{
 \item{draws}{A matrix of draws. Must be unconstrained.}
 
-\item{...}{Further arguments passed to \code{log_prob_prop_draws_fun},
-\code{log_prob_target_draws_fun} and \code{log_ratio_draws_fun}.}
+\item{...}{Further arguments passed to \code{log_prob_prop_fun},
+\code{log_prob_target_fun} and \code{log_ratio_fun}.}
 
-\item{log_prob_prop_draws_fun}{Log density of the proposal.
+\item{log_prob_prop_fun}{Log density of the proposal.
 The function takes argument \code{draws}.}
 
-\item{log_prob_target_draws_fun}{Log density of the target for
+\item{log_prob_target_fun}{Log density of the target for
 importance sampling. The function takes argument \code{draws}.}
 
-\item{log_ratio_draws_fun}{Log of the density ratio for importance sampling
+\item{log_ratio_fun}{Log of the density ratio for importance sampling
 (target/proposal). The function takes argument \code{draws}.}
 
 \item{expectation_fun}{Optional argument, NULL by default. A function whose expectation is

@@ -13,11 +13,11 @@ moment_match <- function(draws, ...) {
 #'
 #'
 #' @param draws A matrix of draws. Must be unconstrained.
-#' @param log_prob_prop_draws_fun Log density of the proposal.
+#' @param log_prob_prop_fun Log density of the proposal.
 #' The function takes argument `draws`.
-#' @param log_prob_target_draws_fun Log density of the target for
+#' @param log_prob_target_fun Log density of the target for
 #' importance sampling. The function takes argument `draws`.
-#' @param log_ratio_draws_fun Log of the density ratio for importance sampling
+#' @param log_ratio_fun Log of the density ratio for importance sampling
 #' (target/proposal). The function takes argument `draws`.
 #' @param expectation_fun Optional argument, NULL by default. A function whose expectation is
 #' being computed. The function takes arguments `draws`.
@@ -35,8 +35,8 @@ moment_match <- function(draws, ...) {
 #' @param restart_transform Logical; When split is TRUE, indicates whether to
 #' start the second transformation from the original model parameters
 #' or the transformed parameters. If split is FALSE, this is ignored.
-#' @param ... Further arguments passed to `log_prob_prop_draws_fun`,
-#' `log_prob_target_draws_fun` and `log_ratio_draws_fun`.
+#' @param ... Further arguments passed to `log_prob_prop_fun`,
+#' `log_prob_target_fun` and `log_ratio_fun`.
 #'
 #' @return Returns a list with: transformed draws, updated
 #' importance weights, and the pareto k diagnostic value.
@@ -46,9 +46,9 @@ moment_match <- function(draws, ...) {
 #' @export
 #' @importFrom stats weights
 moment_match.matrix <- function(draws,
-                         log_prob_prop_draws_fun,
-                         log_prob_target_draws_fun = NULL,
-                         log_ratio_draws_fun = NULL,
+                         log_prob_prop_fun,
+                         log_prob_target_fun = NULL,
+                         log_ratio_fun = NULL,
                          expectation_fun = NULL,
                          log_expectation_fun = FALSE,
                          k_threshold = 0.5,
@@ -58,7 +58,7 @@ moment_match.matrix <- function(draws,
                          ...) {
 
   checkmate::assertMatrix(draws, any.missing = FALSE)
-  checkmate::assertFunction(log_prob_prop_draws_fun)
+  checkmate::assertFunction(log_prob_prop_fun)
   checkmate::assertNumber(k_threshold)
   checkmate::assertLogical(cov_transform)
   checkmate::assertLogical(split)
@@ -66,16 +66,16 @@ moment_match.matrix <- function(draws,
   checkmate::assertLogical(log_expectation_fun)
 
 
-  if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)
+  if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)
       && is.null(expectation_fun) ) {
-    stop("You must give either log_prob_target_draws_fun or log_ratio_draws_fun,
+    stop("You must give either log_prob_target_fun or log_ratio_fun,
          or give an expectation_fun.")
   }
-  if (!is.null(log_prob_target_draws_fun) && !is.null(log_ratio_draws_fun)) {
-    stop("You cannot give both log_prob_target_draws_fun and log_ratio_draws_fun.")
+  if (!is.null(log_prob_target_fun) && !is.null(log_ratio_fun)) {
+    stop("You cannot give both log_prob_target_fun and log_ratio_fun.")
   }
 
-  orig_log_prob_prop <- log_prob_prop_draws_fun(draws = draws, ...)
+  orig_log_prob_prop <- log_prob_prop_fun(draws = draws, ...)
 
   npars <- ncol(draws)
   S <- nrow(draws)
@@ -88,24 +88,24 @@ moment_match.matrix <- function(draws,
 
   draws_orig <- draws
 
-  if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
+  if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
     lw <- - matrixStats::logSumExp(rep(0,nrow(draws)))
     k <- 0
 
     lw_orig <- lw
   } else {
-    if (!is.null(log_prob_target_draws_fun)) {
+    if (!is.null(log_prob_target_fun)) {
       update_properties <- list(target_type = "target",
                                     expectation = FALSE,
-                                    log_prob_target_draws_fun = log_prob_target_draws_fun)
-      lw <- log_prob_target_draws_fun(draws, ...) - orig_log_prob_prop
+                                    log_prob_target_fun = log_prob_target_fun)
+      lw <- log_prob_target_fun(draws, ...) - orig_log_prob_prop
     }
-    if (!is.null(log_ratio_draws_fun)) {
+    if (!is.null(log_ratio_fun)) {
       update_properties <- list(target_type = "ratio",
                                     expectation = FALSE,
-                                    log_ratio_draws_fun = log_ratio_draws_fun,
-                                    log_prob_prop_draws_fun = log_prob_prop_draws_fun)
-      lw <- log_ratio_draws_fun(draws, ...)
+                                    log_ratio_fun = log_ratio_fun,
+                                    log_prob_prop_fun = log_prob_prop_fun)
+      lw <- log_ratio_fun(draws, ...)
     }
 
     lw_psis <- suppressWarnings(loo::psis(lw))
@@ -178,25 +178,25 @@ moment_match.matrix <- function(draws,
            As a workaround, you can wrap your function call using apply.')
       }
 
-      if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
+      if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         update_properties <- list(target_type = "simple",
                                   expectation = TRUE,
                                   expectation_fun = expectation_fun,
                                   log_expectation_fun = log_expectation_fun,
-                                  log_prob_prop_draws_fun = log_prob_prop_draws_fun)
-      } else if (!is.null(log_prob_target_draws_fun)) {
+                                  log_prob_prop_fun = log_prob_prop_fun)
+      } else if (!is.null(log_prob_target_fun)) {
         update_properties <- list(target_type = "target",
                                   expectation = TRUE,
                                   expectation_fun = expectation_fun,
                                   log_expectation_fun = log_expectation_fun,
-                                  log_prob_target_draws_fun = log_prob_target_draws_fun)
-      } else if (!is.null(log_ratio_draws_fun)) {
+                                  log_prob_target_fun = log_prob_target_fun)
+      } else if (!is.null(log_ratio_fun)) {
         update_properties <- list(target_type = "ratio",
                                   expectation = TRUE,
                                   expectation_fun = expectation_fun,
                                   log_expectation_fun = log_expectation_fun,
-                                  log_ratio_draws_fun = log_ratio_draws_fun,
-                                  log_prob_prop_draws_fun = log_prob_prop_draws_fun)
+                                  log_ratio_fun = log_ratio_fun,
+                                  log_prob_prop_fun = log_prob_prop_fun)
       }
 
       lwf <- as.vector(weights(psisf))
@@ -288,29 +288,29 @@ moment_match.matrix <- function(draws,
 
 
 
-      log_prob_trans_inv1 <- log_prob_prop_draws_fun(draws = draws_trans_inv1, ...)
-      log_prob_trans_inv2 <- log_prob_prop_draws_fun(draws = draws_trans_inv2, ...)
+      log_prob_trans_inv1 <- log_prob_prop_fun(draws = draws_trans_inv1, ...)
+      log_prob_trans_inv2 <- log_prob_prop_fun(draws = draws_trans_inv2, ...)
 
 
 
 
-      if (is.null(log_prob_target_draws_fun) && is.null(log_ratio_draws_fun)) {
-        log_prob_prop_trans <- log_prob_prop_draws_fun(draws = draws_trans, ...)
+      if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
+        log_prob_prop_trans <- log_prob_prop_fun(draws = draws_trans, ...)
         lw_trans <-  log_prob_prop_trans -
           log(
             exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
               exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
           )
-      } else if (!is.null(log_prob_target_draws_fun)) {
-        log_prob_target_trans <- log_prob_target_draws_fun(draws = draws_trans, ...)
+      } else if (!is.null(log_prob_target_fun)) {
+        log_prob_target_trans <- log_prob_target_fun(draws = draws_trans, ...)
         lw_trans <-  log_prob_target_trans -
           log(
             exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
               exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
           )
-      } else if (!is.null(log_ratio_draws_fun)) {
-        log_prob_ratio_trans <- log_ratio_draws_fun(draws = draws_trans, ...)
-        log_prob_prop_trans <- log_prob_prop_draws_fun(draws = draws_trans, ...)
+      } else if (!is.null(log_ratio_fun)) {
+        log_prob_ratio_trans <- log_ratio_fun(draws = draws_trans, ...)
+        log_prob_prop_trans <- log_prob_prop_fun(draws = draws_trans, ...)
         lw_trans <-  log_prob_ratio_trans + log_prob_prop_trans -
           log(
             exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
@@ -327,7 +327,7 @@ moment_match.matrix <- function(draws,
 
 
 
-      # log_prob_target_trans <- log_prob_target_draws_fun(draws = draws_trans, ...)
+      # log_prob_target_trans <- log_prob_target_fun(draws = draws_trans, ...)
       #
       # lw_trans <-  log_prob_target_trans -
       #   log(

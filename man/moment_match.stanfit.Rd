@@ -5,20 +5,15 @@
 \title{Generic importance weighted moment matching algorithm for \code{stanfit} objects.
 See additional arguments from \code{moment_match.matrix}}
 \usage{
-\method{moment_match}{stanfit}(
-  x,
-  log_prob_target_draws_fun = NULL,
-  log_ratio_draws_fun = NULL,
-  ...
-)
+\method{moment_match}{stanfit}(x, log_prob_target_fun = NULL, log_ratio_fun = NULL, ...)
 }
 \arguments{
 \item{x}{A fitted \code{stanfit} object.}
 
-\item{log_prob_target_draws_fun}{Log density of the target.
+\item{log_prob_target_fun}{Log density of the target.
 The function takes argument \code{draws}.}
 
-\item{log_ratio_draws_fun}{Log of the density ratio (target/proposal).
+\item{log_ratio_fun}{Log of the density ratio (target/proposal).
 The function takes argument \code{draws}.}
 
 \item{...}{Further arguments passed to \code{moment_match.matrix}.}

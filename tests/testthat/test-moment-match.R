@@ -27,8 +27,8 @@ test_that("moment_match works", {
   }
 
   iw <- moment_match(prop_sample,
-              log_prob_prop_draws_fun = prop_density,
-              log_ratio_draws_fun = ratio_density)
+              log_prob_prop_fun = prop_density,
+              log_ratio_fun = ratio_density)
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(4.988783, 4.996672), tolerance = 1e-6)
   expect_equal(matrixStats::colWeightedMeans(iw$draws^2,w = exp(iw$log_weights)) - matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))^2, c(0.9243542, 1.0270310), tolerance = 1e-6)
@@ -38,8 +38,8 @@ test_that("moment_match works", {
   # another definition
 
   iw <- moment_match(prop_sample,
-             log_prob_prop_draws_fun = prop_density,
-             log_prob_target_draws_fun = target_density)
+             log_prob_prop_fun = prop_density,
+             log_prob_target_fun = target_density)
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(4.988783, 4.996672), tolerance = 1e-6)
   expect_equal(matrixStats::colWeightedMeans(iw$draws^2,w = exp(iw$log_weights)) - matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))^2, c(0.9243542, 1.0270310), tolerance = 1e-6)
@@ -48,8 +48,8 @@ test_that("moment_match works", {
 
 
   iw <- moment_match(prop_sample,
-                     log_prob_prop_draws_fun = prop_density,
-                     log_prob_target_draws_fun = target_density,
+                     log_prob_prop_fun = prop_density,
+                     log_prob_target_fun = target_density,
                      dummy_arg = 123)
 
 })
@@ -86,19 +86,19 @@ test_that("moment_match with model works", {
 
   test_model <- list()
   test_model$draws <- prop_sample
-  test_post_draws_fun <- function(x, ...) {
+  test_post_fun <- function(x, ...) {
     x$draws
   }
   unconstrain_pars_fun <- function(x, pars, ...) {
     pars
   }
 
-  prop_sample_pars <- test_post_draws_fun(test_model)
+  prop_sample_pars <- test_post_fun(test_model)
   prop_sample <- unconstrain_pars_fun(test_model, prop_sample_pars)
 
   iw <- moment_match(prop_sample,
-                     log_prob_prop_draws_fun = prop_density,
-                     log_ratio_draws_fun = ratio_density,
+                     log_prob_prop_fun = prop_density,
+                     log_ratio_fun = ratio_density,
                      x = test_model)
 
 
@@ -111,8 +111,8 @@ test_that("moment_match with model works", {
   # another definition
 
   iw <- moment_match(prop_sample,
-                     log_prob_prop_draws_fun = prop_density,
-                     log_prob_target_draws_fun = target_density,
+                     log_prob_prop_fun = prop_density,
+                     log_prob_target_fun = target_density,
                      x = test_model)
 
 
@@ -184,7 +184,7 @@ test_that("moment_match.stanfit works", {
 
 
   iw <- moment_match.stanfit(fit,
-                     log_prob_target_draws_fun = target_density)
+                     log_prob_target_fun = target_density)
 
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(1.9916292, 0.7592228), tolerance = 1e-6)
@@ -201,7 +201,7 @@ test_that("moment_match.stanfit works", {
   }
 
   iw <- moment_match.stanfit(fit,
-                             log_ratio_draws_fun = ratio_density)
+                             log_ratio_fun = ratio_density)
 
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(1.9916292, 0.7592228), tolerance = 1e-6)
@@ -265,7 +265,7 @@ test_that("moment_match.stanfit works with obs_weights formulation", {
   }
 
   iw <- moment_match.stanfit(fit,
-                             log_ratio_draws_fun = ratio_density,
+                             log_ratio_fun = ratio_density,
                              k_threshold = 0.0)
 
 
@@ -283,7 +283,7 @@ test_that("moment_match.stanfit works with obs_weights formulation", {
   }
 
   iw <- moment_match.stanfit(fit,
-                             log_prob_target_draws_fun = target_density,
+                             log_prob_target_fun = target_density,
                              k_threshold = 0.0)
 
 
@@ -331,40 +331,40 @@ test_that("moment_match with expectation works for target and ratio", {
 
   iw_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     draws[,1:2]},
-    log_prob_prop_draws_fun = prop_density,
-    log_prob_target_draws_fun = target_density)
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density)
 
 
   iw2_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     draws[,1:2]},
-    log_prob_prop_draws_fun = prop_density,
-    log_prob_target_draws_fun = target_density,
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
     k_threshold = 0.0)
 
 
 
   iw3_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,1])},
-    log_prob_prop_draws_fun = prop_density,
-    log_prob_target_draws_fun = target_density,
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw3b_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
-    log_prob_prop_draws_fun = prop_density,
-    log_prob_target_draws_fun = target_density,
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw4_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,1])},
-    log_prob_prop_draws_fun = prop_density,
-    log_prob_target_draws_fun = target_density,
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
   iw4b_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
-    log_prob_prop_draws_fun = prop_density,
-    log_prob_target_draws_fun = target_density,
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
 
@@ -386,40 +386,40 @@ test_that("moment_match with expectation works for target and ratio", {
 
   iw_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     draws[,1:2]},
-    log_prob_prop_draws_fun = prop_density,
-    log_ratio_draws_fun = ratio_density)
+    log_prob_prop_fun = prop_density,
+    log_ratio_fun = ratio_density)
 
 
   iw2_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     draws[,1:2]},
-    log_prob_prop_draws_fun = prop_density,
-    log_ratio_draws_fun = ratio_density,
+    log_prob_prop_fun = prop_density,
+    log_ratio_fun = ratio_density,
     k_threshold = 0.0, cov_transform = TRUE)
 
 
 
   iw3_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,1])},
-    log_prob_prop_draws_fun = prop_density,
-    log_ratio_draws_fun = ratio_density,
+    log_prob_prop_fun = prop_density,
+    log_ratio_fun = ratio_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw3b_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
-    log_prob_prop_draws_fun = prop_density,
-    log_ratio_draws_fun = ratio_density,
+    log_prob_prop_fun = prop_density,
+    log_ratio_fun = ratio_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw4_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,1])},
-    log_prob_prop_draws_fun = prop_density,
-    log_ratio_draws_fun = ratio_density,
+    log_prob_prop_fun = prop_density,
+    log_ratio_fun = ratio_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
   iw4b_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
-    log_prob_prop_draws_fun = prop_density,
-    log_ratio_draws_fun = ratio_density,
+    log_prob_prop_fun = prop_density,
+    log_ratio_fun = ratio_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
 
@@ -458,34 +458,34 @@ test_that("moment_match with expectation works for simple Monte Carlo case", {
 
   iw_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
     draws[,1:2]},
-    log_prob_prop_draws_fun = target_density)
+    log_prob_prop_fun = target_density)
 
 
   iw2_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
     draws[,1:2]},
-    log_prob_prop_draws_fun = target_density,
+    log_prob_prop_fun = target_density,
     k_threshold = 0.0, cov_transform = TRUE)
 
 
 
   iw3_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,1])},
-    log_prob_prop_draws_fun = target_density,
+    log_prob_prop_fun = target_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw3b_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
-    log_prob_prop_draws_fun = target_density,
+    log_prob_prop_fun = target_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
 
   iw4_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,1])},
-    log_prob_prop_draws_fun = target_density,
+    log_prob_prop_fun = target_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
   iw4b_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
     matrix(draws[,2])},
-    log_prob_prop_draws_fun = target_density,
+    log_prob_prop_fun = target_density,
     k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
 
 
@@ -533,14 +533,14 @@ test_that("moment_match with expectation with model works", {
 
   test_model <- list()
   test_model$draws <- prop_sample
-  test_post_draws_fun <- function(x, ...) {
+  test_post_fun <- function(x, ...) {
     x$draws
   }
   unconstrain_pars_fun <- function(x, pars, ...) {
     pars
   }
 
-  prop_sample_pars <- test_post_draws_fun(test_model)
+  prop_sample_pars <- test_post_fun(test_model)
   prop_sample <- unconstrain_pars_fun(test_model, prop_sample_pars)
 
 
@@ -549,13 +549,13 @@ test_that("moment_match with expectation with model works", {
   ex_mm <- moment_match(prop_sample,
                         expectation_fun =  function(draws, ...) {
                           draws},
-                        log_prob_prop_draws_fun = prop_density,
-                        log_ratio_draws_fun = ratio_density,
+                        log_prob_prop_fun = prop_density,
+                        log_ratio_fun = ratio_density,
                         x = test_model)
 
   iw <- moment_match(prop_sample,
-                     log_prob_prop_draws_fun = prop_density,
-                     log_ratio_draws_fun = ratio_density,
+                     log_prob_prop_fun = prop_density,
+                     log_ratio_fun = ratio_density,
                      x = test_model)
 
 
@@ -572,13 +572,13 @@ test_that("moment_match with expectation with model works", {
   ex_mm <- moment_match(prop_sample,
                         expectation_fun =  function(draws, ...) {
                           draws},
-                        log_prob_prop_draws_fun = prop_density,
-                        log_prob_target_draws_fun = target_density,
+                        log_prob_prop_fun = prop_density,
+                        log_prob_target_fun = target_density,
                         x = test_model)
 
   iw <- moment_match(prop_sample,
-                     log_prob_prop_draws_fun = prop_density,
-                     log_prob_target_draws_fun = target_density,
+                     log_prob_prop_fun = prop_density,
+                     log_prob_target_fun = target_density,
                      x = test_model)
 
 
@@ -654,12 +654,12 @@ test_that("moment_match.stanfit with expectation works", {
 
 
   ex_mm <- moment_match.stanfit(fit,
-                                log_prob_target_draws_fun = target_density,
+                                log_prob_target_fun = target_density,
                                 expectation_fun =  function(draws, ...) {
                                   draws})
 
   iw <- moment_match.stanfit(fit,
-                             log_prob_target_draws_fun = target_density)
+                             log_prob_target_fun = target_density)
 
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), ex_mm$expectation, tolerance = 1e-6)
@@ -676,12 +676,12 @@ test_that("moment_match.stanfit with expectation works", {
   }
 
   ex_mm <- moment_match.stanfit(fit,
-                                log_ratio_draws_fun = ratio_density,
+                                log_ratio_fun = ratio_density,
                                 expectation_fun =  function(draws, ...) {
                                   draws})
 
   iw <- moment_match.stanfit(fit,
-                             log_ratio_draws_fun = ratio_density)
+                             log_ratio_fun = ratio_density)
 
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), ex_mm$expectation, tolerance = 1e-6)
@@ -744,13 +744,13 @@ test_that("moment_match.stanfit with expectation works with obs_weights formulat
   }
 
   ex_mm <- moment_match.stanfit(fit,
-                                log_ratio_draws_fun = ratio_density,
+                                log_ratio_fun = ratio_density,
                                 expectation_fun =  function(draws, ...) {
                                   draws},
                                 k_threshold = 0.0)
 
   iw <- moment_match.stanfit(fit,
-                             log_ratio_draws_fun = ratio_density,
+                             log_ratio_fun = ratio_density,
                              k_threshold = 0.0)
 
 
@@ -769,13 +769,13 @@ test_that("moment_match.stanfit with expectation works with obs_weights formulat
   }
 
   ex_mm <- moment_match.stanfit(fit,
-                                log_prob_target_draws_fun = target_density,
+                                log_prob_target_fun = target_density,
                                 expectation_fun =  function(draws, ...) {
                                   draws},
                                 k_threshold = 0.0)
 
   iw <- moment_match.stanfit(fit,
-                             log_prob_target_draws_fun = target_density,
+                             log_prob_target_fun = target_density,
                              k_threshold = 0.0)
 
 

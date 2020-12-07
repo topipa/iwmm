@@ -4,9 +4,9 @@
 #' See additional arguments from `moment_match.matrix`
 #'
 #' @param x A fitted `stanfit` object.
-#' @param log_prob_target_draws_fun Log density of the target.
+#' @param log_prob_target_fun Log density of the target.
 #' The function takes argument `draws`.
-#' @param log_ratio_draws_fun Log of the density ratio (target/proposal).
+#' @param log_ratio_fun Log of the density ratio (target/proposal).
 #' The function takes argument `draws`.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
@@ -15,8 +15,8 @@
 #'
 #' @export
 moment_match.stanfit <- function(x,
-                                 log_prob_target_draws_fun = NULL,
-                                 log_ratio_draws_fun = NULL,
+                                 log_prob_target_fun = NULL,
+                                 log_ratio_fun = NULL,
                                  ...) {
 
   pars <- as.matrix(x)
@@ -25,9 +25,9 @@ moment_match.stanfit <- function(x,
 
   out <- moment_match.matrix(
     draws,
-    log_prob_prop_draws_fun = log_prob_upars.stanfit,
-    log_prob_target_draws_fun = log_prob_target_draws_fun,
-    log_ratio_draws_fun = log_ratio_draws_fun,
+    log_prob_prop_fun = log_prob_upars.stanfit,
+    log_prob_target_fun = log_prob_target_fun,
+    log_ratio_fun = log_ratio_fun,
     x = x,
     ...
   )
