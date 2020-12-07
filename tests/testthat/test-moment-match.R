@@ -183,7 +183,7 @@ test_that("moment_match.stanfit works", {
   }
 
 
-  iw <- moment_match.stanfit(x = fit,
+  iw <- moment_match.stanfit(fit,
                      log_prob_target_draws_fun = target_density)
 
 
@@ -200,7 +200,7 @@ test_that("moment_match.stanfit works", {
     target_density(draws, x, ...) - log_prob_upars.stanfit(draws, x, ...)
   }
 
-  iw <- moment_match.stanfit(x = fit,
+  iw <- moment_match.stanfit(fit,
                              log_ratio_draws_fun = ratio_density)
 
 
@@ -264,7 +264,7 @@ test_that("moment_match.stanfit works with obs_weights formulation", {
     colSums((obs_weights - 1) * t(log_lik))
   }
 
-  iw <- moment_match.stanfit(x = fit,
+  iw <- moment_match.stanfit(fit,
                              log_ratio_draws_fun = ratio_density,
                              k_threshold = 0.0)
 
@@ -282,7 +282,7 @@ test_that("moment_match.stanfit works with obs_weights formulation", {
     ratio_density(draws, x, ...) + log_prob_upars.stanfit(draws, x, ...)
   }
 
-  iw <- moment_match.stanfit(x = fit,
+  iw <- moment_match.stanfit(fit,
                              log_prob_target_draws_fun = target_density,
                              k_threshold = 0.0)
 
@@ -653,12 +653,12 @@ test_that("moment_match.stanfit with expectation works", {
   }
 
 
-  ex_mm <- moment_match.stanfit(x = fit,
+  ex_mm <- moment_match.stanfit(fit,
                                 log_prob_target_draws_fun = target_density,
                                 expectation_fun =  function(draws, ...) {
                                   draws})
 
-  iw <- moment_match.stanfit(x = fit,
+  iw <- moment_match.stanfit(fit,
                              log_prob_target_draws_fun = target_density)
 
 
@@ -675,12 +675,12 @@ test_that("moment_match.stanfit with expectation works", {
     target_density(draws, x, ...) - log_prob_upars.stanfit(draws, x, ...)
   }
 
-  ex_mm <- moment_match.stanfit(x = fit,
+  ex_mm <- moment_match.stanfit(fit,
                                 log_ratio_draws_fun = ratio_density,
                                 expectation_fun =  function(draws, ...) {
                                   draws})
 
-  iw <- moment_match.stanfit(x = fit,
+  iw <- moment_match.stanfit(fit,
                              log_ratio_draws_fun = ratio_density)
 
 
@@ -743,13 +743,13 @@ test_that("moment_match.stanfit with expectation works with obs_weights formulat
     colSums((obs_weights - 1) * t(log_lik))
   }
 
-  ex_mm <- moment_match.stanfit(x = fit,
+  ex_mm <- moment_match.stanfit(fit,
                                 log_ratio_draws_fun = ratio_density,
                                 expectation_fun =  function(draws, ...) {
                                   draws},
                                 k_threshold = 0.0)
 
-  iw <- moment_match.stanfit(x = fit,
+  iw <- moment_match.stanfit(fit,
                              log_ratio_draws_fun = ratio_density,
                              k_threshold = 0.0)
 
@@ -768,13 +768,13 @@ test_that("moment_match.stanfit with expectation works with obs_weights formulat
     ratio_density(draws, x, ...) + log_prob_upars.stanfit(draws, x, ...)
   }
 
-  ex_mm <- moment_match.stanfit(x = fit,
+  ex_mm <- moment_match.stanfit(fit,
                                 log_prob_target_draws_fun = target_density,
                                 expectation_fun =  function(draws, ...) {
                                   draws},
                                 k_threshold = 0.0)
 
-  iw <- moment_match.stanfit(x = fit,
+  iw <- moment_match.stanfit(fit,
                              log_prob_target_draws_fun = target_density,
                              k_threshold = 0.0)
 
