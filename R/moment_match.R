@@ -42,6 +42,7 @@ moment_match <- function(draws, ...) {
 #' importance weights, and the pareto k diagnostic value.
 #' If expectation_fun is given, also returns the expectation.
 #'
+#' @rdname moment_match
 #' @export
 #' @importFrom stats weights
 moment_match.matrix <- function(draws,
