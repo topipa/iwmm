@@ -73,7 +73,7 @@ moment_match.matrix <- function(x,
     stop("You cannot give both log_prob_target_fun and log_ratio_fun.")
   }
 
-  orig_log_prob_prop <- log_prob_prop_fun(draws = draws, ...)
+  orig_log_prob_prop <- log_prob_prop_fun(draws, ...)
 
   npars <- ncol(draws)
   S <- nrow(draws)
@@ -286,29 +286,29 @@ moment_match.matrix <- function(x,
 
 
 
-      log_prob_trans_inv1 <- log_prob_prop_fun(draws = draws_trans_inv1, ...)
-      log_prob_trans_inv2 <- log_prob_prop_fun(draws = draws_trans_inv2, ...)
+      log_prob_trans_inv1 <- log_prob_prop_fun(draws_trans_inv1, ...)
+      log_prob_trans_inv2 <- log_prob_prop_fun(draws_trans_inv2, ...)
 
 
 
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
-        log_prob_prop_trans <- log_prob_prop_fun(draws = draws_trans, ...)
+        log_prob_prop_trans <- log_prob_prop_fun(draws_trans, ...)
         lw_trans <-  log_prob_prop_trans -
           log(
             exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
               exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
           )
       } else if (!is.null(log_prob_target_fun)) {
-        log_prob_target_trans <- log_prob_target_fun(draws = draws_trans, ...)
+        log_prob_target_trans <- log_prob_target_fun(draws_trans, ...)
         lw_trans <-  log_prob_target_trans -
           log(
             exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
               exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
           )
       } else if (!is.null(log_ratio_fun)) {
-        log_prob_ratio_trans <- log_ratio_fun(draws = draws_trans, ...)
-        log_prob_prop_trans <- log_prob_prop_fun(draws = draws_trans, ...)
+        log_prob_ratio_trans <- log_ratio_fun(draws_trans, ...)
+        log_prob_prop_trans <- log_prob_prop_fun(draws_trans, ...)
         lw_trans <-  log_prob_ratio_trans + log_prob_prop_trans -
           log(
             exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
@@ -325,7 +325,7 @@ moment_match.matrix <- function(x,
 
 
 
-      # log_prob_target_trans <- log_prob_target_fun(draws = draws_trans, ...)
+      # log_prob_target_trans <- log_prob_target_fun(draws_trans, ...)
       #
       # lw_trans <-  log_prob_target_trans -
       #   log(
