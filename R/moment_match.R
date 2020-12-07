@@ -3,6 +3,8 @@
 #'
 #' @param draws A matrix of draws.
 #' @param ... Further arguments passed.
+#'
+#' @export
 moment_match <- function(draws, ...) {
   UseMethod("moment_match")
 }

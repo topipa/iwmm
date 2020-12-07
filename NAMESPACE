@@ -2,6 +2,7 @@
 
 S3method(moment_match,matrix)
 S3method(moment_match,stanfit)
+export(moment_match)
 export(shift)
 export(shift_and_cov)
 export(shift_and_scale)
