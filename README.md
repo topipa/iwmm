@@ -9,6 +9,8 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/powersense)](https://CRAN.R-project.org/package=iwmm)
+[![R build
+status](https://github.com/topipa/iwmm/workflows/R/badge.svg)](https://github.com/topipa/iwmm/actions)
 <!-- badges: end -->
 
 An R package to perform importance weighted moment matching. The method
