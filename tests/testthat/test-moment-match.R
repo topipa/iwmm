@@ -243,7 +243,7 @@ test_that("moment_match.stanfit works with obs_weights formulation", {
   # postmean_loo <- colMeans(unconstrain_pars.stanfit(fit_loo, as.matrix(fit_loo)))
 
 
-  obs_weights <- c(0, rep(1,n - 1))
+  # obs_weights <- c(0, rep(1,n - 1))
 
   log_lik_stanfit <- function(stanfit, upars, parameter_name = "log_lik",
                                       ...) {
@@ -259,14 +259,16 @@ test_that("moment_match.stanfit works with obs_weights formulation", {
 
 
 
-  ratio_density <- function(draws, stanfit, ...) {
+  ratio_density <- function(draws, stanfit, obs_weights, ...) {
     log_lik <- log_lik_stanfit(stanfit, draws)
+
     colSums((obs_weights - 1) * t(log_lik))
   }
 
   iw <- moment_match.stanfit(fit,
                              log_ratio_fun = ratio_density,
-                             k_threshold = 0.0)
+                             k_threshold = 0.0,
+                             obs_weights = c(0, rep(1,n - 1)))
 
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(-0.1572105, -0.2797750), tolerance = 1e-6)
@@ -284,7 +286,8 @@ test_that("moment_match.stanfit works with obs_weights formulation", {
 
   iw <- moment_match.stanfit(fit,
                              log_prob_target_fun = target_density,
-                             k_threshold = 0.0)
+                             k_threshold = 0.0,
+                             obs_weights = c(0, rep(1,n - 1)))
 
 
   expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(-0.1572105, -0.2797750), tolerance = 1e-6)
