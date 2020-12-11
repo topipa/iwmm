@@ -1,4 +1,4 @@
 library(testthat)
-library(IWMM)
+library(iwmm)
 
-test_check("IWMM")
+test_check("iwmm")

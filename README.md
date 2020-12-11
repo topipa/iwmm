@@ -1,14 +1,14 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# IWMM
+# iwmm
 
 <!-- badges: start -->
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![CRAN
-status](https://www.r-pkg.org/badges/version/powersense)](https://CRAN.R-project.org/package=IWMM)
+status](https://www.r-pkg.org/badges/version/powersense)](https://CRAN.R-project.org/package=iwmm)
 <!-- badges: end -->
 
 An R package to perform importance weighted moment matching. The method
@@ -17,11 +17,11 @@ is described in detail in Paananen et al.
 
 ## Installation
 
-<!-- You can install the released version of IWMM from [CRAN](https://CRAN.R-project.org) with: -->
+<!-- You can install the released version of iwmm from [CRAN](https://CRAN.R-project.org) with: -->
 
 <!-- ``` r -->
 
-<!-- install.packages("IWMM") -->
+<!-- install.packages("iwmm") -->
 
 <!-- ``` -->
 
@@ -31,7 +31,7 @@ is described in detail in Paananen et al.
 
 <!-- # install.packages("devtools") -->
 
-<!-- devtools::install_github("topipa/IWMM") -->
+<!-- devtools::install_github("topipa/iwmm") -->
 
 <!-- ``` -->
 
@@ -40,7 +40,7 @@ You can install the the development version from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("topipa/IWMM")
+devtools::install_github("topipa/iwmm")
 ```
 
 <!-- ## Example -->
@@ -49,7 +49,7 @@ devtools::install_github("topipa/IWMM")
 
 <!-- ```{r example} -->
 
-<!-- library(IWMM) -->
+<!-- library(iwmm) -->
 
 <!-- ## basic example code -->
 
