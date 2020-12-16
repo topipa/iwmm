@@ -87,7 +87,8 @@ moment_match.matrix <- function(x,
   draws_orig <- draws
 
   if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
-    lw <- - matrixStats::logSumExp(rep(0,nrow(draws)))
+    lw <- rep(0,S)
+    lw <- lw - matrixStats::logSumExp(lw)
     k <- 0
 
     lw_orig <- lw
@@ -105,17 +106,23 @@ moment_match.matrix <- function(x,
                                     log_prob_prop_fun = log_prob_prop_fun)
       lw <- log_ratio_fun(draws, ...)
     }
+    if (length(unique(lw)) == 1) {
+      stop("All of the importance weights are equal. This indicates that your
+           target density is equal to your proposal density.")
+    }
 
     lw_psis <- suppressWarnings(loo::psis(lw))
     lw <- as.vector(weights(lw_psis))
     k <- lw_psis$diagnostics$pareto_k
+    if (is.infinite(k)) {
+      stop("Something went wrong, and encountered infinite Pareto k values..")
+    }
 
     lw_orig <- lw
 
     trans_loop <- transform_loop(draws,
                                  lw,
                                  k,
-                                 update_quantities,
                                  update_properties,
                                  orig_log_prob_prop,
                                  k_threshold,
@@ -144,37 +151,37 @@ moment_match.matrix <- function(x,
     list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
   } else {
 
-
-    # prepare for split and check kfs
-    if (restart_transform) {
-      draws2 <- draws_orig
-      total_shift2 <- rep(0, npars)
-      total_scaling2 <- rep(1, npars)
-      total_mapping2 <- diag(npars)
-      lw <- lw_orig
-
-    }
-    else {
-      draws2 <- draws
-      # initialize objects that keep track of the total transformation
-      total_shift2 <- total_shift
-      total_scaling2 <- total_scaling
-      total_mapping2 <- total_mapping
-    }
-
-    lwf <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
-
-
+    lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, ...)
     psisf <- suppressWarnings(loo::psis(lwf))
     kf <- psisf$diagnostics$pareto_k
 
     if (split) {
 
 
+      # prepare for split and check kfs
+      if (restart_transform) {
+        draws2 <- draws_orig
+        # initialize objects that keep track of the total transformation
+        total_shift2 <- rep(0, npars)
+        total_scaling2 <- rep(1, npars)
+        total_mapping2 <- diag(npars)
+        lw <- lw_orig
+
+      }
+      else {
+        draws2 <- draws
+        # initialize objects that keep track of the total transformation
+        total_shift2 <- total_shift
+        total_scaling2 <- total_scaling
+        total_mapping2 <- total_mapping
+      }
+
+      lwf <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
       if (ncol(lwf) > 1) {
         stop('Using split = TRUE is not yet supported for expectation functions that return a matrix.
            As a workaround, you can wrap your function call using apply.')
       }
+      lwf <- as.vector(weights(psisf))
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         update_properties <- list(target_type = "simple",
@@ -197,13 +204,12 @@ moment_match.matrix <- function(x,
                                   log_prob_prop_fun = log_prob_prop_fun)
       }
 
-      lwf <- as.vector(weights(psisf))
+
 
 
       trans_loop <- transform_loop(draws2,
                                    lwf,
                                    kf,
-                                   update_quantities,
                                    update_properties,
                                    orig_log_prob_prop,
                                    k_threshold,
@@ -227,7 +233,6 @@ moment_match.matrix <- function(x,
       # we have updated draws2, lwf and kf
       # now compute split weights and split pars
 
-      S <- nrow(draws2)
       S_half <- as.integer(0.5 * S)
       take <- seq_len(S_half)
 

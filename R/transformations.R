@@ -127,7 +127,6 @@ shift_and_cov <- function(draws, lw) {
 transform_loop <- function(draws,
                            lw,
                            k,
-                           update_quantities,
                            update_properties,
                            orig_log_prob_prop,
                            k_threshold,
