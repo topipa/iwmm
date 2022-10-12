@@ -22,11 +22,11 @@ moment_match.CmdStanFit <- function(x,
   pars <- posterior::as_draws_matrix(x)
   pars <- posterior::subset_draws(pars, variable = par_names)
   # transform the model parameters to unconstrained space
-  upars <- unconstrain_all_pars.CmdStanFit(x, pars = pars, ...)
+  upars <- unconstrain_pars.CmdStanFit(x, pars = pars, ...)
   
   out <- moment_match.matrix(
     upars,
-    log_prob_prop_fun = log_prob_upars_cmdstan,
+    log_prob_prop_fun = log_prob_upars.CmdStanFit,
     log_prob_target_fun = log_prob_target_fun,
     log_ratio_fun = log_ratio_fun,
     cmdfit = x,
@@ -35,11 +35,11 @@ moment_match.CmdStanFit <- function(x,
   out
 }
 
-log_prob_upars_cmdstan <- function(draws, cmdfit, ...) {
+log_prob_upars.CmdStanFit <- function(draws, cmdfit, ...) {
   apply(draws, 1, cmdfit$log_prob)
 }
 
-unconstrain_all_pars.CmdStanFit <- function(x, pars, ...) {
+unconstrain_pars.CmdStanFit <- function(x, pars, ...) {
   skeleton <- .create_skeleton_cmdstan(x$runset$args$model_variables)
   upars <- apply(pars, 1, FUN = function(theta) {
     x$unconstrain_pars(pars = .cmdstan_relist(theta, skeleton))
