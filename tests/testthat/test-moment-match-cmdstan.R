@@ -50,8 +50,8 @@ test_that("moment_match.CmdStanFit works", {
     dnorm(draws[,1], 2, 0.136, log = TRUE) + dnorm(draws[,2], 0.754, 0.104,
                                                    log = TRUE)
   }
-  ratio_density <- function(draws, fit, ...) {
-    target_density(draws, ...) - apply(draws, 1, fit$log_prob, ...)
+  ratio_density <- function(draws, cmdfit, ...) {
+    target_density(draws, ...) - apply(draws, 1, cmdfit$log_prob, ...)
   }
 
   iw1 <- moment_match.CmdStanFit(fit,
