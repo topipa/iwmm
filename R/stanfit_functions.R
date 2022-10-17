@@ -17,15 +17,15 @@
 moment_match.stanfit <- function(x,
                                  log_prob_target_fun = NULL,
                                  log_ratio_fun = NULL,
-                                 constrain_pars = TRUE,
+                                 constrain_pars = FALSE,
                                  ...) {
 
-  pars <- as.matrix(x)
+  draws <- as.matrix(x)
   # transform the model parameters to unconstrained space
-  upars <- unconstrain_pars.stanfit(x, pars = pars, ...)
+  udraws <- unconstrain_draws_stanfit(x, draws = draws, ...)
 
   out <- moment_match.matrix(
-    upars,
+    udraws,
     log_prob_prop_fun = log_prob_upars.stanfit,
     log_prob_target_fun = log_prob_target_fun,
     log_ratio_fun = log_ratio_fun,
@@ -34,7 +34,7 @@ moment_match.stanfit <- function(x,
   )
 
   if (constrain_pars) {
-    out$draws <- constrain_all_pars(x, out$draws, ...)
+    out$draws <- constrain_draws_stanfit(x, out$draws, ...)
 
   }
 
@@ -51,43 +51,43 @@ log_prob_upars.stanfit <- function(draws, stanfit, ...) {
 }
 
 
-unconstrain_pars.stanfit <- function(stanfit, pars, ...) {
-  skeleton <- .create_skeleton(stanfit@sim$pars_oi, stanfit@par_dims[stanfit@sim$pars_oi])
-  upars <- apply(pars, 1, FUN = function(theta) {
-    rstan::unconstrain_pars(stanfit, pars = .rstan_relist(theta, skeleton))
+unconstrain_draws_stanfit <- function(x, draws, ...) {
+  skeleton <- .create_skeleton(x@sim$pars_oi, x@par_dims[x@sim$pars_oi])
+  udraws <- apply(draws, 1, FUN = function(theta) {
+    rstan::unconstrain_pars(x, pars = .rstan_relist(theta, skeleton))
   })
   # for one parameter models
-  if (is.null(dim(upars))) {
-    dim(upars) <- c(1, length(upars))
+  if (is.null(dim(udraws))) {
+    dim(udraws) <- c(1, length(udraws))
   }
-  t(upars)
+  t(udraws)
 }
 
 #' @export
-constrain_all_pars.stanfit <- function(x, draws, ...) {
+constrain_draws_stanfit <- function(x, udraws, ...) {
 
   # list with one element per posterior draw
-  pars <- apply(draws, 1, rstan::constrain_pars, object = x)
-  parnames <- rep(names(pars[[1]]), lengths(pars[[1]]))
+  draws <- apply(udraws, 1, rstan::constrain_pars, object = x)
+  varnames <- rep(names(draws[[1]]), lengths(draws[[1]]))
   # transform samples
-  nsamples <- length(pars)
-  pars <- unlist(pars)
-  npars <- length(pars) / nsamples
-  dim(pars) <- c(npars, nsamples)
-  rownames(pars) <- parnames
+  nsamples <- length(draws)
+  draws <- unlist(draws)
+  nvars <- length(draws) / nsamples
+  dim(draws) <- c(nvars, nsamples)
+  rownames(draws) <- varnames
   # lp__ is not computed automatically
 #  lp__ <- log_prob_upars.stanfit(x, upars = upars, ...)
  # pars <- rbind(pars, lp__ = lp__)
   # bring samples into the right structure
 
   new_samples <- named_list(x@sim$fnames_oi[-length(x@sim$fnames_oi)], list(numeric(nsamples)))
-  new_parnames <- sub("\\[.+", "", names(new_samples))
-  new_parnames_unique <- unique(new_parnames)
-  for (p in new_parnames_unique) {
-    sub_pars <- pars[rownames(pars) == p, , drop = FALSE]
-    sel <- which(new_parnames == p)
+  new_varnames <- sub("\\[.+", "", names(new_samples))
+  new_varnames_unique <- unique(new_varnames)
+  for (v in new_varnames_unique) {
+    sub_vars <- draws[rownames(draws) == v, , drop = FALSE]
+    sel <- which(new_varnames == v)
     for (i in seq_along(sel)) {
-      new_samples[[sel[i]]] <- sub_pars[i, ]
+      new_samples[[sel[i]]] <- sub_vars[i, ]
     }
   }
 
