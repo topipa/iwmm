@@ -12,7 +12,7 @@ vignette: >
 ---
 
 
-```{r, SETTINGS-knitr, include=FALSE}
+```{r SETTINGS-knitr, include=FALSE}
 stopifnot(require(knitr))
 options(width = 90)
 opts_chunk$set(
@@ -199,7 +199,7 @@ ks_mm <- rep(0,bs_S)
 
 iw_list <- parallel::mclapply(X = seq(bs_S), mc.cores = CORES, FUN = function(i) {
   iw <- moment_match(stanfit, log_ratio_fun = ratio_density, obs_weights = obs_ws[,i])
-  c(matrixStats::colWeightedMeans(iw$draws, exp(iw$log_weights)),iw$pareto_k)
+  c(matrixStats::colWeightedMeans(posterior::as_draws_matrix(iw$draws)[,c("mu", "logsigma")], exp(iw$log_weights)),iw$pareto_k)
 })
 iw_list <- array(as.numeric(unlist(iw_list)),c(3,bs_S))
 
@@ -287,7 +287,7 @@ ks_mm <- rep(0,bs_S)
 
 iw_list <- parallel::mclapply(X = seq(bs_S), mc.cores = CORES, FUN = function(i) {
   iw <- moment_match(stanfit, log_ratio_fun = ratio_density, obs_weights = obs_ws[,i])
-  c(matrixStats::colWeightedMeans(iw$draws, exp(iw$log_weights)),iw$pareto_k)
+  c(matrixStats::colWeightedMeans(posterior::as_draws_matrix(iw$draws)[,c("mu", "logsigma")], exp(iw$log_weights)),iw$pareto_k)
 })
 iw_list <- array(as.numeric(unlist(iw_list)),c(3,bs_S))
 
