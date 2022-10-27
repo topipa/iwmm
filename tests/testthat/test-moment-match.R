@@ -1,6 +1,3 @@
-
-
-
 test_that("moment_match works", {
 
   set.seed(7)

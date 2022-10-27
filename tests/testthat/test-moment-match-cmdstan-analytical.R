@@ -1,6 +1,4 @@
-library(rstan)
-rstan_options(auto_write = TRUE)
-options(mc.cores = 1)
+library(cmdstanr)
 
 stancode <- "data {
   int<lower=0> N;
@@ -32,12 +30,12 @@ stancode <- "data {
     for (n in 1:N) log_lik[n] = normal_lpdf(x[n] | mu, sigma);
   }"
 
-stanmodel <- stan_model(model_code = stancode)
-
+stanmodel <- cmdstan_model(stan_file = write_stan_file(stancode))
 
 # Proposal = prior, target = posterior, ratio = likelihood
 # gaussian model, known sigma
 
+# generate data
 # generate data
 SEED <- 123
 set.seed(SEED)
@@ -72,33 +70,44 @@ standata_prior <- list(
 )
 
 # fit model (just sampling from prior and calculating log_lik)
-fit_full <- sampling(
-  stanmodel,
+fit_full <- stanmodel$sample(
   data = standata_full,
   chains = 4,
-  iter = 1000,
+  iter_sampling = 1000,
+  iter_warmup = 1000,
   refresh = 0,
   seed = SEED
 )
 
-fit_prior <- sampling(
-  stanmodel,
+fit_prior <- stanmodel$sample(
   data = standata_prior,
   chains = 4,
-  iter = 1000,
+  iter_sampling = 1000,
+  iter_warmup = 1000,
   refresh = 0,
   seed = SEED
 )
+
+fit_full$init_model_methods()
+
+fit_prior$init_model_methods()
+
+# analytical posterior for fixed sigma
+# from BDA3 p 41-42
+## sigma0 <- 1
+## mu0 <- 1
+## sigma <- 1
+## ybar <- mean(x)
+## mu_post <- (1 / sigma0^2 * mu0 + n / sigma^2 * ybar) /
+##   (1 / sigma0^2 + n / sigma^2)
+## sigma_post <- sqrt(1 / (1 / sigma0^2 + n / sigma^2))
+
 
 # analytical posterior for unknown sigma
 # from BDA3 p
 # mu ~ student_t(mu_n, sigma_n / kappa_n)
-# sigma^2 ~ scaled_inv_chi_square(nu_n, sigma_n)
+# sigma ~ inv_chi_square(nu_n, sigma_n)
 
-# mu_n = kappa_0 / (kappa_0 + n) * mu_0 + n / (kappa_0 + n) * ybar
-# kappa_n = kappa_0 + n
-# nu_n = nu_0 + n
-# nu_n*sigma_sq_n = nu_0 * sigma_sq_0 + (n - 1) * s^2 + (kappa_0 * n) / (kappa_0 + n) * (ybar - mu_0)^2
 
 mu0 <- 0
 ybar <- mean(x)
@@ -124,17 +133,17 @@ mean_analytical_prior <- c(mu = mu_n, sigma_sq = sigma_sq_post_mean)
 sd_analytical_prior <- c(mu = mu_post_sd, sigma_sq = sqrt(sigma_sq_post_var))
 
 
-test_that("moment_match_stanfit matches analytical results (prior as proposal)", {
+test_that("moment_match.stanfit matches analytical results", {
 
   # ratio = jointlikelihood
-  joint_log_lik <- function(draws, stanfit, ...) {
-    
-    cdraws <- constrain_draws_stanfit(stanfit, draws)
+  joint_log_lik <- function(draws, cmdfit, ...) {
+
+    cdraws <- constrain_draws_CmdStanFit(cmdfit, draws)
     ll <- posterior::merge_chains(posterior::subset_draws(cdraws, variable = "log_lik"))
     apply(ll, 2, rowSums)
   }
-
-  iw_prior <- moment_match.stanfit(
+  
+  iw_prior <- moment_match_CmdStanFit(
     fit_prior,
     log_ratio_fun = joint_log_lik,
     constrain_pars = TRUE,

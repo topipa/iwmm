@@ -12,21 +12,21 @@
 #' importance weights, and the pareto k diagnostic value.
 #'
 #' @export
-moment_match.CmdStanFit <- function(x,
+moment_match_CmdStanFit <- function(x,
                                     log_prob_target_fun = NULL,
                                     log_ratio_fun = NULL,
-                                    constrain_pars = TRUE,
+                                    constrain_pars = FALSE,
                                     ...) {
 
-  par_names <- names(.create_skeleton_cmdstan(x$runset$args$model_variables))
+  var_names <- names(x$constrain_pars(skeleton_only = TRUE))
   
-  pars <- posterior::as_draws_matrix(x)
-  pars <- posterior::subset_draws(pars, variable = par_names)
+  draws <- posterior::as_draws_matrix(x)
+  draws <- posterior::subset_draws(draws, variable = var_names)
   # transform the model parameters to unconstrained space
-  upars <- unconstrain_pars.CmdStanFit(x, pars = pars, ...)
+  udraws <- unconstrain_draws_CmdStanFit(x, draws = draws, ...)
   
   out <- moment_match.matrix(
-    upars,
+    udraws,
     log_prob_prop_fun = log_prob_upars_cmdstan,
     log_prob_target_fun = log_prob_target_fun,
     log_ratio_fun = log_ratio_fun,
@@ -35,8 +35,7 @@ moment_match.CmdStanFit <- function(x,
   )
 
   if (constrain_pars) {
-    out$draws <- constrain_all_pars(x, out$draws, ...)
-
+    out$draws <- constrain_draws_CmdStanFit(x, udraws = out$draws, ...)
   }
   
   out
@@ -46,29 +45,18 @@ log_prob_upars_cmdstan <- function(draws, cmdfit, ...) {
   apply(draws, 1, cmdfit$log_prob)
 }
 
-unconstrain_pars.CmdStanFit <- function(x, pars, ...) {
-  skeleton <- .create_skeleton_cmdstan(x$runset$args$model_variables)
-  upars <- apply(pars, 1, FUN = function(theta) {
+unconstrain_draws_CmdStanFit <- function(x, draws, ...) {
+  skeleton <- x$constrain_pars(skeleton_only = TRUE)
+  udraws <- apply(draws, 1, FUN = function(theta) {
     x$unconstrain_pars(pars = .cmdstan_relist(theta, skeleton))
   })
   # for one parameter models
-  if (is.null(dim(upars))) {
-    dim(upars) <- c(1, length(upars))
+  if (is.null(dim(udraws))) {
+    dim(udraws) <- c(1, length(udraws))
   }
-  t(upars)
+  t(udraws)
 }
 
-
-# cmdstan helper function to get dims of parameters right
-.create_skeleton_cmdstan <- function(model_variables) {
-    model_pars <- model_variables$parameters
-    skeleton <- lapply(model_pars, function(par) {
-        dims <- par$dimensions
-        dims <- ifelse(dims == 0, 1, dims)
-        array(0, dim = dims)
-    })
-    stats::setNames(skeleton, names(model_pars))
-    }
 
 .cmdstan_relist <- function(x, skeleton) {
   out <- utils::relist(x, skeleton)
@@ -79,36 +67,34 @@ unconstrain_pars.CmdStanFit <- function(x, pars, ...) {
   }
 
 #' @export
-constrain_all_pars <- function(x, ...) {
-  UseMethod("constrain_all_pars")
-}
-
-#' @export
-constrain_all_pars.CmdStanFit <- function(x, upars, ...) {
+constrain_draws_CmdStanFit <- function(x, udraws, ...) {
 
   # list with one element per posterior draw
-  pars <- apply(upars, 1, x$constrain_pars)
-  parnames <- rep(names(pars[[1]]), lengths(pars[[1]]))
+  draws <- apply(udraws, 1, x$constrain_pars)
+  varnames <- posterior::variables(x$draws())[-1]
   # transform samples
-  nsamples <- length(pars)
-  pars <- unlist(pars)
-  npars <- length(pars) / nsamples
-  dim(pars) <- c(npars, nsamples)
-  rownames(pars) <- parnames
+  nsamples <- length(draws)
+  draws <- unlist(draws)
+  nvars <- length(draws) / nsamples
+  dim(draws) <- c(nvars, nsamples)
+  rownames(draws) <- varnames
   # lp__ is not computed automatically
 #  lp__ <- log_prob_upars.CmdStanFit(x, upars = upars, ...)
 #  pars <- rbind(pars, lp__ = lp__)
+
   # bring samples into the right structure
-  new_samples <- named_list(names(x$runset$args$model_variables$parameters), list(numeric(nsamples)))
-  new_parnames <- sub("\\[.+", "", names(new_samples))
-  new_parnames_unique <- unique(new_parnames)
-  for (p in new_parnames_unique) {
-    sub_pars <- pars[rownames(pars) == p, , drop = FALSE]
-    sel <- which(new_parnames == p)
+  new_samples <- named_list(varnames)
+  new_varnames <- sub("\\[.+", "", names(new_samples))
+  new_varnames <- names(new_samples)
+  new_varnames_unique <- unique(new_varnames)
+  for (v in new_varnames_unique) {
+    sub_vars <- draws[rownames(draws) == v, , drop = FALSE]
+    sel <- which(new_varnames == v)
     for (i in seq_along(sel)) {
-      new_samples[[sel[i]]] <- sub_pars[i, ]
+      new_samples[[sel[i]]] <- sub_vars[i, ]
     }
   }
+
   posterior::as_draws_array(new_samples)
 }
 

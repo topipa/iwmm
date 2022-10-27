@@ -20,10 +20,10 @@ moment_match.stanfit <- function(x,
                                  constrain_pars = FALSE,
                                  ...) {
 
-  draws <- as.matrix(x)
+  draws <- posterior::as_draws_matrix(x)
   # transform the model parameters to unconstrained space
   udraws <- unconstrain_draws_stanfit(x, draws = draws, ...)
-
+  
   out <- moment_match.matrix(
     udraws,
     log_prob_prop_fun = log_prob_upars.stanfit,
@@ -32,7 +32,7 @@ moment_match.stanfit <- function(x,
     stanfit = x,
     ...
   )
-
+  
   if (constrain_pars) {
     out$draws <- constrain_draws_stanfit(x, out$draws, ...)
 
@@ -53,7 +53,7 @@ log_prob_upars.stanfit <- function(draws, stanfit, ...) {
 
 unconstrain_draws_stanfit <- function(x, draws, ...) {
   skeleton <- .create_skeleton(x@sim$pars_oi, x@par_dims[x@sim$pars_oi])
-  udraws <- apply(draws, 1, FUN = function(theta) {
+  udraws <- apply(posterior::as_draws_matrix(draws), 1, FUN = function(theta) {
     rstan::unconstrain_pars(x, pars = .rstan_relist(theta, skeleton))
   })
   # for one parameter models
@@ -81,6 +81,9 @@ constrain_draws_stanfit <- function(x, udraws, ...) {
   # bring samples into the right structure
 
   new_samples <- named_list(x@sim$fnames_oi[-length(x@sim$fnames_oi)], list(numeric(nsamples)))
+
+  print(names(new_samples))
+  
   new_varnames <- sub("\\[.+", "", names(new_samples))
   new_varnames_unique <- unique(new_varnames)
   for (v in new_varnames_unique) {
