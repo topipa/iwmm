@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 An R package to perform importance weighted moment matching.
-The method is described in detail in Paananen et al. (2020).
+The method is described in detail in the [Implicitly Adaptive Importance Sampling paper](https://doi.org/10.1007/s11222-020-09982-2).
 
 ## Installation
 
@@ -73,9 +73,8 @@ devtools::install_github("topipa/iwmm")
 
 ## References
 
-Paananen, T., Piironen, J., Bürkner, P.-C., and Vehtari, A. (2020).
-Implicitly Adaptive Importance Sampling. *Statistics and Computing*,
-accepted for publication.
-([arXiv Preprint](https://arxiv.org/abs/1906.08850))([code](https://github.com/topipa/iter-mm-paper))
+Paananen, T., Piironen, J., Bürkner, P.-C., and Vehtari, A.
+Implicitly Adaptive Importance Sampling. _Stat Comput_ **31**, 16 (2021).
+([paper](https://doi.org/10.1007/s11222-020-09982-2))([code](https://github.com/topipa/iter-mm-paper))
 
 
