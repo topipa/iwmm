@@ -30,6 +30,7 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
       NOT_CRAN: true
 
+
     steps:
       - uses: actions/checkout@v2
       - uses: n1hility/cancel-previous-runs@v2
@@ -68,8 +69,8 @@ with:
       - name: Install CmdStanR
         run: |
           remotes::install_github("stan-dev/cmdstanr")
-	  cmdstanr::install_cmdstan()
-	shell: Rscript {0}
+          cmdstanr::install_cmdstan()
+        shell: Rscript {0}
       - name: Install Development RStan on Windows
         if: runner.os == 'Windows'
         run: |
