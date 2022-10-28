@@ -15,7 +15,7 @@
 moment_match_CmdStanFit <- function(x,
                                     log_prob_target_fun = NULL,
                                     log_ratio_fun = NULL,
-                                    constrain_pars = FALSE,
+                                    constrain = TRUE,
                                     ...) {
 
   var_names <- names(x$constrain_pars(skeleton_only = TRUE))
@@ -34,7 +34,7 @@ moment_match_CmdStanFit <- function(x,
     ...
   )
 
-  if (constrain_pars) {
+  if (constrain) {
     out$draws <- constrain_draws_CmdStanFit(x, udraws = out$draws, ...)
   }
   

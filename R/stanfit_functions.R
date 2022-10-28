@@ -8,6 +8,7 @@
 #' The function takes argument `draws`, which are the unconstrained parameters.
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
 #' The function takes argument `draws`, which are the unconstrained parameters.
+#' @param constrain Logical specifying whether the returned draws be returned on the constrained space? Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
@@ -17,7 +18,7 @@
 moment_match.stanfit <- function(x,
                                  log_prob_target_fun = NULL,
                                  log_ratio_fun = NULL,
-                                 constrain_pars = FALSE,
+                                 constrain = TRUE,
                                  ...) {
 
   draws <- posterior::as_draws_matrix(x)
@@ -33,11 +34,10 @@ moment_match.stanfit <- function(x,
     ...
   )
   
-  if (constrain_pars) {
+  if (constrain) {
     out$draws <- constrain_draws_stanfit(x, out$draws, ...)
 
   }
-
   
   out
 }
@@ -81,8 +81,6 @@ constrain_draws_stanfit <- function(x, udraws, ...) {
   # bring samples into the right structure
 
   new_samples <- named_list(x@sim$fnames_oi[-length(x@sim$fnames_oi)], list(numeric(nsamples)))
-
-  print(names(new_samples))
   
   new_varnames <- sub("\\[.+", "", names(new_samples))
   new_varnames_unique <- unique(new_varnames)
