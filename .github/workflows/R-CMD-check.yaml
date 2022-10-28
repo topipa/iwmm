@@ -49,6 +49,7 @@ jobs:
         with:
           cache-version: 3
           extra-packages: |
+            stan-dev/cmdstanr
             rcmdcheck
             checkmate
             jsonlite
@@ -69,7 +70,8 @@ jobs:
       - name: Install CmdStanR
         run: |
           remotes::install_github("stan-dev/cmdstanr")
-          cmdstanr::install_cmdstan()
+          cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+          cmdstanr::install_cmdstan(cores = parallel::detectCores())
         shell: Rscript {0}
       - name: Install Development RStan on Windows
         if: runner.os == 'Windows'
