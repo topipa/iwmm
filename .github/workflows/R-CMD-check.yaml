@@ -26,7 +26,7 @@ jobs:
           - {os: ubuntu-latest, r: 'oldrel', rtools: ''}
 
     env:
-      GITHPAT: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       NOT_CRAN: true
 
@@ -47,7 +47,6 @@ jobs:
       # packages that are needed for R CMD CHECK
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           cache-version: 3
           extra-packages: |
             stan-dev/cmdstanr
