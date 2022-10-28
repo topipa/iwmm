@@ -137,8 +137,7 @@ test_that("moment_match_stanfit matches analytical results (prior as proposal)",
   iw_prior <- moment_match.stanfit(
     fit_prior,
     log_ratio_fun = joint_log_lik,
-    constrain_pars = TRUE,
-    k_threshold = 0
+    k_threshold = -Inf
   )
   
   draws_mm_prior <- posterior::as_draws_matrix(iw_prior$draws)
