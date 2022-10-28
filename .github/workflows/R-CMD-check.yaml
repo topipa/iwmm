@@ -47,6 +47,7 @@ jobs:
       # packages that are needed for R CMD CHECK
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           cache-version: 3
           extra-packages: |
             stan-dev/cmdstanr
