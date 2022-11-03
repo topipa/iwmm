@@ -65,7 +65,7 @@ moment_match.matrix <- function(x,
 
 
   if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)
-      && is.null(expectation_fun) ) {
+      && is.null(expectation_fun)) {
     stop("You must give either log_prob_target_fun or log_ratio_fun,
          or give an expectation_fun.")
   }
@@ -87,7 +87,7 @@ moment_match.matrix <- function(x,
   draws_orig <- draws
 
   if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
-    lw <- rep(0,S)
+    lw <- rep(0, S)
     lw <- lw - matrixStats::logSumExp(lw)
     k <- 0
 
@@ -140,13 +140,7 @@ moment_match.matrix <- function(x,
     total_shift <- trans_loop$total_shift
     total_scaling <- trans_loop$total_scaling
     total_mapping <- trans_loop$total_mapping
-
-
-
   }
-
-
-
 
   if (is.null(expectation_fun)) {
     list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
@@ -158,7 +152,6 @@ moment_match.matrix <- function(x,
 
     if (split) {
 
-
       # prepare for split and check kfs
       if (restart_transform) {
         draws2 <- draws_orig
@@ -168,8 +161,7 @@ moment_match.matrix <- function(x,
         total_mapping2 <- diag(npars)
         lw <- lw_orig
 
-      }
-      else {
+      } else {
         draws2 <- draws
         # initialize objects that keep track of the total transformation
         total_shift2 <- total_shift
@@ -205,20 +197,19 @@ moment_match.matrix <- function(x,
                                   log_prob_prop_fun = log_prob_prop_fun)
       }
 
-
-
-
-      trans_loop <- transform_loop(draws2,
-                                   lwf,
-                                   kf,
-                                   update_properties,
-                                   orig_log_prob_prop,
-                                   k_threshold,
-                                   cov_transform,
-                                   total_shift2,
-                                   total_scaling2,
-                                   total_mapping2,
-                                   ...)
+      trans_loop <- transform_loop(
+        draws2,
+        lwf,
+        kf,
+        update_properties,
+        orig_log_prob_prop,
+        k_threshold,
+        cov_transform,
+        total_shift2,
+        total_scaling2,
+        total_mapping2,
+        ...
+      )
 
       draws2 <- trans_loop$draws
       lwf <- trans_loop$log_weights
@@ -227,8 +218,6 @@ moment_match.matrix <- function(x,
       total_shift2 <- trans_loop$total_shift
       total_scaling2 <- trans_loop$total_scaling
       total_mapping2 <- trans_loop$total_mapping
-
-
 
       # second trasnsformations are done
       # we have updated draws2, lwf and kf
@@ -256,8 +245,6 @@ moment_match.matrix <- function(x,
       }
       draws_T2 <- sweep(draws_T2, 2, total_shift2 + mean_original, "+")
 
-
-
       # inverse accumulated affine transformation
       draws_T2_T1inv <- sweep(draws_T2, 2, mean_original + total_shift2, "-")
       if (cov_transform) {
@@ -273,9 +260,6 @@ moment_match.matrix <- function(x,
       draws_T1_T2inv <- sweep(draws_T1_T2inv, 2, total_scaling2, "/")
       draws_T1_T2inv <- sweep(draws_T1_T2inv, 2, mean_original + total_shift - total_shift2, "+")
 
-
-
-
       # these are the real used draws
       # first half of draws_trans are T1(theta)
       # second half are T2(theta)
@@ -289,14 +273,8 @@ moment_match.matrix <- function(x,
       draws_trans_inv2 <- draws_T2_T1inv
       draws_trans_inv2[take, ] <- draws_orig[take, , drop = FALSE]
 
-
-
-
       log_prob_trans_inv1 <- log_prob_prop_fun(draws_trans_inv1, ...)
       log_prob_trans_inv2 <- log_prob_prop_fun(draws_trans_inv2, ...)
-
-
-
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         log_prob_prop_trans <- log_prob_prop_fun(draws_trans, ...)
@@ -322,15 +300,6 @@ moment_match.matrix <- function(x,
           )
       }
 
-
-
-
-
-
-
-
-
-
       # log_prob_target_trans <- log_prob_target_fun(draws_trans, ...)
       #
       # lw_trans <-  log_prob_target_trans -
@@ -349,10 +318,7 @@ moment_match.matrix <- function(x,
       lw <- lw_trans
       draws <- draws_trans
 
-
-
-    }
-    else {
+    } else {
       # if not splitting, warn about high pareto ks
       if (any(kf > k_threshold)) {
         warning('Importance sampling may be unreliable. Consider setting split to TRUE.')
@@ -361,14 +327,17 @@ moment_match.matrix <- function(x,
 
     if (log_expectation_fun) {
       expectation <- exp(matrixStats::colLogSumExps(lw + expectation_fun(draws, ...)))
-    }
-    else {
+    } else {
       w <- exp(lw)
       expectation <- colSums(w * expectation_fun(draws, ...))
     }
 
-    list("expectation" = expectation, "pareto_k" = k, "pareto_kf" = kf, "draws" = draws, "log_weights" = lw)
+    list(
+      "expectation" = expectation,
+      "pareto_k" = k,
+      "pareto_kf" = kf,
+      "draws" = draws,
+      "log_weights" = lw
+    )
   }
 }
-
-

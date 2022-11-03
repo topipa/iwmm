@@ -2,11 +2,13 @@
 #' See additional arguments from `moment_match.matrix`
 #'
 #' @param x A fitted `stanfit` object.
-#' @param log_prob_target_fun Log density of the target.
-#' The function takes argument `draws`, which are the unconstrained draws.
+#' @param log_prob_target_fun Log density of the target.  The function
+#'   takes argument `draws`, which are the unconstrained draws.
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
-#' The function takes argument `draws`, which are the unconstrained draws.
-#' @param constrain Logical specifying whether to return draws on the constrained space? Default is TRUE.
+#'   The function takes argument `draws`, which are the unconstrained
+#'   draws.
+#' @param constrain Logical specifying whether to return draws on the
+#'   constrained space? Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
@@ -20,12 +22,12 @@ moment_match.CmdStanFit <- function(x,
                                     ...) {
 
   var_names <- names(x$constrain_pars(skeleton_only = TRUE))
-  
+
   draws <- posterior::as_draws_matrix(x)
   draws <- posterior::subset_draws(draws, variable = var_names)
   # transform the model parameters to unconstrained space
   udraws <- unconstrain_draws_CmdStanFit(x, draws = draws, ...)
-  
+
   out <- moment_match.matrix(
     x = udraws,
     log_prob_prop_fun = log_prob_draws_CmdStanFit,
@@ -38,7 +40,7 @@ moment_match.CmdStanFit <- function(x,
   if (constrain) {
     out$draws <- constrain_draws_CmdStanFit(x, udraws = out$draws, ...)
   }
-  
+
   out
 }
 
@@ -64,7 +66,7 @@ unconstrain_draws_CmdStanFit <- function(x, draws, ...) {
   if ("lp__" %in% posterior::variables(draws)) {
     skeleton <- c(list("lp__" = 0), skeleton)
   }
-  
+
   udraws <- apply(draws, 1, FUN = function(draw) {
     x$unconstrain_pars(pars = .relist(draw, skeleton))
   })

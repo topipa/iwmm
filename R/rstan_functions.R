@@ -2,11 +2,13 @@
 #' See additional arguments from `moment_match.matrix`
 #'
 #' @param x A fitted `stanfit` object.
-#' @param log_prob_target_fun Log density of the target.
-#' The function takes argument `draws`, which are the unconstrained draws.
+#' @param log_prob_target_fun Log density of the target.  The function
+#'   takes argument `draws`, which are the unconstrained draws.
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
-#' The function takes argument `draws`, which are the unconstrained draws.
-#' @param constrain Logical specifying whether to return draws on the constrained space? Default is TRUE.
+#'   The function takes argument `draws`, which are the unconstrained
+#'   draws.
+#' @param constrain Logical specifying whether to return draws on the
+#'   constrained space? Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
@@ -21,10 +23,10 @@ moment_match.stanfit <- function(x,
 
   # ensure draws are in matrix form
   draws <- posterior::as_draws_matrix(x)
-  
+
   # transform the draws to unconstrained space
   udraws <- unconstrain_draws_stanfit(x, draws = draws, ...)
-  
+
   out <- moment_match.matrix(
     udraws,
     log_prob_prop_fun = log_prob_draws_stanfit,
@@ -33,11 +35,11 @@ moment_match.stanfit <- function(x,
     fit = x,
     ...
   )
-  
+
   if (constrain) {
     out$draws <- constrain_draws_stanfit(x, out$draws, ...)
   }
-  
+
   out
 }
 
@@ -82,7 +84,10 @@ constrain_draws_stanfit <- function(x, udraws, ...) {
   draws <- rbind(draws, lp__ = lp__)
 
   # bring draws into the right structure
-  new_draws <- named_list(x@sim$fnames_oi[-length(x@sim$fnames_oi)], list(numeric(ndraws)))
+  new_draws <- named_list(
+    x@sim$fnames_oi[-length(x@sim$fnames_oi)],
+    list(numeric(ndraws))
+  )
   new_varnames <- sub("\\[.+", "", names(new_draws))
   new_varnames_unique <- unique(new_varnames)
   for (v in new_varnames_unique) {
@@ -94,6 +99,6 @@ constrain_draws_stanfit <- function(x, udraws, ...) {
   }
 
   new_draws <- posterior::as_draws_array(new_draws)
-  
+
   new_draws
 }

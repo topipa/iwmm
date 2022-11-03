@@ -17,27 +17,35 @@ update_quantities <- function(draws, orig_log_prob_prop,
                               ...) {
 
   if (update_properties$target_type == "simple") {
+    
     log_prob_prop_fun <- update_properties$log_prob_prop_fun
     log_prop_new <- log_prob_prop_fun(draws = draws, ...)
     lw_new <- log_prop_new - orig_log_prob_prop
+    
   } else if (update_properties$target_type == "ratio") {
+    
     log_ratio_fun <- update_properties$log_ratio_fun
     log_prob_prop_fun <- update_properties$log_prob_prop_fun
     log_ratio_new <- log_ratio_fun(draws = draws, ...)
     log_prop_new <- log_prob_prop_fun(draws = draws, ...)
     lw_new <- log_ratio_new + log_prop_new - orig_log_prob_prop
+    
   } else if (update_properties$target_type == "target") {
+    
     log_prob_target_fun <- update_properties$log_prob_target_fun
     log_prob_target_new <- log_prob_target_fun(draws = draws, ...)
     lw_new <- log_prob_target_new - orig_log_prob_prop
+    
   }
 
-
   if (update_properties$expectation) {
-    lw_new <- compute_lwf(draws, lw_new,
-                          update_properties$expectation_fun,
-                          update_properties$log_expectation_fun,
-                          ...)
+    lw_new <- compute_lwf(
+      draws,
+      lw_new,
+      update_properties$expectation_fun,
+      update_properties$log_expectation_fun,
+      ...
+    )
   }
 
   psis <- suppressWarnings(loo::psis(lw_new))
@@ -69,10 +77,8 @@ compute_lwf <- function(draws, lw,
                         ...) {
   if (log_expectation_fun) {
     lwf <- lw + expectation_fun(draws, ...)
-  }
-  else {
+  } else {
     lwf <- lw + log(abs(expectation_fun(draws, ...)))
   }
   lwf
 }
-
