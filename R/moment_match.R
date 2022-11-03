@@ -42,16 +42,16 @@ moment_match <- function(x, ...) {
 #' @export
 #' @importFrom stats weights
 moment_match.matrix <- function(x,
-                         log_prob_prop_fun,
-                         log_prob_target_fun = NULL,
-                         log_ratio_fun = NULL,
-                         expectation_fun = NULL,
-                         log_expectation_fun = FALSE,
-                         k_threshold = 0.5,
-                         cov_transform = TRUE,
-                         split = FALSE,
-                         restart_transform = FALSE,
-                         ...) {
+                                log_prob_prop_fun,
+                                log_prob_target_fun = NULL,
+                                log_ratio_fun = NULL,
+                                expectation_fun = NULL,
+                                log_expectation_fun = FALSE,
+                                k_threshold = 0.5,
+                                cov_transform = TRUE,
+                                split = FALSE,
+                                restart_transform = FALSE,
+                                ...) {
 
   draws <- x
 
@@ -73,7 +73,7 @@ moment_match.matrix <- function(x,
     stop("You cannot give both log_prob_target_fun and log_ratio_fun.")
   }
 
-  orig_log_prob_prop <- log_prob_prop_fun(draws, ...)
+  orig_log_prob_prop <- log_prob_prop_fun(draws = draws, ...)
 
   npars <- ncol(draws)
   S <- nrow(draws)
@@ -369,13 +369,6 @@ moment_match.matrix <- function(x,
 
     list("expectation" = expectation, "pareto_k" = k, "pareto_kf" = kf, "draws" = draws, "log_weights" = lw)
   }
-
-
-
-
-
-
-
 }
 
 
