@@ -174,20 +174,20 @@ weights of each observation, which in this case represent the number of
 times each observation is included in the Bootstrap sample.
 
 ```{r helper functions, warning = FALSE}
-log_lik_stanfit <- function(stanfit, upars, parameter_name = "log_lik",
+log_lik_stanfit <- function(fit, upars, parameter_name = "log_lik",
                                       ...) {
-    ll <- loo::extract_log_lik(stanfit, parameter_name, merge_chains = TRUE)
+    ll <- loo::extract_log_lik(fit, parameter_name, merge_chains = TRUE)
     S <- nrow(upars)
     n <- ncol(ll)
     out <- matrix(0, S, n)
     for (s in seq_len(S)) {
-      out[s, ] <- rstan::constrain_pars(stanfit, upars = upars[s, ])[[parameter_name]]
+      out[s, ] <- rstan::constrain_pars(fit, upars = upars[s, ])[[parameter_name]]
     }
     out
 }
 
-ratio_density <- function(draws, stanfit, obs_weights, ...) {
-    log_lik <- log_lik_stanfit(stanfit, draws)
+ratio_density <- function(draws, fit, obs_weights, ...) {
+    log_lik <- log_lik_stanfit(fit, draws)
     colSums((obs_weights - 1) * t(log_lik))
 }
 ```
