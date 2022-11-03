@@ -109,10 +109,10 @@ Stan using the rstan package:
 stanmodel <- stan_model(model_code = stancode)
 
 # generate  data
-n = as.integer(1000)
-x = rnorm(n = n)
+n <- as.integer(1000)
+x <- rnorm(n = n)
 
-standata = list(N = n, x = x)
+standata <- list(N = n, x = x)
 stanfit <- sampling(stanmodel, data = standata, refresh = 0)
 
 # extract posterior and log-likelihood draws
@@ -184,7 +184,7 @@ log_lik_stanfit <- function(stanfit, upars, parameter_name = "log_lik",
       out[s,] <- rstan::constrain_pars(stanfit, upars = upars[s, ])[[parameter_name]]
     }
     out
-  }
+}
 
 ratio_density <- function(draws, stanfit, obs_weights, ...) {
     log_lik <- log_lik_stanfit(stanfit, draws)
@@ -265,10 +265,10 @@ Let us next see what happens if the model is clearly misspecified.
 stanmodel <- stan_model(model_code = stancode)
 
 # generate  data
-n = as.integer(1000)
-x = rt(n = n, df = 3)
+n <- as.integer(1000)
+x <- rt(n = n, df = 3)
 
-standata = list(N = n, x = x)
+standata <- list(N = n, x = x)
 stanfit <- sampling(stanmodel, data = standata, refresh = 0)
 
 # extract posterior and log-likelihood draws
