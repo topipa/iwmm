@@ -23,7 +23,27 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::covr
+          cache-version: 3
+          extra-packages: |
+            any::covr
+            stan-dev/cmdstanr
+            rcmdcheck
+            checkmate
+            jsonlite
+            posterior
+            processx
+            R6
+            BH
+            RcppEigen
+            StanHeaders
+            RcppParallel
+            withr
+            testthat
+            rmarkdown
+            knitr
+            any::XML
+            any::textshaping
+
           needs: coverage
 
       - name: Test coverage
