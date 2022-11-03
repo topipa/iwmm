@@ -14,7 +14,6 @@ Depends:
 Imports:
     checkmate,
     matrixStats (>= 0.52),
-    parallel,
     posterior,
     stats,
     loo (>= 2.3.1)
@@ -24,6 +23,7 @@ Suggests:
     cmdstanr,
     knitr,
     rmarkdown,
+    parallel,
     bayesplot
 VignetteBuilder: knitr
 Config/testthat/parallel: true
