@@ -28,6 +28,12 @@ jobs:
             stan-dev/cmdstanr
           needs: coverage
 
+     - name: cmdstanr setup
+      run: |
+        cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+        cmdstanr::install_cmdstan(cores = parallel::detectCores())
+      shell: Rscript {0}
+
       - name: Test coverage
         run: |
           covr::codecov(
