@@ -16,13 +16,15 @@ See additional arguments from \code{moment_match.matrix}}
 \arguments{
 \item{x}{A fitted \code{stanfit} object.}
 
-\item{log_prob_target_fun}{Log density of the target.
-The function takes argument \code{draws}, which are the unconstrained draws.}
+\item{log_prob_target_fun}{Log density of the target.  The function
+takes argument \code{draws}, which are the unconstrained draws.}
 
 \item{log_ratio_fun}{Log of the density ratio (target/proposal).
-The function takes argument \code{draws}, which are the unconstrained draws.}
+The function takes argument \code{draws}, which are the unconstrained
+draws.}
 
-\item{constrain}{Logical specifying whether to return draws on the constrained space? Default is TRUE.}
+\item{constrain}{Logical specifying whether to return draws on the
+constrained space? Default is TRUE.}
 
 \item{...}{Further arguments passed to \code{moment_match.matrix}.}
 }
