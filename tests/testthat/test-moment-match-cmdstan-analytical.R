@@ -17,11 +17,11 @@ stancode <- "data {
     real<lower=0> sigma = sqrt(sigma_sq);
   }
   model {
-    mu ~ normal(mu0, sigma / sqrt(kappa0));
-    sigma_sq ~ scaled_inv_chi_square(nu0, sigma0);
+    target += normal_lpdf(mu | mu0, sigma / sqrt(kappa0));
+    target += scaled_inv_chi_square_lpdf(sigma_sq | nu0, sigma0);
 
     if (prior_only == 0) {
-      x ~ normal(mu, sigma);
+      target += normal_lpdf(x | mu, sigma);
     }
 
   }
@@ -32,7 +32,9 @@ stancode <- "data {
 
 
 
-stanmodel <- cmdstan_model(stan_file = write_stan_file(stancode))
+stanmodel <- cmdstan_model(stan_file = write_stan_file(stancode), compile = FALSE)
+
+stanmodel$compile(force_recompile = TRUE)
 
 # Proposal = prior, target = posterior, ratio = likelihood
 # gaussian model, known sigma
@@ -119,23 +121,26 @@ mean_analytical_prior <- c(mu = mu_n, sigma_sq = sigma_sq_post_mean)
 sd_analytical_prior <- c(mu = mu_post_sd, sigma_sq = sqrt(sigma_sq_post_var))
 
 
-test_that("moment_match.stanfit matches analytical results", {
+test_that("moment_match.CmdStanFit matches analytical results", {
 
   # ratio = jointlikelihood
-  joint_log_lik <- function(draws, cmdfit, ...) {
+  joint_log_lik <- function(draws, fit, ...) {
 
-    cdraws <- constrain_draws_CmdStanFit(cmdfit, draws)
+    cdraws <- constrain_draws_CmdStanFit(fit, draws)
     ll <- posterior::merge_chains(posterior::subset_draws(cdraws, variable = "log_lik"))
     apply(ll, 2, rowSums)
   }
   
-  iw_prior <- moment_match_CmdStanFit(
+  iw_prior <- moment_match(
     fit_prior,
     log_ratio_fun = joint_log_lik,
-    k_threshold = -Inf
+    k_threshold = -Inf # ensure moment-matching is used
   )
   
-  draws_mm_prior <- posterior::as_draws_matrix(iw_prior$draws)
+  draws_mm_prior <- posterior::subset_draws(
+    posterior::as_draws_matrix(iw_prior$draws),
+    variable = c("mu", "sigma_sq")
+  )
   
   weights_mm_prior <- exp(iw_prior$log_weights)
   mean_mm_prior <- matrixStats::colWeightedMeans(
