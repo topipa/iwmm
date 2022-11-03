@@ -112,7 +112,7 @@ sigma_sq_n <- (nu0 * sigma0^2 + (n - 1) * s_sq + (kappa0 * n) / kappa_n * (ybar 
 
 sigma_sq_post_mean <- nu_n * sigma_sq_n / (nu_n - 2)
 
-sigma_sq_post_var <- 2 * nu_n^2 * sigma_sq_n^2 / ((nu_n -2)^2 * (nu_n - 4))
+sigma_sq_post_var <- 2 * nu_n^2 * sigma_sq_n^2 / ((nu_n - 2)^2 * (nu_n - 4))
 
 sigma_sq_post_sd <- sqrt(sigma_sq_post_var)
 
@@ -128,7 +128,7 @@ test_that("moment_match_stanfit matches analytical results (prior as proposal)",
 
   # ratio = jointlikelihood
   joint_log_lik <- function(draws, fit, ...) {
-    
+
     cdraws <- constrain_draws_stanfit(fit, draws)
     ll <- posterior::merge_chains(posterior::subset_draws(cdraws, variable = "log_lik"))
     apply(ll, 2, rowSums)
@@ -139,12 +139,12 @@ test_that("moment_match_stanfit matches analytical results (prior as proposal)",
     log_ratio_fun = joint_log_lik,
     k_threshold = -Inf # ensure moment-matching is used
   )
-  
+
   draws_mm_prior <- posterior::subset_draws(
     posterior::as_draws_matrix(iw_prior$draws),
     variable = c("mu", "sigma_sq")
   )
-  
+
   weights_mm_prior <- exp(iw_prior$log_weights)
   mean_mm_prior <- matrixStats::colWeightedMeans(
     draws_mm_prior,
@@ -153,7 +153,7 @@ test_that("moment_match_stanfit matches analytical results (prior as proposal)",
   var_weighted <- function(x, w) {
     stats::cov.wt(cbind(x), wt = w)$cov
   }
-  
+
   sd_mm_prior <- apply(
     posterior::as_draws_matrix(draws_mm_prior),
     2,
@@ -173,4 +173,3 @@ test_that("moment_match_stanfit matches analytical results (prior as proposal)",
   )
 
 })
-

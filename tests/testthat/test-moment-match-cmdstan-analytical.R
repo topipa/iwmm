@@ -30,8 +30,6 @@ stancode <- "data {
     for (n in 1:N) log_lik[n] = normal_lpdf(x[n] | mu, sigma);
   }"
 
-
-
 stanmodel <- cmdstan_model(stan_file = write_stan_file(stancode), compile = FALSE)
 
 stanmodel$compile(force_recompile = TRUE)
@@ -110,7 +108,7 @@ mu_n <- kappa0 / kappa_n * mu0 + n / kappa_n * ybar
 
 sigma_sq_n <- (nu0 * sigma0^2 + (n - 1) * s_sq + (kappa0 * n) / kappa_n * (ybar - mu0)^2) / nu_n
 sigma_sq_post_mean <- nu_n * sigma_sq_n / (nu_n - 2)
-sigma_sq_post_var <- 2 * nu_n^2 * sigma_sq_n^2 / ((nu_n -2)^2 * (nu_n - 4))
+sigma_sq_post_var <- 2 * nu_n^2 * sigma_sq_n^2 / ((nu_n - 2)^2 * (nu_n - 4))
 sigma_sq_post_sd <- sqrt(sigma_sq_post_var)
 
 mu_post_mean <- mu_n
@@ -130,18 +128,18 @@ test_that("moment_match.CmdStanFit matches analytical results", {
     ll <- posterior::merge_chains(posterior::subset_draws(cdraws, variable = "log_lik"))
     apply(ll, 2, rowSums)
   }
-  
+
   iw_prior <- moment_match(
     fit_prior,
     log_ratio_fun = joint_log_lik,
     k_threshold = -Inf # ensure moment-matching is used
   )
-  
+
   draws_mm_prior <- posterior::subset_draws(
     posterior::as_draws_matrix(iw_prior$draws),
     variable = c("mu", "sigma_sq")
   )
-  
+
   weights_mm_prior <- exp(iw_prior$log_weights)
   mean_mm_prior <- matrixStats::colWeightedMeans(
     draws_mm_prior,
@@ -150,7 +148,7 @@ test_that("moment_match.CmdStanFit matches analytical results", {
   var_weighted <- function(x, w) {
     stats::cov.wt(cbind(x), wt = w)$cov
   }
-  
+
   sd_mm_prior <- apply(
     posterior::as_draws_matrix(draws_mm_prior),
     2,
