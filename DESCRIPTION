@@ -23,7 +23,8 @@ Suggests:
     rstan,
     cmdstanr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    bayesplot
 VignetteBuilder: knitr
 Config/testthat/parallel: true
 Config/testthat/edition: 3
