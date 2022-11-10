@@ -49,18 +49,15 @@ is a generic adaptive importance sampling algorithm (Paananen et al. 2020).
 We will load __rstan__ for fitting our models, and the
 [_iwmm package_](https://github.com/topipa/iwmm) for
 the importance weighted moment matching.
-We also load the __loo__ package for some helper functions, and the __parallel__
-package for parallellisation.
+We also load the __loo__ package for some helper functions.
 
 
 ```{r load, message=FALSE}
 library("rstan")
 library("loo")
-library("parallel")
 library("iwmm")
 seed <- 48571056
 set.seed(seed)
-CORES <- 6
 ```
 
 ## Example 1: Correct model - Gaussian data and Gaussian model
@@ -136,7 +133,7 @@ obs_ws <- apply(matrix(seq(bs_S)), 1, function(x) {c(rmultinom(1, n, prob = rep(
 bs_postmeans_is <- matrix(0, bs_S, 2)
 ks <- rep(0, bs_S)
 
-iw_list <- parallel::mclapply(X = seq(bs_S), mc.cores = CORES, FUN = function(i) {
+iw_list <- lapply(X = seq(bs_S), FUN = function(i) {
   obs_w_matrix <- matrix(obs_ws[, i], S, n, byrow = TRUE)
   lw <- rowSums((obs_w_matrix - 1) * ll)
   lw <- lw - matrixStats::logSumExp(lw)
@@ -197,7 +194,7 @@ bs_postmeans_is_mm <- matrix(0, bs_S, 2)
 ks_mm <- rep(0, bs_S)
 
 
-iw_list <- parallel::mclapply(X = seq(bs_S), mc.cores = CORES, FUN = function(i) {
+iw_list <- lapply(X = seq(bs_S), FUN = function(i) {
   iw <- moment_match(stanfit, log_ratio_fun = ratio_density, obs_weights = obs_ws[, i])
   c(matrixStats::colWeightedMeans(
     posterior::as_draws_matrix(iw$draws)[, c("mu", "logsigma")],
@@ -287,7 +284,7 @@ ll <- loo::extract_log_lik(stanfit)
 bs_postmeans_is_mm <- matrix(0, bs_S, 2)
 ks_mm <- rep(0, bs_S)
 
-iw_list <- parallel::mclapply(X = seq(bs_S), mc.cores = CORES, FUN = function(i) {
+iw_list <- lapply(X = seq(bs_S), FUN = function(i) {
   iw <- moment_match(stanfit, log_ratio_fun = ratio_density, obs_weights = obs_ws[, i])
   c(matrixStats::colWeightedMeans(
     posterior::as_draws_matrix(iw$draws)[, c("mu", "logsigma")],
