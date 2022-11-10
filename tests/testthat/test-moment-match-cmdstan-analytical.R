@@ -89,8 +89,6 @@ fit_prior <- stanmodel$sample(
   seed = SEED
 )
 
-fit_full$init_model_methods()
-
 fit_prior$init_model_methods()
 
 # from Gelman et al., BDA3 p 68
@@ -152,7 +150,7 @@ test_that("moment_match.CmdStanFit matches analytical results", {
   sd_mm_prior <- apply(
     posterior::as_draws_matrix(draws_mm_prior),
     2,
-    function(x) {sqrt(var_weighted(x = x, w = weights_mm_prior))}
+    function(x) sqrt(var_weighted(x = x, w = weights_mm_prior))
     )
 
   expect_equal(
