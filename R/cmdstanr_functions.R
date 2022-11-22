@@ -38,7 +38,7 @@ moment_match.CmdStanFit <- function(x,
   )
 
   if (constrain) {
-    out$draws <- constrain_draws_CmdStanFit(x, udraws = out$draws, ...)
+    out$draws <- constrain_draws.CmdStanFit(x, udraws = out$draws, ...)
   }
 
   out
@@ -77,7 +77,7 @@ unconstrain_draws_CmdStanFit <- function(x, draws, ...) {
   t(udraws)
 }
 
-constrain_draws_CmdStanFit <- function(x, udraws, ...) {
+constrain_draws.CmdStanFit <- function(x, udraws, ...) {
 
   # list with one element per posterior draw
   draws <- apply(udraws, 1, x$constrain_pars)

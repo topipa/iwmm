@@ -37,7 +37,7 @@ moment_match.stanfit <- function(x,
   )
 
   if (constrain) {
-    out$draws <- constrain_draws_stanfit(x, out$draws, ...)
+    out$draws <- constrain_draws.stanfit(x, out$draws, ...)
   }
 
   out
@@ -68,7 +68,8 @@ unconstrain_draws_stanfit <- function(x, draws, ...) {
   t(udraws)
 }
 
-constrain_draws_stanfit <- function(x, udraws, ...) {
+##' @export
+constrain_draws.stanfit <- function(x, udraws, ...) {
 
   # list with one element per posterior draw
   draws <- apply(udraws, 1, rstan::constrain_pars, object = x)
