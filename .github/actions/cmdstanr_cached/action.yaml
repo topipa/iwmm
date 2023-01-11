@@ -1,0 +1,30 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/master/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+name: "build"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get Cache Variables
+      run: |
+        echo "CMDSTANR_PATH=${HOME}/.cmdstan" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Cache CmdStan
+      uses: actions/cache@v2
+      id: cache-cmdstanr
+      with:
+        path: ${{env.CMDSTANR_PATH}}
+        key: CmdStanR-${{runner.os}}
+    - name: Install CmdStanR
+      if: steps.cache-cmdstanr.outputs.cache-hit != 'true'
+      run: |
+        cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+        cmdstanr::install_cmdstan(cores = parallel::detectCores())
+      shell: Rscript {0}
+    - name: Install Development RStan on Windows
+      if: runner.os == 'Windows'
+      run: |
+        Sys.setenv(MAKEFLAGS=paste0("-j",parallel::detectCores()))
+        install.packages(c("StanHeaders", "rstan"), repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+      shell: Rscript {0}
