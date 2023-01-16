@@ -23,8 +23,6 @@ moment_match.CmdStanFit <- function(x,
 
   var_names <- names(x$variable_skeleton())
 
-#  draws <- posterior::as_draws_matrix(x)
-#  draws <- posterior::subset_draws(draws, variable = var_names)
   # transform the model parameters to unconstrained space
   udraws <- x$unconstrain_draws()
   udraws <- aperm(abind(lapply(udraws, function(x) abind(x, along = 2)), along = 3), perm = c(2, 3, 1))

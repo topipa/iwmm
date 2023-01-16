@@ -13,6 +13,7 @@ RoxygenNote: 7.2.2
 Depends:
     R (>= 3.1.2)
 Imports:
+    abind,
     checkmate,
     matrixStats (>= 0.52),
     posterior,
