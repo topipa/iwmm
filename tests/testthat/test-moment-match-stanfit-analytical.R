@@ -129,7 +129,7 @@ test_that("moment_match_stanfit matches analytical results (prior as proposal)",
   # ratio = jointlikelihood
   joint_log_lik <- function(draws, fit, ...) {
 
-    cdraws <- constrain_draws_stanfit(fit, draws)
+    cdraws <- constrain_draws.stanfit(fit, draws)
     ll <- posterior::merge_chains(posterior::subset_draws(cdraws, variable = "log_lik"))
     apply(ll, 2, rowSums)
   }

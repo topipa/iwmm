@@ -25,7 +25,7 @@ moment_match.CmdStanFit <- function(x,
 
   # transform the model parameters to unconstrained space
   udraws <- x$unconstrain_draws()
-  udraws <- aperm(abind(lapply(udraws, function(x) abind(x, along = 2)), along = 3), perm = c(2, 3, 1))
+  udraws <- aperm(abind::abind(lapply(udraws, function(x) abind::abind(x, along = 2)), along = 3), perm = c(2, 3, 1))
   udraws <- matrix(udraws, nrow = dim(udraws)[1] * dim(udraws)[2], ncol = dim(udraws)[3])
 
   out <- moment_match.matrix(
