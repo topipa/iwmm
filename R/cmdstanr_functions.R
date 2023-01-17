@@ -21,12 +21,16 @@ moment_match.CmdStanFit <- function(x,
                                     constrain = TRUE,
                                     ...) {
 
-  var_names <- names(x$variable_skeleton())
-
   # transform the model parameters to unconstrained space
   udraws <- x$unconstrain_draws()
-  udraws <- aperm(abind::abind(lapply(udraws, function(x) abind::abind(x, along = 2)), along = 3), perm = c(2, 3, 1))
-  udraws <- matrix(udraws, nrow = dim(udraws)[1] * dim(udraws)[2], ncol = dim(udraws)[3])
+  udraws <- aperm(abind::abind(
+    lapply(udraws, function(x) abind::abind(x, along = 2)), along = 3),
+    perm = c(2, 3, 1))
+
+  udraws <- matrix(
+    udraws, nrow = dim(udraws)[1] * dim(udraws)[2],
+    ncol = dim(udraws)[3]
+  )
 
   out <- moment_match.matrix(
     x = udraws,
@@ -36,7 +40,6 @@ moment_match.CmdStanFit <- function(x,
     fit = x,
     ...
   )
-
 
   if (constrain) {
     out$draws <- constrain_draws.CmdStanFit(x, udraws = out$draws, ...)

@@ -9,34 +9,38 @@ moment_match <- function(x, ...) {
 #'
 #'
 #' @param x A matrix of draws. Must be unconstrained.
-#' @param log_prob_prop_fun Log density of the proposal.
-#' The function takes argument `draws`.
-#' @param log_prob_target_fun Log density of the target for
-#' importance sampling. The function takes argument `draws`.
-#' @param log_ratio_fun Log of the density ratio for importance sampling
-#' (target/proposal). The function takes argument `draws`.
-#' @param expectation_fun Optional argument, NULL by default. A function whose expectation is
-#' being computed. The function takes arguments `draws`.
-#' @param log_expectation_fun Logical indicating whether the expectation_fun
-#' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
-#' the expectation function must be nonnegative (before taking the logarithm).
-#' Ignored if `expectation_fun` is NULL.
-#' @param k_threshold Threshold value for Pareto k values above which the moment
-#'   matching algorithm is used. The default value is 0.5.
-#' @param cov_transform Logical; Indicates whether to match the covariance of
-#' the samples or not. If `FALSE`, only the mean and marginal variances are
-#'   matched. Default is `TRUE`.
-#' @param split Logical; Indicate whether to do the split transformation or not
-#' at the end of moment matching. FALSE by default.
-#' @param restart_transform Logical; When split is TRUE, indicates whether to
-#' start the second transformation from the original model parameters
-#' or the transformed parameters. If split is FALSE, this is ignored.
+#' @param log_prob_prop_fun Log density of the proposal.  The function
+#'   takes argument `draws`.
+#' @param log_prob_target_fun Log density of the target for importance
+#'   sampling. The function takes argument `draws`.
+#' @param log_ratio_fun Log of the density ratio for importance
+#'   sampling (target/proposal). The function takes argument `draws`.
+#' @param expectation_fun Optional argument, NULL by default. A
+#'   function whose expectation is being computed. The function takes
+#'   arguments `draws`.
+#' @param log_expectation_fun Logical indicating whether the
+#'   expectation_fun returns its values as logarithms or not. Defaults
+#'   to FALSE. If set to TRUE, the expectation function must be
+#'   nonnegative (before taking the logarithm).  Ignored if
+#'   `expectation_fun` is NULL.
+#' @param k_threshold Threshold value for Pareto k values above which
+#'   the moment matching algorithm is used. The default value is 0.5.
+#' @param cov_transform Logical; Indicates whether to match the
+#'   covariance of the samples or not. If `FALSE`, only the mean and
+#'   marginal variances are matched. Default is `TRUE`.
+#' @param split Logical; Indicate whether to do the split
+#'   transformation or not at the end of moment matching. FALSE by
+#'   default.
+#' @param restart_transform Logical; When split is TRUE, indicates
+#'   whether to start the second transformation from the original
+#'   model parameters or the transformed parameters. If split is
+#'   FALSE, this is ignored.
 #' @param ... Further arguments passed to `log_prob_prop_fun`,
-#' `log_prob_target_fun` and `log_ratio_fun`.
+#'   `log_prob_target_fun` and `log_ratio_fun`.
 #'
-#' @return Returns a list with: transformed draws, updated
-#' importance weights, and the pareto k diagnostic value.
-#' If expectation_fun is given, also returns the expectation.
+#' @return Returns a list with: transformed draws, updated importance
+#'   weights, and the pareto k diagnostic value.  If expectation_fun
+#'   is given, also returns the expectation.
 #'
 #' @rdname moment_match
 #' @export
@@ -171,8 +175,8 @@ moment_match.matrix <- function(x,
 
       lwf <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
       if (ncol(lwf) > 1) {
-        stop('Using split = TRUE is not yet supported for expectation functions that return a matrix.
-           As a workaround, you can wrap your function call using apply.')
+        stop("Using split = TRUE is not yet supported for expectation functions that return a matrix.
+           As a workaround, you can wrap your function call using apply.")
       }
       lwf <- as.vector(weights(psisf))
 
@@ -251,14 +255,20 @@ moment_match.matrix <- function(x,
         draws_T2_T1inv <- tcrossprod(draws_T2_T1inv, solve(total_mapping))
       }
       draws_T2_T1inv <- sweep(draws_T2_T1inv, 2, total_scaling, "/")
-      draws_T2_T1inv <- sweep(draws_T2_T1inv, 2, mean_original + total_shift2 - total_shift, "+")
+      draws_T2_T1inv <- sweep(
+        draws_T2_T1inv, 2,
+        mean_original + total_shift2 - total_shift, "+"
+      )
 
       draws_T1_T2inv <- sweep(draws_T1, 2, mean_original + total_shift, "-")
       if (cov_transform) {
         draws_T1_T2inv <- tcrossprod(draws_T1_T2inv, solve(total_mapping2))
       }
       draws_T1_T2inv <- sweep(draws_T1_T2inv, 2, total_scaling2, "/")
-      draws_T1_T2inv <- sweep(draws_T1_T2inv, 2, mean_original + total_shift - total_shift2, "+")
+      draws_T1_T2inv <- sweep(
+        draws_T1_T2inv, 2,
+        mean_original + total_shift - total_shift2, "+"
+      )
 
       # these are the real used draws
       # first half of draws_trans are T1(theta)
@@ -280,23 +290,29 @@ moment_match.matrix <- function(x,
         log_prob_prop_trans <- log_prob_prop_fun(draws_trans, ...)
         lw_trans <-  log_prob_prop_trans -
           log(
-            exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
-              exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
+            exp(log_prob_trans_inv1 - log(prod(total_scaling2)) -
+                  log(det(total_mapping2))) +
+              exp(log_prob_trans_inv2 - log(prod(total_scaling)) -
+                    log(det(total_mapping)))
           )
       } else if (!is.null(log_prob_target_fun)) {
         log_prob_target_trans <- log_prob_target_fun(draws_trans, ...)
         lw_trans <-  log_prob_target_trans -
           log(
-            exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
-              exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
+            exp(log_prob_trans_inv1 - log(prod(total_scaling2)) -
+                  log(det(total_mapping2))) +
+              exp(log_prob_trans_inv2 - log(prod(total_scaling)) -
+                     log(det(total_mapping)))
           )
       } else if (!is.null(log_ratio_fun)) {
         log_prob_ratio_trans <- log_ratio_fun(draws_trans, ...)
         log_prob_prop_trans <- log_prob_prop_fun(draws_trans, ...)
         lw_trans <-  log_prob_ratio_trans + log_prob_prop_trans -
           log(
-            exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
-              exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
+            exp(log_prob_trans_inv1 - log(prod(total_scaling2))
+                - log(det(total_mapping2))) +
+              exp(log_prob_trans_inv2 - log(prod(total_scaling))
+                  - log(det(total_mapping)))
           )
       }
 
@@ -321,7 +337,7 @@ moment_match.matrix <- function(x,
     } else {
       # if not splitting, warn about high pareto ks
       if (any(kf > k_threshold)) {
-        warning('Importance sampling may be unreliable. Consider setting split to TRUE.')
+        warning("Importance sampling may be unreliable. Consider setting split to TRUE.")
       }
     }
 
