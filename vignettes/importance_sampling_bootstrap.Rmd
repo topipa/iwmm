@@ -188,7 +188,10 @@ log_lik_stanfit <- function(fit, upars, parameter_name = "log_lik",
     n <- ncol(ll)
     out <- matrix(0, S, n)
     for (s in seq_len(S)) {
-      out[s, ] <- rstan::constrain_pars(fit, upars = upars[s, ])[[parameter_name]]
+      out[s, ] <- rstan::constrain_pars(
+        fit,
+        upars = upars[s, ]
+      )[[parameter_name]]
     }
     out
 }
