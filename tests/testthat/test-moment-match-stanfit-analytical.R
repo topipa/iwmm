@@ -1,5 +1,5 @@
 library(rstan)
-rstan_options(auto_write = TRUE)
+# rstan_options(auto_write = TRUE)
 options(mc.cores = 1)
 
 stancode <- "data {
