@@ -1,6 +1,6 @@
 # Install the requirements for test-coverage and create the caches
 on:
-  workflow_dispatch:
+  workflow_dispatch
 
 name: test-coverage create cache
 
