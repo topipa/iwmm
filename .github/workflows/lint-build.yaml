@@ -1,6 +1,6 @@
 # Install the requirements for lint and create the caches
 on:
-  workflow_dispatch
+  workflow_dispatch:
 
 name: lint create cache
 
