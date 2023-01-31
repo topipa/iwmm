@@ -48,6 +48,17 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           cache-version: 1
+
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          build_args: 'c("--no-manual", "--no-build-vignettes")'
+          args: 'c("--no-manual", "--as-cran", "--ignore-vignettes")'
+
+      # Include cmdstanr and rerun checks
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache-version: 1
           extra-packages: |
             rcmdcheck
             checkmate
@@ -65,17 +76,6 @@ jobs:
             knitr
             any::XML
             any::textshaping
-
-      - uses: r-lib/actions/check-r-package@v2
-        with:
-          build_args: 'c("--no-manual", "--no-build-vignettes")'
-          args: 'c("--no-manual", "--as-cran", "--ignore-vignettes")'
-
-      # Include cmdstanr and rerun checks
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          cache-version: 1
-          extra-packages: |
             stan-dev/cmdstanr
 
       - uses: ./.github/actions/cmdstanr_cached
