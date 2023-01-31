@@ -19,7 +19,7 @@ runs:
     - name: Install CmdStanR
       if: steps.cache-cmdstanr.outputs.cache-hit != 'true'
       run: |
-        cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+        cmdstanr::check_cmdstan_toolchain(fix = TRUE, check_toolchain = FALSE)
         cmdstanr::install_cmdstan(cores = parallel::detectCores())
       shell: Rscript {0}
     - name: Install Development RStan on Windows

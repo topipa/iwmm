@@ -1,4 +1,3 @@
-if(False){
 library(cmdstanr)
 
 stancode <- "data {
@@ -167,4 +166,3 @@ test_that("moment_match.CmdStanFit matches analytical results", {
   )
 
 })
-}
