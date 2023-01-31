@@ -10,12 +10,12 @@ runs:
         echo "CMDSTANR_PATH=${HOME}/.cmdstan" >> $GITHUB_ENV
       shell: bash
 
-    - name: Cache CmdStan
-      uses: actions/cache@v2
-      id: cache-cmdstanr
-      with:
-        path: ${{env.CMDSTANR_PATH}}
-        key: CmdStanR-${{runner.os}}
+    #- name: Cache CmdStan
+    #  uses: actions/cache@v2
+    #  id: cache-cmdstanr
+    #  with:
+    #    path: ${{env.CMDSTANR_PATH}}
+    #    key: CmdStanR-${{runner.os}}
     - name: Install CmdStanR
       if: steps.cache-cmdstanr.outputs.cache-hit != 'true'
       run: |
