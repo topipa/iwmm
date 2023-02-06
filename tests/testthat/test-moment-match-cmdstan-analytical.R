@@ -171,5 +171,4 @@ test_that("moment_match.CmdStanFit matches analytical results", {
 
 })
 
-
 } # close conditional on cmdstanr
