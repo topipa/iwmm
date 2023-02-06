@@ -22,11 +22,12 @@ Imports:
 Suggests: 
     testthat,
     rstan,
-    cmdstanr,
     knitr,
     rmarkdown,
     parallel,
     bayesplot
+Enhancements:
+    cmdstanr
 VignetteBuilder: knitr
 Config/testthat/parallel: true
 Config/testthat/edition: 3

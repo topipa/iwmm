@@ -1,4 +1,8 @@
-library(cmdstanr)
+cmdstanr_available <- require(cmdstanr)
+
+# Run these tests only if cmdstanr is installed
+if(cmdstanr_available) {
+
 
 stancode <- "data {
   int<lower=0> N;
@@ -166,3 +170,6 @@ test_that("moment_match.CmdStanFit matches analytical results", {
   )
 
 })
+
+
+} # close conditional on cmdstanr
