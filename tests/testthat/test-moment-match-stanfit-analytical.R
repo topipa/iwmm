@@ -98,7 +98,8 @@ fit_prior <- sampling(
 # mu_n = kappa_0 / (kappa_0 + n) * mu_0 + n / (kappa_0 + n) * ybar
 # kappa_n = kappa_0 + n
 # nu_n = nu_0 + n
-# nu_n*sigma_sq_n = nu_0 * sigma_sq_0 + (n - 1) * s^2 + (kappa_0 * n) / (kappa_0 + n) * (ybar - mu_0)^2
+# nu_n*sigma_sq_n = nu_0 * sigma_sq_0 + (n - 1) * s^2 +
+# (kappa_0 * n) / (kappa_0 + n) * (ybar - mu_0)^2
 
 mu0 <- 0
 ybar <- mean(x)
@@ -130,7 +131,9 @@ test_that("moment_match_stanfit matches analytical results (prior as proposal)",
   joint_log_lik <- function(draws, fit, ...) {
 
     cdraws <- constrain_draws.stanfit(fit, draws)
-    ll <- posterior::merge_chains(posterior::subset_draws(cdraws, variable = "log_lik"))
+    ll <- posterior::merge_chains(
+      posterior::subset_draws(cdraws, variable = "log_lik")
+    )
     apply(ll, 2, rowSums)
   }
 
@@ -157,7 +160,7 @@ test_that("moment_match_stanfit matches analytical results (prior as proposal)",
   sd_mm_prior <- apply(
     posterior::as_draws_matrix(draws_mm_prior),
     2,
-    function(x) {sqrt(var_weighted(x = x, w = weights_mm_prior))}
+    function(x) sqrt(var_weighted(x = x, w = weights_mm_prior))
   )
 
   expect_equal(

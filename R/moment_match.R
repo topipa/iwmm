@@ -175,8 +175,9 @@ moment_match.matrix <- function(x,
 
       lwf <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
       if (ncol(lwf) > 1) {
-        stop("Using split = TRUE is not yet supported for expectation functions that return a matrix.
-           As a workaround, you can wrap your function call using apply.")
+        stop("Using split = TRUE is not yet supported for expectation functions
+              that return a matrix. As a workaround, you can wrap your function
+              call using apply.")
       }
       lwf <- as.vector(weights(psisf))
 
@@ -320,8 +321,10 @@ moment_match.matrix <- function(x,
       #
       # lw_trans <-  log_prob_target_trans -
       #   log(
-      #     exp(log_prob_trans_inv1 - log(prod(total_scaling2))  - log(det(total_mapping2))) +
-      #       exp(log_prob_trans_inv2 - log(prod(total_scaling))  - log(det(total_mapping)))
+      #     exp(log_prob_trans_inv1 - log(prod(total_scaling2)) -
+      #log(det(total_mapping2))) +
+      #       exp(log_prob_trans_inv2 - log(prod(total_scaling)) -
+      #log(det(total_mapping)))
       #   )
 
 
@@ -337,12 +340,15 @@ moment_match.matrix <- function(x,
     } else {
       # if not splitting, warn about high pareto ks
       if (any(kf > k_threshold)) {
-        warning("Importance sampling may be unreliable. Consider setting split to TRUE.")
+        warning("Importance sampling may be unreliable.
+                 Consider setting split to TRUE.")
       }
     }
 
     if (log_expectation_fun) {
-      expectation <- exp(matrixStats::colLogSumExps(lw + expectation_fun(draws, ...)))
+      expectation <- exp(matrixStats::colLogSumExps(
+        lw + expectation_fun(draws, ...)
+      ))
     } else {
       w <- exp(lw)
       expectation <- colSums(w * expectation_fun(draws, ...))

@@ -1,7 +1,7 @@
 cmdstanr_available <- require(cmdstanr)
 
 # Run these tests only if cmdstanr is installed
-if(cmdstanr_available) {
+if (cmdstanr_available) {
 
 
 stancode <- "data {
@@ -34,7 +34,10 @@ stancode <- "data {
     for (n in 1:N) log_lik[n] = normal_lpdf(x[n] | mu, sigma);
   }"
 
-stanmodel <- cmdstan_model(stan_file = write_stan_file(stancode), compile = FALSE)
+  stanmodel <- cmdstan_model(
+    stan_file = write_stan_file(stancode),
+    compile = FALSE
+  )
 
 stanmodel$compile(force_recompile = TRUE)
 
@@ -108,7 +111,8 @@ kappa_n <- kappa0 + n
 
 mu_n <- kappa0 / kappa_n * mu0 + n / kappa_n * ybar
 
-sigma_sq_n <- (nu0 * sigma0^2 + (n - 1) * s_sq + (kappa0 * n) / kappa_n * (ybar - mu0)^2) / nu_n
+  sigma_sq_n <- (nu0 * sigma0^2 + (n - 1) * s_sq +
+                   (kappa0 * n) / kappa_n * (ybar - mu0)^2) / nu_n
 sigma_sq_post_mean <- nu_n * sigma_sq_n / (nu_n - 2)
 sigma_sq_post_var <- 2 * nu_n^2 * sigma_sq_n^2 / ((nu_n - 2)^2 * (nu_n - 4))
 sigma_sq_post_sd <- sqrt(sigma_sq_post_var)
@@ -127,7 +131,9 @@ test_that("moment_match.CmdStanFit matches analytical results", {
   joint_log_lik <- function(draws, fit, ...) {
 
     cdraws <- constrain_draws.CmdStanFit(x = fit, udraws = draws)
-    ll <- posterior::merge_chains(posterior::subset_draws(cdraws, variable = "log_lik"))
+    ll <- posterior::merge_chains(
+      posterior::subset_draws(cdraws, variable = "log_lik")
+    )
     apply(ll, 2, rowSums)
   }
 
