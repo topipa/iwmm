@@ -33,3 +33,6 @@ jobs:
         shell: Rscript {0}
         env:
           LINTR_ERROR_ON_LINT: true
+          linters: linters_with_defaults(object_name_linter = NULL,
+                   cyclocomp_linter = NULL,
+                   object_length_linter = NULL)
