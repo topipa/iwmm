@@ -109,7 +109,8 @@ kappa_n <- kappa0 + n
 
 mu_n <- kappa0 / kappa_n * mu0 + n / kappa_n * ybar
 
-sigma_sq_n <- (nu0 * sigma0^2 + (n - 1) * s_sq + (kappa0 * n) / kappa_n * (ybar - mu0)^2) / nu_n
+sigma_sq_n <- (nu0 * sigma0^2 + (n - 1) * s_sq + (kappa0 * n) /
+                 kappa_n * (ybar - mu0)^2) / nu_n
 
 sigma_sq_post_mean <- nu_n * sigma_sq_n / (nu_n - 2)
 
@@ -125,7 +126,7 @@ mean_analytical_prior <- c(mu = mu_n, sigma_sq = sigma_sq_post_mean)
 sd_analytical_prior <- c(mu = mu_post_sd, sigma_sq = sqrt(sigma_sq_post_var))
 
 
-test_that("moment_match_stanfit matches analytical results (prior as proposal)", {
+test_that("moment_match_stanfit matches analytical results", {
 
   # ratio = jointlikelihood
   joint_log_lik <- function(draws, fit, ...) {
