@@ -119,7 +119,6 @@ moment_match.matrix <- function(x,
     lw <- as.vector(weights(lw_psis))
     k <- lw_psis$diagnostics$pareto_k
     if (any(is.infinite(k))) {
-      print(exp(lw))
       stop("Something went wrong, and encountered infinite Pareto k values..")
     }
 
