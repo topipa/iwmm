@@ -1,7 +1,7 @@
-#' Generic importance weighted moment matching algorithm for `stanfit` objects.
+#' Generic importance weighted moment matching algorithm for `CmdStanFit` objects.
 #' See additional arguments from `moment_match.matrix`
 #'
-#' @param x A fitted `stanfit` object.
+#' @param x A fitted `CmdStanFit` object.
 #' @param log_prob_target_fun Log density of the target.  The function
 #'   takes argument `draws`, which are the unconstrained draws.
 #' @param log_ratio_fun Log of the density ratio (target/proposal).

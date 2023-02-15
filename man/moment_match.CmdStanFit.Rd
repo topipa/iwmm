@@ -2,7 +2,7 @@
 % Please edit documentation in R/cmdstanr_functions.R
 \name{moment_match.CmdStanFit}
 \alias{moment_match.CmdStanFit}
-\title{Generic importance weighted moment matching algorithm for \code{stanfit} objects.
+\title{Generic importance weighted moment matching algorithm for \code{CmdStanFit} objects.
 See additional arguments from \code{moment_match.matrix}}
 \usage{
 \method{moment_match}{CmdStanFit}(
@@ -14,7 +14,7 @@ See additional arguments from \code{moment_match.matrix}}
 )
 }
 \arguments{
-\item{x}{A fitted \code{stanfit} object.}
+\item{x}{A fitted \code{CmdStanFit} object.}
 
 \item{log_prob_target_fun}{Log density of the target.  The function
 takes argument \code{draws}, which are the unconstrained draws.}
@@ -33,6 +33,6 @@ Returns a list with 3 elements: transformed draws, updated
 importance weights, and the pareto k diagnostic value.
 }
 \description{
-Generic importance weighted moment matching algorithm for \code{stanfit} objects.
+Generic importance weighted moment matching algorithm for \code{CmdStanFit} objects.
 See additional arguments from \code{moment_match.matrix}
 }
