@@ -8,7 +8,7 @@
 shift <- function(draws, lw) {
   checkmate::assertMatrix(draws, any.missing = FALSE)
   checkmate::assertNumeric(lw)
-  checkmate::assertSetEqual(nrow(draws),length(lw))
+  checkmate::assertSetEqual(nrow(draws), length(lw))
 
   w <- exp(lw) * length(lw)
   # compute moments using log weights
@@ -37,7 +37,7 @@ shift <- function(draws, lw) {
 shift_and_scale <- function(draws, lw) {
   checkmate::assertMatrix(draws, any.missing = FALSE)
   checkmate::assertNumeric(lw)
-  checkmate::assertSetEqual(nrow(draws),length(lw))
+  checkmate::assertSetEqual(nrow(draws), length(lw))
 
   w <- exp(lw) * length(lw)
   # compute moments using log weights
@@ -76,7 +76,7 @@ shift_and_scale <- function(draws, lw) {
 shift_and_cov <- function(draws, lw) {
   checkmate::assertMatrix(draws, any.missing = FALSE)
   checkmate::assertNumeric(lw)
-  checkmate::assertSetEqual(nrow(draws),length(lw))
+  checkmate::assertSetEqual(nrow(draws), length(lw))
 
   w <- exp(lw) * length(lw)
   # compute moments using log weights
@@ -86,8 +86,7 @@ shift_and_cov <- function(draws, lw) {
     {
       chol(covar_weighted)
     },
-    error = function(cond)
-    {
+    error = function(cond) {
       return(NULL)
     }
   )
@@ -102,7 +101,7 @@ shift_and_cov <- function(draws, lw) {
   if (is.null(chol1) || is.null(chol2)) {
     draws_new <- draws
     mapping <- diag(ncol(draws))
-    shift <- rep(0,ncol(draws))
+    shift <- rep(0, ncol(draws))
   } else {
     mapping <- t(chol1) %*% solve(t(chol2))
 
@@ -192,13 +191,15 @@ transform_loop <- function(draws,
         next
       }
     }
-
-
     break
   }
 
-  list("draws" = draws, "log_weights" = lw, "pareto_k" = k,
-       "total_shift" = total_shift, "total_scaling" = total_scaling,
-       "total_mapping" = total_mapping)
+  list(
+    "draws" = draws,
+    "log_weights" = lw,
+    "pareto_k" = k,
+    "total_shift" = total_shift,
+    "total_scaling" = total_scaling,
+    "total_mapping" = total_mapping
+  )
 }
-

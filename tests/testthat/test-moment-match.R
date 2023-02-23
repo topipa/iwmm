@@ -1,6 +1,3 @@
-
-
-
 test_that("moment_match works", {
 
   set.seed(7)
@@ -15,14 +12,16 @@ test_that("moment_match works", {
 
   prop_sample <- matrix(rnorm(2 * S, prop_mean, prop_var), S, 2)
   prop_density <- function(draws, ...) {
-    dnorm(draws[,1], prop_mean, prop_var, log = TRUE) + dnorm(draws[,2], prop_mean, prop_var, log = TRUE)
+    dnorm(draws[, 1], prop_mean, prop_var, log = TRUE) +
+      dnorm(draws[, 2], prop_mean, prop_var, log = TRUE)
   }
 
-  target_density <- function(draws ,...) {
-    dnorm(draws[,1], target_mean, target_var, log = TRUE) + dnorm(draws[,2], target_mean, target_var, log = TRUE)
+  target_density <- function(draws, ...) {
+    dnorm(draws[, 1], target_mean, target_var, log = TRUE) +
+      dnorm(draws[, 2], target_mean, target_var, log = TRUE)
   }
 
-  ratio_density <- function(draws ,...) {
+  ratio_density <- function(draws, ...) {
     target_density(draws, ...) - prop_density(draws, ...)
   }
 
@@ -30,33 +29,45 @@ test_that("moment_match works", {
               log_prob_prop_fun = prop_density,
               log_ratio_fun = ratio_density)
 
-  expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(4.988783, 4.996672), tolerance = 1e-6)
-  expect_equal(matrixStats::colWeightedMeans(iw$draws^2,w = exp(iw$log_weights)) - matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))^2, c(0.9243542, 1.0270310), tolerance = 1e-6)
+  expect_equal(
+    matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights)),
+    c(4.988783, 4.996672), tolerance = 1e-6
+  )
+  expect_equal(
+    matrixStats::colWeightedMeans(iw$draws^2, w = exp(iw$log_weights)) -
+      matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights))^2,
+    c(0.9243542, 1.0270310), tolerance = 1e-6
+  )
   expect_equal(iw$pareto_k, 0.3605297, tolerance = 1e-6)
 
 
   # another definition
 
-  iw <- moment_match(prop_sample,
-             log_prob_prop_fun = prop_density,
-             log_prob_target_fun = target_density)
+  iw <- moment_match(
+    prop_sample,
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density
+  )
 
-  expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(4.988783, 4.996672), tolerance = 1e-6)
-  expect_equal(matrixStats::colWeightedMeans(iw$draws^2,w = exp(iw$log_weights)) - matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))^2, c(0.9243542, 1.0270310), tolerance = 1e-6)
+  expect_equal(matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights)),
+               c(4.988783, 4.996672), tolerance = 1e-6)
+  expect_equal(
+    matrixStats::colWeightedMeans(iw$draws^2, w = exp(iw$log_weights)) -
+      matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights))^2,
+    c(0.9243542, 1.0270310), tolerance = 1e-6
+  )
   expect_equal(iw$pareto_k, 0.3605297, tolerance = 1e-6)
 
 
 
-  iw <- moment_match(prop_sample,
-                     log_prob_prop_fun = prop_density,
-                     log_prob_target_fun = target_density,
-                     dummy_arg = 123)
+  iw <- moment_match(
+    prop_sample,
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
+    dummy_arg = 123
+  )
 
 })
-
-
-
-
 
 test_that("moment_match with model works", {
 
@@ -72,12 +83,13 @@ test_that("moment_match with model works", {
 
   prop_sample <- matrix(rnorm(2 * S, prop_mean, prop_var), S, 2)
   prop_density <- function(draws, model, ...) {
-    # print(length(model$draws))
-    dnorm(draws[,1], prop_mean, prop_var, log = TRUE) + dnorm(draws[,2], prop_mean, prop_var, log = TRUE)
+    dnorm(draws[, 1], prop_mean, prop_var, log = TRUE) +
+      dnorm(draws[, 2], prop_mean, prop_var, log = TRUE)
   }
 
   target_density <- function(draws, model, ...) {
-    dnorm(draws[,1], target_mean, target_var, log = TRUE) + dnorm(draws[,2], target_mean, target_var, log = TRUE)
+    dnorm(draws[, 1], target_mean, target_var, log = TRUE) +
+      dnorm(draws[, 2], target_mean, target_var, log = TRUE)
   }
 
   ratio_density <- function(draws, model, ...) {
@@ -96,45 +108,45 @@ test_that("moment_match with model works", {
   prop_sample_pars <- test_post_fun(test_model)
   prop_sample <- unconstrain_pars_fun(test_model, prop_sample_pars)
 
-  iw <- moment_match(prop_sample,
-                     log_prob_prop_fun = prop_density,
-                     log_ratio_fun = ratio_density,
-                     model = test_model)
+  iw <- moment_match(
+    prop_sample,
+    log_prob_prop_fun = prop_density,
+    log_ratio_fun = ratio_density,
+    model = test_model
+  )
 
-
-
-  expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(4.988783, 4.996672), tolerance = 1e-6)
-  expect_equal(matrixStats::colWeightedMeans(iw$draws^2,w = exp(iw$log_weights)) - matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))^2, c(0.9243542, 1.0270310), tolerance = 1e-6)
+  expect_equal(matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights)),
+               c(4.988783, 4.996672), tolerance = 1e-6)
+  expect_equal(
+    matrixStats::colWeightedMeans(iw$draws^2, w = exp(iw$log_weights)) -
+      matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights))^2,
+    c(0.9243542, 1.0270310), tolerance = 1e-6
+  )
   expect_equal(iw$pareto_k, 0.3605297, tolerance = 1e-6)
-
 
   # another definition
 
-  iw <- moment_match(prop_sample,
-                     log_prob_prop_fun = prop_density,
-                     log_prob_target_fun = target_density,
-                     model = test_model)
+  iw <- moment_match(
+    prop_sample,
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
+    model = test_model
+  )
 
 
-  expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), c(4.988783, 4.996672), tolerance = 1e-6)
-  expect_equal(matrixStats::colWeightedMeans(iw$draws^2,w = exp(iw$log_weights)) - matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights))^2, c(0.9243542, 1.0270310), tolerance = 1e-6)
+  expect_equal(matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights)),
+               c(4.988783, 4.996672), tolerance = 1e-6)
+  expect_equal(
+    matrixStats::colWeightedMeans(iw$draws^2, w = exp(iw$log_weights)) -
+      matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights))^2,
+    c(0.9243542, 1.0270310), tolerance = 1e-6
+  )
   expect_equal(iw$pareto_k, 0.3605297, tolerance = 1e-6)
-
-
-
-
 
 })
 
 
-
-
-
-
-
-
 test_that("moment_match with expectation works for target and ratio", {
-
 
   set.seed(6)
   S <- 4000
@@ -147,133 +159,176 @@ test_that("moment_match with expectation works for target and ratio", {
 
   prop_sample <- matrix(rnorm(2 * S, prop_mean, prop_var), S, 2)
   prop_density <- function(draws, ...) {
-    dnorm(draws[,1], prop_mean, prop_var, log = TRUE) + dnorm(draws[,2], prop_mean, prop_var, log = TRUE)
+    dnorm(draws[, 1], prop_mean, prop_var, log = TRUE) +
+      dnorm(draws[, 2], prop_mean, prop_var, log = TRUE)
   }
 
-  target_density <- function(draws ,...) {
-    dnorm(draws[,1], target_mean, target_var, log = TRUE) + dnorm(draws[,2], target_mean, target_var, log = TRUE)
+  target_density <- function(draws, ...) {
+    dnorm(draws[, 1], target_mean, target_var, log = TRUE) +
+      dnorm(draws[, 2], target_mean, target_var, log = TRUE)
   }
 
-  ratio_density <- function(draws ,...) {
+  ratio_density <- function(draws, ...) {
     target_density(draws, ...) - prop_density(draws, ...)
   }
 
   target_sample <- matrix(rnorm(2 * S, target_mean, target_var), S, 2)
 
-
-  iw_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    draws[,1:2]},
+  iw_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      draws[, 1:2]
+    },
     log_prob_prop_fun = prop_density,
-    log_prob_target_fun = target_density)
+    log_prob_target_fun = target_density
+  )
 
-
-  iw2_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    draws[,1:2]},
-    log_prob_prop_fun = prop_density,
-    log_prob_target_fun = target_density,
-    k_threshold = 0.0)
-
-
-
-  iw3_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,1])},
+  iw2_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      draws[, 1:2]
+    },
     log_prob_prop_fun = prop_density,
     log_prob_target_fun = target_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = 0.0
+  )
 
-  iw3b_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,2])},
+  iw3_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 1])
+    },
     log_prob_prop_fun = prop_density,
     log_prob_target_fun = target_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE
+  )
 
-  iw4_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,1])},
+  iw3b_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 2])
+    },
     log_prob_prop_fun = prop_density,
     log_prob_target_fun = target_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE
+  )
 
-  iw4b_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,2])},
+  iw4_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 1])
+    },
     log_prob_prop_fun = prop_density,
     log_prob_target_fun = target_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE,
+    restart_transform = TRUE
+  )
 
-
+  iw4b_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 2])
+    },
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE,
+    restart_transform = TRUE
+  )
 
   expect_equal(iw_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
   expect_equal(iw2_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
-  expect_equal(c(iw3_mean$expectation,iw3b_mean$expectation), c(5.005665, 5.000551), tolerance = 1e-6)
-
-
-
-
-
-
-
+  expect_equal(c(iw3_mean$expectation, iw3b_mean$expectation),
+               c(5.005665, 5.000551), tolerance = 1e-6)
 
   # using ratio
 
-
-
-  iw_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    draws[,1:2]},
+  iw_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      draws[, 1:2]
+    },
     log_prob_prop_fun = prop_density,
-    log_ratio_fun = ratio_density)
+    log_ratio_fun = ratio_density
+  )
 
-
-  iw2_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    draws[,1:2]},
-    log_prob_prop_fun = prop_density,
-    log_ratio_fun = ratio_density,
-    k_threshold = 0.0, cov_transform = TRUE)
-
-
-
-  iw3_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,1])},
+  iw2_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      draws[, 1:2]
+    },
     log_prob_prop_fun = prop_density,
     log_ratio_fun = ratio_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = 0.0,
+    cov_transform = TRUE
+  )
 
-  iw3b_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,2])},
+  iw3_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 1])
+    },
     log_prob_prop_fun = prop_density,
     log_ratio_fun = ratio_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE
+  )
 
-  iw4_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,1])},
+  iw3b_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 2])
+    },
     log_prob_prop_fun = prop_density,
     log_ratio_fun = ratio_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE
+  )
 
-  iw4b_mean <- moment_match(prop_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,2])},
+  iw4_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 1])
+    },
     log_prob_prop_fun = prop_density,
     log_ratio_fun = ratio_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE,
+    restart_transform = TRUE
+  )
 
-
-
+  iw4b_mean <- moment_match(
+    prop_sample,
+    expectation_fun =  function(draws, ...) {
+      matrix(draws[, 2])
+    },
+    log_prob_prop_fun = prop_density,
+    log_ratio_fun = ratio_density,
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE,
+    restart_transform = TRUE
+  )
 
   expect_equal(iw_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
   expect_equal(iw2_mean$expectation, c(5.005028, 4.998967), tolerance = 1e-6)
-  expect_equal(c(iw3_mean$expectation,iw3b_mean$expectation), c(5.005665, 5.000551), tolerance = 1e-6)
-
-
-
-
-
-
-
-
+  expect_equal(c(iw3_mean$expectation, iw3b_mean$expectation),
+               c(5.005665, 5.000551), tolerance = 1e-6)
 
 })
 
 
 test_that("moment_match with expectation works for simple Monte Carlo case", {
-
 
   set.seed(6)
   S <- 4000
@@ -281,60 +336,85 @@ test_that("moment_match with expectation works for simple Monte Carlo case", {
   target_mean <- 5
   target_var <- 1
 
-  target_density <- function(draws ,...) {
-    dnorm(draws[,1], target_mean, target_var, log = TRUE) + dnorm(draws[,2], target_mean, target_var, log = TRUE)
+  target_density <- function(draws, ...) {
+    dnorm(draws[, 1], target_mean, target_var, log = TRUE) +
+      dnorm(draws[, 2], target_mean, target_var, log = TRUE)
   }
 
   target_sample <- matrix(rnorm(2 * S, target_mean, target_var), S, 2)
 
+  iw_mean <- moment_match(
+    target_sample,
+    expectation_fun = function(draws, ...) {
+      draws[, 1:2]
+    },
+    log_prob_prop_fun = target_density
+  )
 
-  iw_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
-    draws[,1:2]},
-    log_prob_prop_fun = target_density)
 
-
-  iw2_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
-    draws[,1:2]},
+  iw2_mean <- moment_match(
+    target_sample,
+    expectation_fun = function(draws, ...) {
+      draws[, 1:2]
+    },
     log_prob_prop_fun = target_density,
-    k_threshold = 0.0, cov_transform = TRUE)
+    k_threshold = 0.0,
+    cov_transform = TRUE
+  )
 
-
-
-  iw3_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,1])},
+  iw3_mean <- moment_match(
+    target_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 1])
+    },
     log_prob_prop_fun = target_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE
+  )
 
-  iw3b_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,2])},
+  iw3b_mean <- moment_match(
+    target_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 2])
+    },
     log_prob_prop_fun = target_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE
+  )
 
-  iw4_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,1])},
+  iw4_mean <- moment_match(
+    target_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 1])
+    },
     log_prob_prop_fun = target_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE,
+    restart_transform = TRUE
+  )
 
-  iw4b_mean <- moment_match(target_sample, expectation_fun =  function(draws, ...) {
-    matrix(draws[,2])},
+  iw4b_mean <- moment_match(
+    target_sample,
+    expectation_fun = function(draws, ...) {
+      matrix(draws[, 2])
+    },
     log_prob_prop_fun = target_density,
-    k_threshold = -10.0, split = TRUE, cov_transform = TRUE, restart_transform = TRUE)
+    k_threshold = -10.0,
+    split = TRUE,
+    cov_transform = TRUE,
+    restart_transform = TRUE
+  )
 
 
 
-  expect_equal(iw_mean$expectation, c(5.005361,4.999969), tolerance = 1e-6)
+  expect_equal(iw_mean$expectation, c(5.005361, 4.999969), tolerance = 1e-6)
   expect_equal(iw2_mean$expectation, c(5.005361, 4.999969), tolerance = 1e-6)
-  expect_equal(c(iw3_mean$expectation,iw3b_mean$expectation), c(5.005361, 4.998519), tolerance = 1e-6)
-
-
-
-
-
-
+  expect_equal(c(iw3_mean$expectation, iw3b_mean$expectation),
+               c(5.005361, 4.998519), tolerance = 1e-6)
 })
-
-
-
 
 
 test_that("moment_match with expectation with model works", {
@@ -351,12 +431,13 @@ test_that("moment_match with expectation with model works", {
 
   prop_sample <- matrix(rnorm(2 * S, prop_mean, prop_var), S, 2)
   prop_density <- function(draws, model, ...) {
-    # print(length(model$draws))
-    dnorm(draws[,1], prop_mean, prop_var, log = TRUE) + dnorm(draws[,2], prop_mean, prop_var, log = TRUE)
+    dnorm(draws[, 1], prop_mean, prop_var, log = TRUE) +
+      dnorm(draws[, 2], prop_mean, prop_var, log = TRUE)
   }
 
   target_density <- function(draws, model, ...) {
-    dnorm(draws[,1], target_mean, target_var, log = TRUE) + dnorm(draws[,2], target_mean, target_var, log = TRUE)
+    dnorm(draws[, 1], target_mean, target_var, log = TRUE) +
+      dnorm(draws[, 2], target_mean, target_var, log = TRUE)
   }
 
   ratio_density <- function(draws, model, ...) {
@@ -375,9 +456,6 @@ test_that("moment_match with expectation with model works", {
   prop_sample_pars <- test_post_fun(test_model)
   prop_sample <- unconstrain_pars_fun(test_model, prop_sample_pars)
 
-
-
-
   ex_mm <- moment_match(prop_sample,
                         expectation_fun =  function(draws, ...) {
                           draws},
@@ -390,14 +468,10 @@ test_that("moment_match with expectation with model works", {
                      log_ratio_fun = ratio_density,
                      model = test_model)
 
-
-
-  expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), ex_mm$expectation, tolerance = 1e-6)
+  expect_equal(matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights)),
+               ex_mm$expectation, tolerance = 1e-6)
   expect_equal(iw$pareto_k, ex_mm$pareto_k, tolerance = 1e-6)
   expect_equal(ex_mm$pareto_kf, c(0.3875001, 0.3379889), tolerance = 1e-6)
-
-
-
 
   # another definition
 
@@ -414,25 +488,8 @@ test_that("moment_match with expectation with model works", {
                      model = test_model)
 
 
-  expect_equal(matrixStats::colWeightedMeans(iw$draws,w = exp(iw$log_weights)), ex_mm$expectation, tolerance = 1e-6)
+  expect_equal(matrixStats::colWeightedMeans(iw$draws, w = exp(iw$log_weights)),
+               ex_mm$expectation, tolerance = 1e-6)
   expect_equal(iw$pareto_k, ex_mm$pareto_k, tolerance = 1e-6)
   expect_equal(ex_mm$pareto_kf, c(0.3875001, 0.3379889), tolerance = 1e-6)
-
-
-
-
-
 })
-
-
-
-
-
-
-
-
-
-
-
-
-

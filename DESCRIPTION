@@ -2,24 +2,32 @@ Package: iwmm
 Title: Importance weighted moment matching
 Version: 0.0.1
 Authors@R: 
-    c(person("Topi", "Paananen", email = "topi.paananen@aalto.fi", role = c("cre", "aut")))
+    c(person("Topi", "Paananen", email = "topi.paananen@aalto.fi", role = c("cre", "aut")),
+      person("Noa", "Kallioinen", role = "ctb"))
 Description: Importance weighted moment matching.
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 Depends:
     R (>= 3.1.2)
 Imports:
+    abind,
     checkmate,
     matrixStats (>= 0.52),
-    parallel,
+    posterior,
     stats,
     loo (>= 2.3.1)
 Suggests: 
     testthat,
     rstan,
     knitr,
-    rmarkdown
+    rmarkdown,
+    parallel,
+    bayesplot
+Enhancements:
+    cmdstanr
 VignetteBuilder: knitr
+Config/testthat/parallel: true
+Config/testthat/edition: 3

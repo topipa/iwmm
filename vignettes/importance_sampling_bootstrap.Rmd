@@ -31,36 +31,40 @@ opts_chunk$set(
 
 ## Introduction
 
-In this case study, we will study generic methods to detect misspecification of Bayesian models. We will use the probabilistic programming framework Stan to fit our models.
-As a tool for detecting misspecification, we will look at the distribution of posterior means when Bootstrapping the data. For a correctly specified model, as
-the number of observations becomes large enough, the posterior distribution of the model and the distribution of Bootstrapped posterior means should match each other.
+In this case study, we will study generic methods to detect
+misspecification of Bayesian models. We will use the probabilistic
+programming framework Stan to fit our models.  As a tool for detecting
+misspecification, we will look at the distribution of posterior means
+when Bootstrapping the data. For a correctly specified model, as the
+number of observations becomes large enough, the posterior
+distribution of the model and the distribution of Bootstrapped
+posterior means should match each other.
 
-In order to compare the model posterior to the distribution of the Bootstrap means,
-we need a large number of Bootstrap repetitions.
-Because refitting the model to a large number of resampled data sets is expensive,
-we will only fit our model to the original data set and use importance sampling
-to speed up the Bootstrap procedure. This saves computation time but can give rise to errors
-when there is a large mismatch between the original posterior and the Bootstrap posteriors.
-To solve this issue, we use importance weighted moment matching (IWMM) which
-is a generic adaptive importance sampling algorithm (Paananen et al. 2020).
+In order to compare the model posterior to the distribution of the
+Bootstrap means, we need a large number of Bootstrap repetitions.
+Because refitting the model to a large number of resampled data sets
+is expensive, we will only fit our model to the original data set and
+use importance sampling to speed up the Bootstrap procedure. This
+saves computation time but can give rise to errors when there is a
+large mismatch between the original posterior and the Bootstrap
+posteriors.  To solve this issue, we use importance weighted moment
+matching (IWMM) which is a generic adaptive importance sampling
+algorithm (Paananen et al. 2020).
 
 ## Setup
 
 We will load __rstan__ for fitting our models, and the
 [_iwmm package_](https://github.com/topipa/iwmm) for
 the importance weighted moment matching.
-We also load the __loo__ package for some helper functions, and the __parallel__
-package for parallellisation.
+We also load the __loo__ package for some helper functions.
 
 
 ```{r load, message=FALSE}
 library("rstan")
 library("loo")
-library("parallel")
 library("iwmm")
 seed <- 48571056
 set.seed(seed)
-CORES <- 6
 ```
 
 ## Example 1: Correct model - Gaussian data and Gaussian model
@@ -81,7 +85,7 @@ transformed parameters {
   sigma = exp(logsigma);
 }
 model {
-  x ~ normal(mu,sigma);
+  x ~ normal(mu, sigma);
 }
 generated quantities {
   vector[N] log_lik;
@@ -94,29 +98,30 @@ generated quantities {
 }"
 ```
 
-For the Bootstrap importance sampling, we need the log-likelihood for each observation.
-Thus, following the usual approach recommended in
-[_Writing Stan programs for use with the loo package_](http://mc-stan.org/loo/articles/loo2-with-rstan.html),
-we compute the log-likelihood for each observation in the
-`generated quantities` block of the Stan program.
+For the Bootstrap importance sampling, we need the log-likelihood for
+each observation.  Thus, following the usual approach recommended in
+[_Writing Stan programs for use with the loo
+package_](http://mc-stan.org/loo/articles/loo2-with-rstan.html), we
+compute the log-likelihood for each observation in the `generated
+quantities` block of the Stan program.
 
 ### Fitting the model with RStan
 
 First we simulate Gaussian data and fit the correctly specified model with
 Stan using the rstan package:
 
-```{r modelfit1, message=FALSE, echo=T, results='hide'}
+```{r modelfit1, message=FALSE, echo=T, results="hide"}
 stanmodel <- stan_model(model_code = stancode)
 
 # generate  data
-n = as.integer(1000)
-x = rnorm(n = n)
+n <- as.integer(1000)
+x <- rnorm(n = n)
 
-standata = list(N = n, x = x)
+standata <- list(N = n, x = x)
 stanfit <- sampling(stanmodel, data = standata, refresh = 0)
 
 # extract posterior and log-likelihood draws
-post <- as.data.frame(stanfit)[,1:2]
+post <- as.data.frame(stanfit)[, 1:2]
 S <- nrow(post)
 ll <- loo::extract_log_lik(stanfit)
 ```
@@ -131,31 +136,33 @@ sampling, we compute the Pareto k diagnostics (See Vehtari et al. (2017) for det
 bs_S <- 5
 
 # compute Bootstrap weights
-obs_ws <- apply(matrix(seq(bs_S)), 1, function(x) {c(rmultinom(1,n,prob = rep(1,n)/n))})
+obs_ws <- apply(matrix(seq(bs_S)), 1,
+                function(x) c(rmultinom(1, n, prob = rep(1, n) / n)))
 
-bs_postmeans_is <- matrix(0,bs_S,2)
-ks <- rep(0,bs_S)
+bs_postmeans_is <- matrix(0, bs_S, 2)
+ks <- rep(0, bs_S)
 
-iw_list <- parallel::mclapply(X = seq(bs_S), mc.cores = CORES, FUN = function(i) {
-  obs_w_matrix <- matrix(obs_ws[,i],S,n, byrow = TRUE)
+iw_list <- lapply(X = seq(bs_S), FUN = function(i) {
+  obs_w_matrix <- matrix(obs_ws[, i], S, n, byrow = TRUE)
   lw <- rowSums((obs_w_matrix - 1) * ll)
   lw <- lw - matrixStats::logSumExp(lw)
   psis <- psis(lw)
-  c(colSums(exp(lw) * post),psis$diagnostics$pareto_k)
+  c(colSums(exp(lw) * post), psis$diagnostics$pareto_k)
 })
 
-iw_list <- array(as.numeric(unlist(iw_list)),c(3,bs_S))
-ks <- iw_list[3,]
+iw_list <- array(as.numeric(unlist(iw_list)), c(3, bs_S))
+ks <- iw_list[3, ]
 ```
 
-Let us plot the Pareto k diagnostics to see if the importance sampling accuracy can be trusted:
+Let us plot the Pareto k diagnostics to see if the importance sampling
+accuracy can be trusted:
 
 ```{r plotk1}
 plot(sort(ks), pch = 20)
 ```
 
-We notice that there are several Pareto k values that are large (> 0.7), indicating that the Bootstrap
-means can be biased.
+We notice that there are several Pareto k values that are large (>
+0.7), indicating that the Bootstrap means can be biased.
 
 ### Compute Bootstrap means using IWMM
 
@@ -174,37 +181,46 @@ weights of each observation, which in this case represent the number of
 times each observation is included in the Bootstrap sample.
 
 ```{r helper functions, warning = FALSE}
-log_lik_stanfit <- function(stanfit, upars, parameter_name = "log_lik",
+log_lik_stanfit <- function(fit, upars, parameter_name = "log_lik",
                                       ...) {
-    ll <- loo::extract_log_lik(stanfit, parameter_name, merge_chains = TRUE)
+    ll <- loo::extract_log_lik(fit, parameter_name, merge_chains = TRUE)
     S <- nrow(upars)
     n <- ncol(ll)
-    out <- matrix(0,S,n)
+    out <- matrix(0, S, n)
     for (s in seq_len(S)) {
-      out[s,] <- rstan::constrain_pars(stanfit, upars = upars[s, ])[[parameter_name]]
+      out[s, ] <- rstan::constrain_pars(
+        fit,
+        upars = upars[s, ]
+      )[[parameter_name]]
     }
     out
-  }
+}
 
-ratio_density <- function(draws, stanfit, obs_weights, ...) {
-    log_lik <- log_lik_stanfit(stanfit, draws)
+ratio_density <- function(draws, fit, obs_weights, ...) {
+    log_lik <- log_lik_stanfit(fit, draws)
     colSums((obs_weights - 1) * t(log_lik))
 }
 ```
 
 ```{r iwmm1, warning = FALSE}
-bs_postmeans_is_mm <- matrix(0,bs_S,2)
-ks_mm <- rep(0,bs_S)
+bs_postmeans_is_mm <- matrix(0, bs_S, 2)
+ks_mm <- rep(0, bs_S)
 
 
-iw_list <- parallel::mclapply(X = seq(bs_S), mc.cores = CORES, FUN = function(i) {
-  iw <- moment_match(stanfit, log_ratio_fun = ratio_density, obs_weights = obs_ws[,i])
-  c(matrixStats::colWeightedMeans(posterior::as_draws_matrix(iw$draws)[,c("mu", "logsigma")], exp(iw$log_weights)),iw$pareto_k)
+iw_list <- lapply(X = seq(bs_S), FUN = function(i) {
+  iw <- moment_match(
+    stanfit,
+    log_ratio_fun = ratio_density,
+    obs_weights = obs_ws[, i]
+  )
+  c(matrixStats::colWeightedMeans(
+    posterior::as_draws_matrix(iw$draws)[, c("mu", "logsigma")],
+    exp(iw$log_weights)), iw$pareto_k)
 })
-iw_list <- array(as.numeric(unlist(iw_list)),c(3,bs_S))
+iw_list <- array(as.numeric(unlist(iw_list)), c(3, bs_S))
 
-bs_postmeans_is_mm <- data.frame("mu" = iw_list[1,], "logsigma" = iw_list[2,])
-ks_mm <- iw_list[3,]
+bs_postmeans_is_mm <- data.frame("mu" = iw_list[1, ], "logsigma" = iw_list[2, ])
+ks_mm <- iw_list[3, ]
 ```
 
 Let us check the Pareto k diagnostic values :
@@ -212,52 +228,55 @@ Let us check the Pareto k diagnostic values :
 ```{r plotk2}
 plot(sort(ks),
      pch = 20,
-     ylim = c(min(ks_mm),max(ks)),
-     col = 'black',
+     ylim = c(min(ks_mm), max(ks)),
+     col = "black",
      xlab = "Bootstrap index",
      ylab = "Pareto k",
      main = "Pareto k diagnostics")
-points(ks_mm[order(ks)], col = 'green',pch = 20)
-points(c(-1,1000),c(0.5,0.5), type = 'l')
-legend("topleft",legend = c("IS","IWMM"), col = c('black','green'), pch = 20)
+points(ks_mm[order(ks)], col = "green", pch = 20)
+points(c(-1, 1000), c(0.5, 0.5), type = "l")
+legend("topleft", legend = c("IS", "IWMM"), col = c("black", "green"), pch = 20)
 ```
 
-Now all values are below 0.5, so the Bootstrap means should be accurate.
-Let us plot both the original posterior samples and the Bootstrap posterior means:
+Now all values are below 0.5, so the Bootstrap means should be
+accurate.  Let us plot both the original posterior samples and the
+Bootstrap posterior means:
 
 ```{r plotdraws1}
 hist(post$mu,
-     col=rgb(0,0,1,1/4),
+     col = rgb(0, 0, 1, 1 / 4),
      freq = FALSE,
-     ylim = c(0,25),
+     ylim = c(0, 25),
      xlab = "mu",
      ylab = "count",
      main = "Posterior of mu")
-hist(bs_postmeans_is_mm$mu, col=rgb(1,0,0,1/4), add = T, freq = FALSE)
-legend("topright",legend = c("model posterior","Bootstrap posterior means"),
-       fill = c(rgb(0,0,1,1/4),rgb(1,0,0,1/4)))
+hist(bs_postmeans_is_mm$mu, col = rgb(1, 0, 0, 1 / 4), add = TRUE, freq = FALSE)
+legend("topright", legend = c("model posterior", "Bootstrap posterior means"),
+       fill = c(rgb(0, 0, 1, 1 / 4), rgb(1, 0, 0, 1 / 4)))
 
 ```
 
 ```{r plotdraws2}
 hist(post$logsigma,
-     col=rgb(0,0,1,1/4),
+     col = rgb(0, 0, 1, 1 / 4),
      freq = FALSE,
-     ylim = c(0,50),
+     ylim = c(0, 50),
      xlab = "log(sigma)",
      ylab = "count",
      main = "Posterior of log(sigma)",
-     breaks = seq(-0.1,0.15, length.out = 30))
-hist(bs_postmeans_is_mm$logsigma, col=rgb(1,0,0,1/4), add = T, freq = FALSE,
-     breaks = seq(-0.1,0.15, length.out = 30))
-legend("topright",legend = c("model posterior","Bootstrap posterior means"),
-       fill = c(rgb(0,0,1,1/4),rgb(1,0,0,1/4)))
+     breaks = seq(-0.1, 0.15, length.out = 30))
+hist(bs_postmeans_is_mm$logsigma, col = rgb(1, 0, 0, 1 / 4),
+     add = TRUE, freq = FALSE,
+     breaks = seq(-0.1, 0.15, length.out = 30))
+legend("topright", legend = c("model posterior", "Bootstrap posterior means"),
+       fill = c(rgb(0, 0, 1, 1 / 4), rgb(1, 0, 0, 1 / 4)))
 
 ```
 
-As we expect from a correctly specified model, the distribution of the Bootstrap posterior means
-matches the posterior distribution of the original data.
-Let us next see what happens if the model is clearly misspecified.
+As we expect from a correctly specified model, the distribution of the
+Bootstrap posterior means matches the posterior distribution of the
+original data.  Let us next see what happens if the model is clearly
+misspecified.
 
 ## Example 2: Misspecified model - $t$-distributed data and Gaussian model
 
@@ -265,14 +284,14 @@ Let us next see what happens if the model is clearly misspecified.
 stanmodel <- stan_model(model_code = stancode)
 
 # generate  data
-n = as.integer(1000)
-x = rt(n = n, df = 3)
+n <- as.integer(1000)
+x <- rt(n = n, df = 3)
 
-standata = list(N = n, x = x)
+standata <- list(N = n, x = x)
 stanfit <- sampling(stanmodel, data = standata, refresh = 0)
 
 # extract posterior and log-likelihood draws
-post <- as.data.frame(stanfit)[,1:2]
+post <- as.data.frame(stanfit)[, 1:2]
 S <- nrow(post)
 ll <- loo::extract_log_lik(stanfit)
 ```
@@ -282,17 +301,23 @@ ll <- loo::extract_log_lik(stanfit)
 
 ```{r iwmm2, warning = FALSE}
 
-bs_postmeans_is_mm <- matrix(0,bs_S,2)
-ks_mm <- rep(0,bs_S)
+bs_postmeans_is_mm <- matrix(0, bs_S, 2)
+ks_mm <- rep(0, bs_S)
 
-iw_list <- parallel::mclapply(X = seq(bs_S), mc.cores = CORES, FUN = function(i) {
-  iw <- moment_match(stanfit, log_ratio_fun = ratio_density, obs_weights = obs_ws[,i])
-  c(matrixStats::colWeightedMeans(posterior::as_draws_matrix(iw$draws)[,c("mu", "logsigma")], exp(iw$log_weights)),iw$pareto_k)
+iw_list <- lapply(X = seq(bs_S), FUN = function(i) {
+  iw <- moment_match(
+    stanfit,
+    log_ratio_fun = ratio_density,
+    obs_weights = obs_ws[, i]
+  )
+  c(matrixStats::colWeightedMeans(
+    posterior::as_draws_matrix(iw$draws)[, c("mu", "logsigma")],
+    exp(iw$log_weights)), iw$pareto_k)
 })
-iw_list <- array(as.numeric(unlist(iw_list)),c(3,bs_S))
+iw_list <- array(as.numeric(unlist(iw_list)), c(3, bs_S))
 
-bs_postmeans_is_mm <- data.frame("mu" = iw_list[1,], "logsigma" = iw_list[2,])
-ks_mm <- iw_list[3,]
+bs_postmeans_is_mm <- data.frame("mu" = iw_list[1, ], "logsigma" = iw_list[2, ])
+ks_mm <- iw_list[3, ]
 ```
 
 
@@ -301,14 +326,14 @@ Let us check the Pareto k diagnostic values :
 ```{r plotk3}
 plot(sort(ks_mm),
      pch = 20,
-     ylim = c(min(ks_mm),max(ks_mm)),
-     col = 'green',
+     ylim = c(min(ks_mm), max(ks_mm)),
+     col = "green",
      xlab = "Bootstrap index",
      ylab = "Pareto k",
      main = "Pareto k diagnostics")
-# points(ks_mm[order(ks)], col = 'green',pch = 20)
-points(c(-1,1000),c(0.5,0.5), type = 'l')
-legend("topleft",legend = c("IS","IWMM"), col = c('black','green'), pch = 20)
+# points(ks_mm[order(ks)], col = "green", pch = 20)
+points(c(-1, 1000), c(0.5, 0.5), type = "l")
+legend("topleft", legend = c("IS", "IWMM"), col = c("black", "green"), pch = 20)
 
 ```
 
@@ -317,53 +342,47 @@ Let us plot both the original posterior samples and the Bootstrap posterior mean
 
 ```{r plotdraws3}
 hist(post$mu,
-     col=rgb(0,0,1,1/4),
+     col = rgb(0, 0, 1, 1 / 4),
      freq = FALSE,
-     ylim = c(0,25),
+     ylim = c(0, 25),
      xlab = "mu",
      ylab = "count",
      main = "Posterior of mu")
-hist(bs_postmeans_is_mm$mu, col=rgb(1,0,0,1/4), add = T, freq = FALSE)
-legend("topright",legend = c("model posterior","Bootstrap posterior means"),
-       fill = c(rgb(0,0,1,1/4),rgb(1,0,0,1/4)))
+hist(bs_postmeans_is_mm$mu, col = rgb(1, 0, 0, 1 / 4), add = TRUE, freq = FALSE)
+legend("topright", legend = c("model posterior", "Bootstrap posterior means"),
+       fill = c(rgb(0, 0, 1, 1 / 4), rgb(1, 0, 0, 1 / 4)))
 ```
 
 ```{r plotdraws4}
 hist(post$logsigma,
-     col=rgb(0,0,1,1/4),
+     col = rgb(0, 0, 1, 1 / 4),
      freq = FALSE,
-     ylim = c(0,50),
+     ylim = c(0, 50),
      xlab = "log(sigma)",
      ylab = "count",
      main = "Posterior of log(sigma)",
-     breaks = seq(0.2,1.0, length.out = 30))
-hist(bs_postmeans_is_mm$logsigma, col=rgb(1,0,0,1/4), add = T, freq = FALSE,
-     breaks = seq(0.2,1.0, length.out = 30))
-legend("topright",legend = c("model posterior","Bootstrap posterior means"),
-       fill = c(rgb(0,0,1,1/4),rgb(1,0,0,1/4)))
+     breaks = seq(0.2, 1.0, length.out = 30))
+hist(bs_postmeans_is_mm$logsigma, col = rgb(1, 0, 0, 1 / 4),
+     add = TRUE, freq = FALSE,
+     breaks = seq(0.2, 1.0, length.out = 30))
+legend("topright", legend = c("model posterior", "Bootstrap posterior means"),
+       fill = c(rgb(0, 0, 1, 1 / 4), rgb(1, 0, 0, 1 / 4)))
 
 ```
 
+Now we see that there is a clear difference between the two
+distributions.  Because the data is from a $t$-distribution, but we
+are modelling it as Gaussian, the model underestimates the uncertainty
+about the standard deviation parameter `logsigma`.
 
-Now we see that there is a clear difference between the two distributions.
-Because the data is from a $t$-distribution, but we are modelling
-it as Gaussian, the model underestimates the uncertainty about the standard deviation
-parameter `logsigma`.
-
-We can confirm a similar misspecification using posterior predictive checks.
-Below we plot a density plot of the data together with multiple
-data sets simulated from the model.
+We can confirm a similar misspecification using posterior predictive
+checks.  Below we plot a density plot of the data together with
+multiple data sets simulated from the model.
 
 ```{r}
 xpred <- extract(stanfit)$xpred
-bayesplot::ppc_dens_overlay(x, xpred[1:100,])
+bayesplot::ppc_dens_overlay(x, xpred[1:100, ])
 ```
-
-
-
-
-
-
 
 ## References
 

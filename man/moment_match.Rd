@@ -27,41 +27,45 @@ moment_match(x, ...)
 \item{...}{Further arguments passed to \code{log_prob_prop_fun},
 \code{log_prob_target_fun} and \code{log_ratio_fun}.}
 
-\item{log_prob_prop_fun}{Log density of the proposal.
-The function takes argument \code{draws}.}
+\item{log_prob_prop_fun}{Log density of the proposal.  The function
+takes argument \code{draws}.}
 
-\item{log_prob_target_fun}{Log density of the target for
-importance sampling. The function takes argument \code{draws}.}
+\item{log_prob_target_fun}{Log density of the target for importance
+sampling. The function takes argument \code{draws}.}
 
-\item{log_ratio_fun}{Log of the density ratio for importance sampling
-(target/proposal). The function takes argument \code{draws}.}
+\item{log_ratio_fun}{Log of the density ratio for importance
+sampling (target/proposal). The function takes argument \code{draws}.}
 
-\item{expectation_fun}{Optional argument, NULL by default. A function whose expectation is
-being computed. The function takes arguments \code{draws}.}
+\item{expectation_fun}{Optional argument, NULL by default. A
+function whose expectation is being computed. The function takes
+arguments \code{draws}.}
 
-\item{log_expectation_fun}{Logical indicating whether the expectation_fun
-returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
-the expectation function must be nonnegative (before taking the logarithm).
-Ignored if \code{expectation_fun} is NULL.}
+\item{log_expectation_fun}{Logical indicating whether the
+expectation_fun returns its values as logarithms or not. Defaults
+to FALSE. If set to TRUE, the expectation function must be
+nonnegative (before taking the logarithm).  Ignored if
+\code{expectation_fun} is NULL.}
 
-\item{k_threshold}{Threshold value for Pareto k values above which the moment
-matching algorithm is used. The default value is 0.5.}
+\item{k_threshold}{Threshold value for Pareto k values above which
+the moment matching algorithm is used. The default value is 0.5.}
 
-\item{cov_transform}{Logical; Indicates whether to match the covariance of
-the samples or not. If \code{FALSE}, only the mean and marginal variances are
-matched. Default is \code{TRUE}.}
+\item{cov_transform}{Logical; Indicates whether to match the
+covariance of the samples or not. If \code{FALSE}, only the mean and
+marginal variances are matched. Default is \code{TRUE}.}
 
-\item{split}{Logical; Indicate whether to do the split transformation or not
-at the end of moment matching. FALSE by default.}
+\item{split}{Logical; Indicate whether to do the split
+transformation or not at the end of moment matching. FALSE by
+default.}
 
-\item{restart_transform}{Logical; When split is TRUE, indicates whether to
-start the second transformation from the original model parameters
-or the transformed parameters. If split is FALSE, this is ignored.}
+\item{restart_transform}{Logical; When split is TRUE, indicates
+whether to start the second transformation from the original
+model parameters or the transformed parameters. If split is
+FALSE, this is ignored.}
 }
 \value{
-Returns a list with: transformed draws, updated
-importance weights, and the pareto k diagnostic value.
-If expectation_fun is given, also returns the expectation.
+Returns a list with: transformed draws, updated importance
+weights, and the pareto k diagnostic value.  If expectation_fun
+is given, also returns the expectation.
 }
 \description{
 Generic importance weighted moment matching algorithm.

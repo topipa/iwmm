@@ -1,0 +1,66 @@
+# Install the requirements for R-CMD-check and create the caches
+on:
+  workflow_dispatch
+
+name: R-CMD-check create cache
+
+jobs:
+  R-CMD-check-build:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: macOS-latest, r: 'release', rtools: ''}
+          - {os: windows-latest, r: 'devel', rtools: '42'}
+          - {os: windows-latest, r: 'release', rtools: '42'}
+          - {os: windows-latest, r: 'oldrel', rtools: '40'}
+          - {os: ubuntu-latest, r: 'release', rtools: ''}
+          - {os: ubuntu-latest, r: 'oldrel', rtools: ''}
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: true
+
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: n1hility/cancel-previous-runs@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          use-public-rspm: true
+          rtools-version: ${{ matrix.config.rtools }}
+
+      # packages that are needed for R CMD CHECK
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache-version: 1
+          extra-packages: |
+            stan-dev/cmdstanr
+            rcmdcheck
+            checkmate
+            jsonlite
+            posterior
+            processx
+            R6
+            BH
+            RcppEigen
+            StanHeaders
+            RcppParallel
+            withr
+            testthat
+            rmarkdown
+            knitr
+            any::XML
+            any::textshaping
+
+      - uses: ./.github/actions/cmdstanr_cached
+
