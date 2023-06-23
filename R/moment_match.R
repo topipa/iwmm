@@ -117,7 +117,6 @@ moment_match.matrix <- function(x,
 
     pareto_smoothed_w <- posterior::pareto_smooth(exp(lw - matrixStats::logSumExp(lw)), tail = "right")
     k <- pareto_smoothed_w$diagnostics$khat
-    # TODO: would be better to get smoothed log weights using posterior package instead
     lw <- log(as.vector(pareto_smoothed_w$x))
 
     if (any(is.infinite(k))) {
@@ -185,7 +184,6 @@ moment_match.matrix <- function(x,
               call using apply.")
       }
       pareto_smoothed_wf <- posterior::pareto_smooth(normalized_wf, tail = "right")
-      # TODO: would be better to get smoothed log weights using posterior package instead
       lwf <- log(as.vector(pareto_smoothed_wf$x))
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
