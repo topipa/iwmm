@@ -17,8 +17,7 @@ Imports:
     checkmate,
     matrixStats (>= 0.52),
     posterior,
-    stats,
-    loo (>= 2.3.1)
+    stats
 Suggests: 
     testthat,
     rstan,

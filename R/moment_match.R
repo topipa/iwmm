@@ -115,9 +115,11 @@ moment_match.matrix <- function(x,
            target density is equal to your proposal density.")
     }
 
-    lw_psis <- suppressWarnings(loo::psis(lw))
-    lw <- as.vector(weights(lw_psis))
-    k <- lw_psis$diagnostics$pareto_k
+    pareto_smoothed_w <- posterior::pareto_smooth(exp(lw - matrixStats::logSumExp(lw)), tail = "right")
+    k <- pareto_smoothed_w$diagnostics$khat
+    # TODO: would be better to get smoothed log weights using posterior package instead
+    lw <- log(as.vector(pareto_smoothed_w$x))
+
     if (any(is.infinite(k))) {
       stop("Something went wrong, and encountered infinite Pareto k values..")
     }
@@ -150,8 +152,12 @@ moment_match.matrix <- function(x,
   } else {
 
     lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, ...)
-    psisf <- suppressWarnings(loo::psis(lwf))
-    kf <- psisf$diagnostics$pareto_k
+    normalized_wf <- exp(lwf - matrixStats::logSumExp(lwf))
+    kf <- c()
+    for (i in 1:ncol(normalized_wf)) {
+      pareto_smoothed_wfi <- posterior::pareto_smooth(normalized_wf[,i], tail = "right")
+      kf <- c(kf, pareto_smoothed_wfi$diagnostics$khat)
+    }
 
     if (split) {
 
@@ -172,13 +178,15 @@ moment_match.matrix <- function(x,
         total_mapping2 <- total_mapping
       }
 
-      lwf <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
-      if (ncol(lwf) > 1) {
+      lwf_check <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
+      if (ncol(lwf_check) > 1) {
         stop("Using split = TRUE is not yet supported for expectation functions
               that return a matrix. As a workaround, you can wrap your function
               call using apply.")
       }
-      lwf <- as.vector(weights(psisf))
+      pareto_smoothed_wf <- posterior::pareto_smooth(normalized_wf, tail = "right")
+      # TODO: would be better to get smoothed log weights using posterior package instead
+      lwf <- log(as.vector(pareto_smoothed_wf$x))
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         update_properties <- list(target_type = "simple",
@@ -327,8 +335,6 @@ moment_match.matrix <- function(x,
       #   )
 
 
-      # lw_trans_psis <- suppressWarnings(loo::psis(lw_trans))
-      # lw_trans <- as.vector(weights(lw_trans_psis))
       lw_trans <- lw_trans - matrixStats::logSumExp(lw_trans)
 
 
