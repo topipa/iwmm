@@ -26,7 +26,7 @@ Suggests:
     rmarkdown,
     parallel,
     bayesplot
-Enhancements:
+Enhances:
     cmdstanr
 VignetteBuilder: knitr
 Config/testthat/parallel: true

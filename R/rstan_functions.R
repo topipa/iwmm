@@ -20,7 +20,6 @@ moment_match.stanfit <- function(x,
                                  log_ratio_fun = NULL,
                                  constrain = TRUE,
                                  ...) {
-
   # ensure draws are in matrix form
   draws <- posterior::as_draws_matrix(x)
 
@@ -70,7 +69,6 @@ unconstrain_draws_stanfit <- function(x, draws, ...) {
 
 ##' @export
 constrain_draws.stanfit <- function(x, udraws, ...) {
-
   # list with one element per posterior draw
   draws <- apply(udraws, 1, rstan::constrain_pars, object = x)
   varnames <- rep(names(draws[[1]]), lengths(draws[[1]]))

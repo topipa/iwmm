@@ -135,8 +135,6 @@ transform_loop <- function(draws,
                            total_mapping,
                            ...) {
   while (k > k_threshold) {
-
-
     # 1. match means
     trans <- shift(draws, lw)
     quantities <- update_quantities(
