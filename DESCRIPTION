@@ -15,17 +15,17 @@ Depends:
 Imports:
     abind,
     checkmate,
+    loo (>= 2.3.1),
     matrixStats (>= 0.52),
     posterior,
-    stats,
-    loo (>= 2.3.1)
+    stats
 Suggests: 
-    testthat,
-    rstan,
+    bayesplot,
     knitr,
-    rmarkdown,
     parallel,
-    bayesplot
+    rmarkdown,
+    rstan,
+    testthat
 Enhances:
     cmdstanr
 VignetteBuilder: knitr
