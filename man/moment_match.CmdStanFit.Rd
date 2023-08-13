@@ -2,8 +2,9 @@
 % Please edit documentation in R/cmdstanr_functions.R
 \name{moment_match.CmdStanFit}
 \alias{moment_match.CmdStanFit}
-\title{Generic importance weighted moment matching algorithm for \code{CmdStanFit} objects.
-See additional arguments from \code{moment_match.matrix}}
+\title{Generic importance weighted moment matching algorithm for
+\code{CmdStanFit} objects.  See additional arguments from
+\code{moment_match.matrix}}
 \usage{
 \method{moment_match}{CmdStanFit}(
   x,
@@ -33,6 +34,7 @@ Returns a list with 3 elements: transformed draws, updated
 importance weights, and the pareto k diagnostic value.
 }
 \description{
-Generic importance weighted moment matching algorithm for \code{CmdStanFit} objects.
-See additional arguments from \code{moment_match.matrix}
+Generic importance weighted moment matching algorithm for
+\code{CmdStanFit} objects.  See additional arguments from
+\code{moment_match.matrix}
 }

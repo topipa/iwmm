@@ -17,8 +17,9 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![CRAN status](https://www.r-pkg.org/badges/version/powersense)](https://CRAN.R-project.org/package=iwmm)
-[![R build status](https://github.com/topipa/iwmm/workflows/R/badge.svg)](https://github.com/topipa/iwmm/actions)
+[![CRAN status](https://www.r-pkg.org/badges/version/iwmm)](https://CRAN.R-project.org/package=iwmm)
+[![R-CMD-check](https://github.com/topipa/iwmm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/topipa/iwmm/actions/workflows/R-CMD-check.yaml)
+[![test-coverage](https://github.com/topipa/iwmm/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/topipa/iwmm/actions/workflows/test-coverage.yaml)
 <!-- badges: end -->
 
 An R package to perform importance weighted moment matching.
