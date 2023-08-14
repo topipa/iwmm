@@ -4,20 +4,32 @@
 #' @param x A fitted `stanfit` object.
 #' @param log_prob_target_fun Log density of the target.  The function
 #'   takes argument `draws`, which are the unconstrained draws.
+#'   Can also take the argument `fit` which is the stan model fit.
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
 #'   The function takes argument `draws`, which are the unconstrained
-#'   draws.
+#'   draws. Can also take the argument `fit` which is the stan model fit.
+#' @param expectation_fun Optional argument, NULL by default. A
+#'   function whose expectation is being computed. The function takes
+#'   arguments `draws`.
+#' @param log_expectation_fun Logical indicating whether the
+#'   expectation_fun returns its values as logarithms or not. Defaults
+#'   to FALSE. If set to TRUE, the expectation function must be
+#'   nonnegative (before taking the logarithm).  Ignored if
+#'   `expectation_fun` is NULL.
 #' @param constrain Logical specifying whether to return draws on the
 #'   constrained space? Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
-#' importance weights, and the pareto k diagnostic value.
+#'   importance weights, and the pareto k diagnostic value. If expectation_fun
+#'   is given, also returns the expectation.
 #'
 #' @export
 moment_match.stanfit <- function(x,
                                  log_prob_target_fun = NULL,
                                  log_ratio_fun = NULL,
+                                 expectation_fun = NULL,
+                                 log_expectation_fun = FALSE,
                                  constrain = TRUE,
                                  ...) {
   # ensure draws are in matrix form
@@ -31,6 +43,8 @@ moment_match.stanfit <- function(x,
     log_prob_prop_fun = log_prob_draws_stanfit,
     log_prob_target_fun = log_prob_target_fun,
     log_ratio_fun = log_ratio_fun,
+    expectation_fun = expectation_fun,
+    log_expectation_fun = log_expectation_fun,
     fit = x,
     ...
   )

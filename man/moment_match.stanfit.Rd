@@ -9,6 +9,8 @@ See additional arguments from \code{moment_match.matrix}}
   x,
   log_prob_target_fun = NULL,
   log_ratio_fun = NULL,
+  expectation_fun = NULL,
+  log_expectation_fun = FALSE,
   constrain = TRUE,
   ...
 )
@@ -17,11 +19,22 @@ See additional arguments from \code{moment_match.matrix}}
 \item{x}{A fitted \code{stanfit} object.}
 
 \item{log_prob_target_fun}{Log density of the target.  The function
-takes argument \code{draws}, which are the unconstrained draws.}
+takes argument \code{draws}, which are the unconstrained draws.
+Can also take the argument \code{fit} which is the stan model fit.}
 
 \item{log_ratio_fun}{Log of the density ratio (target/proposal).
 The function takes argument \code{draws}, which are the unconstrained
-draws.}
+draws. Can also take the argument \code{fit} which is the stan model fit.}
+
+\item{expectation_fun}{Optional argument, NULL by default. A
+function whose expectation is being computed. The function takes
+arguments \code{draws}.}
+
+\item{log_expectation_fun}{Logical indicating whether the
+expectation_fun returns its values as logarithms or not. Defaults
+to FALSE. If set to TRUE, the expectation function must be
+nonnegative (before taking the logarithm).  Ignored if
+\code{expectation_fun} is NULL.}
 
 \item{constrain}{Logical specifying whether to return draws on the
 constrained space? Default is TRUE.}
@@ -30,7 +43,8 @@ constrained space? Default is TRUE.}
 }
 \value{
 Returns a list with 3 elements: transformed draws, updated
-importance weights, and the pareto k diagnostic value.
+importance weights, and the pareto k diagnostic value. If expectation_fun
+is given, also returns the expectation.
 }
 \description{
 Generic importance weighted moment matching algorithm for \code{stanfit} objects.

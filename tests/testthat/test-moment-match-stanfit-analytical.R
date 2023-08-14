@@ -126,7 +126,8 @@ mean_analytical_prior <- c(mu = mu_n, sigma_sq = sigma_sq_post_mean)
 sd_analytical_prior <- c(mu = mu_post_sd, sigma_sq = sqrt(sigma_sq_post_var))
 
 
-test_that("moment_match_stanfit matches analytical results", {
+test_that("moment_match.stanfit matches analytical results", {
+  # TODO: implement this test with expectation_fun
   # ratio = jointlikelihood
   joint_log_lik <- function(draws, fit, ...) {
     cdraws <- constrain_draws.stanfit(fit, draws)
@@ -172,6 +173,52 @@ test_that("moment_match_stanfit matches analytical results", {
   expect_equal(
     sd_mm_prior[c(1, 2)],
     sd_analytical_prior,
+    tolerance = 0.1
+  )
+})
+
+
+test_that("moment_match.stanfit works with expectation", {
+
+  expectation_fun_first_moment = function(draws, ...) {
+    matrix(draws[, 1])
+  }
+  expectation_fun_second_moment = function(draws, ...) {
+    matrix(draws[, 1]^2)
+  }
+
+  iw_first_moment <- suppressWarnings(moment_match.stanfit(
+    fit_full,
+    expectation_fun = expectation_fun_first_moment,
+    k_threshold = -Inf # ensure moment-matching is used
+  ))
+
+  iw_second_moment <- suppressWarnings(moment_match.stanfit(
+    fit_full,
+    expectation_fun = expectation_fun_second_moment,
+    k_threshold = -Inf # ensure moment-matching is used
+  ))
+
+
+  draws_fit_full <- posterior::subset_draws(
+    posterior::as_draws_matrix(fit_full),
+    variable = c("mu", "sigma_sq")
+  )
+
+  mu_mean <-mean(draws_fit_full[,"mu"])
+  mu_sd <- sd(draws_fit_full[,"mu"])
+
+  iwmm_mean <- iw_first_moment$expectation
+  iwmm_sd <- sqrt(iw_second_moment$expectation - iw_first_moment$expectation^2)
+
+  expect_equal(
+    iwmm_mean,
+    mu_mean,
+    tolerance = 0.1
+  )
+  expect_equal(
+    iwmm_sd,
+    mu_sd,
     tolerance = 0.1
   )
 })
