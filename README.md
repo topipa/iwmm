@@ -43,8 +43,8 @@ You can install the the development version from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("topipa/iwmm")
+install.packages("remotes")
+remotes::install_github("topipa/iwmm")
 ```
 
 <!-- ## Example -->
@@ -79,6 +79,66 @@ IWMM can also work with models fitted with
 posterior is treated as the proposal distribution.
 
 ### Example
+
+Consider a simple univariate normal model (available via
+`example_iwmm_model("normal_model")`):
+
+``` stan
+data {
+int<lower=0> N;
+vector[N] x;
+}
+parameters {
+  real mu;
+  real log_sigma;
+}
+transformed parameters {
+  real<lower=0> sigma = exp(log_sigma);
+}
+model {
+  target += normal_lpdf(x | mu, sigma);
+}
+```
+
+We first fit the model using Stan:
+
+``` r
+library(iwmm)
+
+normal_model <- example_iwmm_model("normal_model")
+
+fit <- rstan::stan(
+  model_code = normal_model$model_code,
+  data = normal_model$data,
+  refresh = FALSE,
+  seed = 1234
+)
+#> Trying to compile a simple C file
+```
+
+After fitting the model, let us define an expectation function that we
+are interested in, and compute the expectation:
+
+``` r
+expectation_fun_first_moment = function(draws, ...) {
+  draws
+}
+
+first_moment <- moment_match(
+  fit,
+  expectation_fun = expectation_fun_first_moment
+)
+```
+
+We can check that the expectation matches the posterior mean
+
+``` r
+first_moment$expectation
+#> [1] 2.077739212 0.009009436
+colMeans(as.matrix(fit))[c("mu", "log_sigma")]
+#>          mu   log_sigma 
+#> 2.077739212 0.009009436
+```
 
 ## References
 

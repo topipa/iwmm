@@ -50,9 +50,9 @@ The method is described in detail in the [Implicitly Adaptive Importance Samplin
 
 You can install the the development version from [GitHub](https://github.com/) with:
 
-``` r
-# install.packages("devtools")
-devtools::install_github("topipa/iwmm")
+```{r, eval = F}
+install.packages("remotes")
+remotes::install_github("topipa/iwmm")
 ```
 
 <!-- ## Example -->
@@ -91,6 +91,61 @@ where the fitted model posterior is treated as the proposal distribution.
 
 ### Example
 
+Consider a simple univariate normal model (available
+via `example_iwmm_model("normal_model")`):
+
+```{stan, eval = F, output.var = "stanmod"}
+data {
+int<lower=0> N;
+vector[N] x;
+}
+parameters {
+  real mu;
+  real log_sigma;
+}
+transformed parameters {
+  real<lower=0> sigma = exp(log_sigma);
+}
+model {
+  target += normal_lpdf(x | mu, sigma);
+}
+```
+
+We first fit the model using Stan:
+
+```{r, eval = T, cache=T, results='hide'}
+library(iwmm)
+
+normal_model <- example_iwmm_model("normal_model")
+
+fit <- rstan::stan(
+  model_code = normal_model$model_code,
+  data = normal_model$data,
+  refresh = FALSE,
+  seed = 1234
+)
+```
+
+After fitting the model, let us define an expectation function that we are interested in,
+and compute the expectation:
+
+```{r, eval = T}
+expectation_fun_first_moment = function(draws, ...) {
+  draws
+}
+
+first_moment <- moment_match(
+  fit,
+  expectation_fun = expectation_fun_first_moment
+)
+```
+
+We can check that the expectation matches the posterior mean
+
+```{r, eval = T}
+first_moment$expectation
+colMeans(as.matrix(fit))[c("mu", "log_sigma")]
+```
 
 ## References
 
