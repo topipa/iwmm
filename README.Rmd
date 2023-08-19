@@ -130,7 +130,7 @@ After fitting the model, let us define an expectation function that we are inter
 and compute the expectation:
 
 ```{r, eval = T}
-expectation_fun_first_moment = function(draws, ...) {
+expectation_fun_first_moment <- function(draws, ...) {
   draws
 }
 

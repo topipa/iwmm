@@ -179,11 +179,10 @@ test_that("moment_match.stanfit matches analytical results", {
 
 
 test_that("moment_match.stanfit works with expectation", {
-
-  expectation_fun_first_moment = function(draws, ...) {
+  expectation_fun_first_moment <- function(draws, ...) {
     matrix(draws[, 1])
   }
-  expectation_fun_second_moment = function(draws, ...) {
+  expectation_fun_second_moment <- function(draws, ...) {
     matrix(draws[, 1]^2)
   }
 
@@ -205,8 +204,8 @@ test_that("moment_match.stanfit works with expectation", {
     variable = c("mu", "sigma_sq")
   )
 
-  mu_mean <-mean(draws_fit_full[,"mu"])
-  mu_sd <- sd(draws_fit_full[,"mu"])
+  mu_mean <- mean(draws_fit_full[, "mu"])
+  mu_sd <- sd(draws_fit_full[, "mu"])
 
   iwmm_mean <- iw_first_moment$expectation
   iwmm_sd <- sqrt(iw_second_moment$expectation - iw_first_moment$expectation^2)
