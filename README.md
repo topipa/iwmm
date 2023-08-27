@@ -103,7 +103,7 @@ model {
 We first fit the model using Stan:
 
 ``` r
-library(iwmm)
+library("iwmm")
 
 normal_model <- example_iwmm_model("normal_model")
 
@@ -120,7 +120,7 @@ After fitting the model, let us define an expectation function that we
 are interested in, and compute the expectation:
 
 ``` r
-expectation_fun_first_moment = function(draws, ...) {
+expectation_fun_first_moment <- function(draws, ...) {
   draws
 }
 
@@ -134,10 +134,60 @@ We can check that the expectation matches the posterior mean
 
 ``` r
 first_moment$expectation
-#> [1] 2.077739212 0.009009436
+#> [1] 4.002850 2.000641
 colMeans(as.matrix(fit))[c("mu", "log_sigma")]
-#>          mu   log_sigma 
-#> 2.077739212 0.009009436
+#>        mu log_sigma 
+#>  4.002850  2.000641
+```
+
+The package can also compute expectations over distributions that are
+different than the one where the draws are from. Let us try to evaluate
+the posterior mean when the last observation is removed. We achieve this
+by defining a `log_ratio_fun` which we can use to indicate the ratio of
+the target distribution and the existing posterior distribution. Since
+the target distribution is the posterior with one observation removed,
+the ratio function is the inverse of the likelihood of that observation.
+The log ratio function is thus the negative log likelihood of the last
+observation.
+
+``` r
+log_ratio_fun <- function(draws, fit, ...) {
+    cdraws <- constrain_draws(fit, draws)
+    ll <- posterior::merge_chains(
+      posterior::subset_draws(cdraws, variable = "log_lik")
+    )
+    -ll[,,10]
+  }
+
+first_moment_loo <- moment_match(
+  fit,
+  log_ratio_fun=log_ratio_fun,
+  expectation_fun = expectation_fun_first_moment
+)
+```
+
+Let us compare this to the posterior mean we get by actually fitting the
+model again without the last observation.
+
+``` r
+loo_data <- normal_model$data
+loo_data$x <- loo_data$x[-loo_data$N]
+loo_data$N <- loo_data$N - 1
+
+fit_loo <- rstan::stan(
+  model_code = normal_model$model_code,
+  data = loo_data,
+  refresh = FALSE,
+  seed = 1234
+)
+```
+
+``` r
+first_moment_loo$expectation
+#> [1]  1.8939496 -0.1475459
+colMeans(as.matrix(fit_loo))[c("mu", "log_sigma")]
+#>        mu log_sigma 
+#>  1.895802 -0.151749
 ```
 
 ## References

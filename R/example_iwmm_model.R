@@ -32,10 +32,14 @@ iwmm_examples <- function() {
   }
   model {
     target += normal_lpdf(x | mu, sigma);
-  }",
+  }
+  generated quantities {
+  vector[N] log_lik;
+  for (n in 1:N) log_lik[n] =  normal_lpdf(x[n] | mu, sigma);
+}",
         data = list(
           N = as.integer(10),
-          x = c(1.4395244, 1.7698225, 3.5587083 ,2.0705084, 2.1292877 ,3.7150650 ,2.4609162, 0.7349388, 1.3131471, 1.5543380)
+          x = c(1.4395244, 1.7698225, 3.5587083, 2.0705084, 2.1292877, 2.4609162, 0.7349388, 1.3131471, 1.5543380, 23.7150650)
         )
       )
   )
