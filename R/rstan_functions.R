@@ -8,6 +8,10 @@
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
 #'   The function takes argument `draws`, which are the unconstrained
 #'   draws. Can also take the argument `fit` which is the stan model fit.
+#' @param target_observation_weights A vector of weights for observations for
+#' defining the target distribution. A value 0 means dropping the observation,
+#' a value 1 means including the observation similarly as in the current data,
+#' and a value 2 means including the observation twice.
 #' @param expectation_fun Optional argument, NULL by default. A
 #'   function whose expectation is being computed. The function takes
 #'   arguments `draws`.
@@ -28,12 +32,37 @@
 moment_match.stanfit <- function(x,
                                  log_prob_target_fun = NULL,
                                  log_ratio_fun = NULL,
+                                 target_observation_weights = NULL,
                                  expectation_fun = NULL,
                                  log_expectation_fun = FALSE,
                                  constrain = TRUE,
                                  ...) {
+  if (!is.null(target_observation_weights) && (!is.null(log_prob_target_fun) || !is.null(log_ratio_fun))) {
+    stop("You must give only one of target_observation_weights, log_prob_target_fun, or log_ratio_fun.")
+  }
+
   # ensure draws are in matrix form
   draws <- posterior::as_draws_matrix(x)
+
+  if (!is.null(target_observation_weights)) {
+    out <- tryCatch(posterior::subset_draws(draws, variable = "log_lik"),
+      error = function(cond) {
+        message(cond)
+        message("\nYour stan fit does not include a parameter called log_lik.")
+        message("To use target_observation_weights, you must define log_lik in the generated quantities block.")
+        return(NA)
+      }
+    )
+
+    log_ratio_fun <- function(draws, fit, ...) {
+      cdraws <- constrain_draws(fit, draws)
+      ll <- posterior::merge_chains(
+        posterior::subset_draws(cdraws, variable = "log_lik")
+      )
+      colSums(t(drop(ll)) * (target_observation_weights - 1))
+    }
+  }
+
 
   # transform the draws to unconstrained space
   udraws <- unconstrain_draws_stanfit(x, draws = draws, ...)

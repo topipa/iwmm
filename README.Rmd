@@ -125,27 +125,17 @@ colMeans(as.matrix(fit))[c("mu", "log_sigma")]
 The package can also compute expectations over distributions
 that are different than the one where the draws are from.
 Let us try to evaluate the posterior mean when the last observation is removed.
-We achieve this by defining a `log_ratio_fun`
-which we can use to indicate the ratio of the target distribution and
-the existing posterior distribution.
-Since the target distribution is the posterior with
-one observation removed, the ratio function is the inverse of the
-likelihood of that observation. The log ratio function is thus
-the negative log likelihood of the last observation.
-
+We achieve this by defining a `target_observation_weights`
+which we can use to indicate the target distribution as a vector of weights
+for each observation in the data used to fit the model.
+A vector of ones means using the existing data.
+A zero value for some observation means that
+the target distribution is the posterior without that specific observation.
 
 ```{r, eval = T}
-log_ratio_fun <- function(draws, fit, ...) {
-    cdraws <- constrain_draws(fit, draws)
-    ll <- posterior::merge_chains(
-      posterior::subset_draws(cdraws, variable = "log_lik")
-    )
-    -ll[,,10]
-  }
-
 first_moment_loo <- moment_match(
   fit,
-  log_ratio_fun=log_ratio_fun,
+  target_observation_weights = append(rep(1, 9), 0),
   expectation_fun = expectation_fun_first_moment
 )
 ```
