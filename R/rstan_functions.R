@@ -65,11 +65,11 @@ moment_match.stanfit <- function(x,
 
 
   # transform the draws to unconstrained space
-  udraws <- unconstrain_draws_stanfit(x, draws = draws, ...)
+  udraws <- unconstrain_draws.stanfit(x, draws = draws, ...)
 
   out <- moment_match.matrix(
     udraws,
-    log_prob_prop_fun = log_prob_draws_stanfit,
+    log_prob_prop_fun = log_prob_draws.stanfit,
     log_prob_target_fun = log_prob_target_fun,
     log_ratio_fun = log_ratio_fun,
     expectation_fun = expectation_fun,
@@ -87,7 +87,7 @@ moment_match.stanfit <- function(x,
 
 
 
-log_prob_draws_stanfit <- function(fit, draws, ...) {
+log_prob_draws.stanfit <- function(fit, draws, ...) {
   apply(
     draws,
     1,
@@ -98,7 +98,7 @@ log_prob_draws_stanfit <- function(fit, draws, ...) {
   )
 }
 
-unconstrain_draws_stanfit <- function(x, draws, ...) {
+unconstrain_draws.stanfit <- function(x, draws, ...) {
   skeleton <- .create_skeleton(x@sim$pars_oi, x@par_dims[x@sim$pars_oi])
   udraws <- apply(posterior::as_draws_matrix(draws), 1, FUN = function(draw) {
     rstan::unconstrain_pars(x, pars = .relist(draw, skeleton))
@@ -122,7 +122,7 @@ constrain_draws.stanfit <- function(x, udraws, ...) {
   dim(draws) <- c(nvars, ndraws)
   rownames(draws) <- varnames
   # lp__ is not computed automatically
-  lp__ <- log_prob_draws_stanfit(x, draws = udraws, ...)
+  lp__ <- log_prob_draws.stanfit(x, draws = udraws, ...)
   draws <- rbind(draws, lp__ = lp__)
 
   # bring draws into the right structure

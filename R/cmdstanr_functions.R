@@ -39,7 +39,7 @@ moment_match.CmdStanFit <- function(x,
 
   out <- moment_match.matrix(
     x = udraws,
-    log_prob_prop_fun = log_prob_draws_CmdStanFit,
+    log_prob_prop_fun = log_prob_draws.CmdStanFit,
     log_prob_target_fun = log_prob_target_fun,
     log_ratio_fun = log_ratio_fun,
     fit = x,
@@ -54,7 +54,7 @@ moment_match.CmdStanFit <- function(x,
 }
 
 
-log_prob_draws_CmdStanFit <- function(fit, draws, ...) {
+log_prob_draws.CmdStanFit <- function(fit, draws, ...) {
   apply(
     draws,
     1,
@@ -63,27 +63,27 @@ log_prob_draws_CmdStanFit <- function(fit, draws, ...) {
   )
 }
 
-unconstrain_draws_CmdStanFit <- function(x, draws, ...) {
-  if (!is.matrix(draws)) {
-    draws <- posterior::as_draws_matrix(x)
-  }
-
-  skeleton <- x$variable_skeleton()
-
-  # handle lp__ in draws object correctly
-  if ("lp__" %in% posterior::variables(draws)) {
-    skeleton <- c(list("lp__" = 0), skeleton)
-  }
-
-  udraws <- apply(draws, 1, FUN = function(draw) {
-    x$unconstrain_variables(.relist(draw, skeleton))
-  })
-  # for one parameter models
-  if (is.null(dim(udraws))) {
-    dim(udraws) <- c(1, length(udraws))
-  }
-  t(udraws)
-}
+# unconstrain_draws.CmdStanFit <- function(x, draws, ...) {
+#   if (!is.matrix(draws)) {
+#     draws <- posterior::as_draws_matrix(x)
+#   }
+#
+#   skeleton <- x$variable_skeleton()
+#
+#   # handle lp__ in draws object correctly
+#   if ("lp__" %in% posterior::variables(draws)) {
+#     skeleton <- c(list("lp__" = 0), skeleton)
+#   }
+#
+#   udraws <- apply(draws, 1, FUN = function(draw) {
+#     x$unconstrain_variables(.relist(draw, skeleton))
+#   })
+#   # for one parameter models
+#   if (is.null(dim(udraws))) {
+#     dim(udraws) <- c(1, length(udraws))
+#   }
+#   t(udraws)
+# }
 
 constrain_draws.CmdStanFit <- function(x, udraws, ...) {
   # list with one element per posterior draw
@@ -96,7 +96,7 @@ constrain_draws.CmdStanFit <- function(x, udraws, ...) {
   dim(draws) <- c(nvars, ndraws)
   rownames(draws) <- varnames
   # lp__ is not computed automatically
-  lp__ <- log_prob_draws_CmdStanFit(x, draws = udraws, ...)
+  lp__ <- log_prob_draws.CmdStanFit(x, draws = udraws, ...)
   draws <- rbind(draws, lp__ = lp__)
 
   # bring draws into the right structure
