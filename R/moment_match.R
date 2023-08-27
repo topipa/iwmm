@@ -150,7 +150,7 @@ moment_match.matrix <- function(x,
   }
 
   if (is.null(expectation_fun)) {
-    list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
+    adapted_draws <- list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
   } else {
     lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, ...)
     psisf <- suppressWarnings(loo::psis(lwf))
@@ -360,7 +360,7 @@ moment_match.matrix <- function(x,
       expectation <- colSums(w * expectation_fun(draws, ...))
     }
 
-    list(
+    adapted_draws <- list(
       "expectation" = expectation,
       "pareto_k" = k,
       "pareto_kf" = kf,
@@ -368,4 +368,7 @@ moment_match.matrix <- function(x,
       "log_weights" = lw
     )
   }
+  class(adapted_draws) <- c("adapted_draws", class(adapted_draws))
+
+  return(adapted_draws)
 }

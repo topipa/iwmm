@@ -9,6 +9,7 @@ See additional arguments from \code{moment_match.matrix}}
   x,
   log_prob_target_fun = NULL,
   log_ratio_fun = NULL,
+  target_observation_weights = NULL,
   expectation_fun = NULL,
   log_expectation_fun = FALSE,
   constrain = TRUE,
@@ -25,6 +26,11 @@ Can also take the argument \code{fit} which is the stan model fit.}
 \item{log_ratio_fun}{Log of the density ratio (target/proposal).
 The function takes argument \code{draws}, which are the unconstrained
 draws. Can also take the argument \code{fit} which is the stan model fit.}
+
+\item{target_observation_weights}{A vector of weights for observations for
+defining the target distribution. A value 0 means dropping the observation,
+a value 1 means including the observation similarly as in the current data,
+and a value 2 means including the observation twice.}
 
 \item{expectation_fun}{Optional argument, NULL by default. A
 function whose expectation is being computed. The function takes
