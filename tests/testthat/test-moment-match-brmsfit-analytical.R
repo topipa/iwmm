@@ -124,7 +124,7 @@ if (brms_available) {
   test_that("moment_match.stanfit matches analytical results", {
     # TODO: implement this test with expectation_fun
 
-    joint_log_lik_nine_obs <- function(draws, fit, extra_data, ...) {
+    joint_log_lik_extra_data <- function(draws, fit, extra_data, ...) {
       fit <- brms:::.update_pars(x = fit, upars = draws)
       ll <- log_lik(fit, newdata = extra_data)
       rowSums(ll)
@@ -132,7 +132,7 @@ if (brms_available) {
 
     iw_single_obs <- moment_match.brmsfit(
       fit_single_obs,
-      log_ratio_fun = joint_log_lik_nine_obs,
+      log_ratio_fun = joint_log_lik_extra_data,
       extra_data = standata_nine_obs,
       k_threshold = -Inf # ensure moment-matching is used
     )

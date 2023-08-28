@@ -78,11 +78,16 @@ moment_match.brmsfit <- function(x,
     ...
   )
 
+  # TODO: this does not work for some reason
+  # x <- brms:::.update_pars(x = x, upars = out$draws)
+  # x <- update_pars_brmsfit(x = x, draws = out$draws)
+
   if (constrain) {
     out$draws <- constrain_draws.stanfit(x$fit, out$draws, ...)
   }
 
-  out
+  list(iwmm_object = out,
+       brmsfit_object = x)
 }
 
 
@@ -141,7 +146,7 @@ constrain_draws.brmsfit <- function(x, udraws, ...) {
 #   x$fit@stan_args <- list(
 #     list(chain_id = 1, iter = ndraws, thin = 1, warmup = 0)
 #   )
-#   rename_pars(x)
+#   brms::rename_pars(x)
 # }
 
 # update .MISC environment of the stanfit object
