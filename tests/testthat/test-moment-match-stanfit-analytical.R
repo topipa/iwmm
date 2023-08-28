@@ -101,7 +101,6 @@ fit_prior <- sampling(
 # nu_n*sigma_sq_n = nu_0 * sigma_sq_0 + (n - 1) * s^2 +
 # (kappa_0 * n) / (kappa_0 + n) * (ybar - mu_0)^2
 
-mu0 <- 0
 ybar <- mean(x)
 s_sq <- var(x)
 nu_n <- nu0 + n
@@ -122,8 +121,8 @@ mu_post_mean <- mu_n
 mu_post_var <- (sigma_sq_n / kappa_n) * (nu_n / (nu_n - 2))
 mu_post_sd <- sqrt(mu_post_var)
 
-mean_analytical_prior <- c(mu = mu_n, sigma_sq = sigma_sq_post_mean)
-sd_analytical_prior <- c(mu = mu_post_sd, sigma_sq = sqrt(sigma_sq_post_var))
+mean_analytical <- c(mu = mu_n, sigma_sq = sigma_sq_post_mean)
+sd_analytical <- c(mu = mu_post_sd, sigma_sq = sqrt(sigma_sq_post_var))
 
 
 test_that("moment_match.stanfit matches analytical results", {
@@ -166,19 +165,21 @@ test_that("moment_match.stanfit matches analytical results", {
 
   expect_equal(
     mean_mm_prior[c(1, 2)],
-    mean_analytical_prior,
+    mean_analytical,
     tolerance = 0.1
   )
 
   expect_equal(
     sd_mm_prior[c(1, 2)],
-    sd_analytical_prior,
+    sd_analytical,
     tolerance = 0.1
   )
+
 })
 
 
 test_that("moment_match.stanfit works with expectation", {
+  # TODO: how to do this easily for constrained parameters?
   expectation_fun_first_moment <- function(draws, ...) {
     matrix(draws[, 1])
   }
