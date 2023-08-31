@@ -41,7 +41,9 @@ update_quantities <- function(draws, orig_log_prob_prop,
     )
   }
 
-  pareto_smoothed_w_new <- posterior::pareto_smooth(exp(lw_new - matrixStats::logSumExp(lw_new)), tail = "right", r_eff = 1)
+  pareto_smoothed_w_new <- posterior::pareto_smooth(exp(lw_new - matrixStats::logSumExp(lw_new)),
+    tail = "right", r_eff = 1
+  )
   k <- pareto_smoothed_w_new$diagnostics$khat
   lw <- log(as.vector(pareto_smoothed_w_new$x))
   # normalize log weights

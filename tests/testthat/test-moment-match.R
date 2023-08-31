@@ -501,4 +501,3 @@ test_that("moment_match with expectation with model works", {
   expect_equal(iw$pareto_k, ex_mm$pareto_k, tolerance = 1e-6)
   expect_equal(ex_mm$pareto_kf, c(0.4, 0.4), tolerance = 1e-1)
 })
-
