@@ -182,7 +182,6 @@ moment_match.matrix <- function(x,
               that return a matrix. As a workaround, you can wrap your function
               call using apply.")
       }
-      pareto_smoothed_wf <- posterior::pareto_smooth(normalized_wf, tail = "right")
       lwf <- log(as.vector(pareto_smoothed_wf$x))
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
