@@ -117,7 +117,7 @@ moment_match.matrix <- function(x,
            target density is equal to your proposal density.")
     }
 
-    pareto_smoothed_w <- posterior::pareto_smooth(exp(lw - matrixStats::logSumExp(lw)), tail = "right")
+    pareto_smoothed_w <- posterior::pareto_smooth(exp(lw - matrixStats::logSumExp(lw)), tail = "right", extra_diags = TRUE, r_eff = 1)
     k <- pareto_smoothed_w$diagnostics$khat
     lw <- log(as.vector(pareto_smoothed_w$x))
 
@@ -154,12 +154,10 @@ moment_match.matrix <- function(x,
     adapted_draws <- list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
   } else {
     lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, ...)
-    normalized_wf <- exp(lwf - matrixStats::logSumExp(lwf))
-    kf <- c()
-    for (i in 1:ncol(normalized_wf)) {
-      pareto_smoothed_wfi <- posterior::pareto_smooth(normalized_wf[,i], tail = "right")
-      kf <- c(kf, pareto_smoothed_wfi$diagnostics$khat)
-    }
+
+    pareto_smoothed_wf <- apply(lwf, 2, function(x) posterior::pareto_smooth(exp(x), tail = "right", extra_diags = TRUE, r_eff = 1))
+    pareto_smoothed_wf <- do.call(mapply, c(cbind, pareto_smoothed_wf))
+    kf <- as.numeric(pareto_smoothed_wf$diagnostics["khat", ])
 
     if (split) {
       # prepare for split and check kfs
