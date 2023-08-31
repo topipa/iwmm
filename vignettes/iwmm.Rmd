@@ -1,28 +1,20 @@
 ---
-output: github_document
+title: "Importance weighted moment matching"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{iwmm}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+  comment = "#>"
 )
 ```
-
-<img src='man/figures/logo.png' align="right" height="160" />
-
-# iwmm
-
-<!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![CRAN status](https://www.r-pkg.org/badges/version/iwmm)](https://CRAN.R-project.org/package=iwmm)
-[![R-CMD-check](https://github.com/topipa/iwmm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/topipa/iwmm/actions/workflows/R-CMD-check.yaml)
-[![test-coverage](https://github.com/topipa/iwmm/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/topipa/iwmm/actions/workflows/test-coverage.yaml)
-<!-- badges: end -->
 
 ## Overview
 
@@ -35,25 +27,14 @@ The method is described in detail in the [Implicitly Adaptive Importance Samplin
 
 ## Installation
 
-<!-- You can install the released version of iwmm from [CRAN](https://CRAN.R-project.org) with: -->
-
-<!-- ``` r -->
-<!-- install.packages("iwmm") -->
-<!-- ``` -->
-
-<!-- And the development version from [GitHub](https://github.com/) with: -->
-
-<!-- ``` r -->
-<!-- # install.packages("devtools") -->
-<!-- devtools::install_github("topipa/iwmm") -->
-<!-- ``` -->
-
 You can install the the development version from [GitHub](https://github.com/) with:
 
 ```{r, eval = F}
 install.packages("remotes")
 remotes::install_github("topipa/iwmm")
 ```
+
+
 
 ## Usage
 
@@ -170,5 +151,4 @@ colMeans(as.matrix(fit_loo))[c("mu", "log_sigma")]
 Paananen, T., Piironen, J., Bürkner, P.-C., and Vehtari, A.
 Implicitly Adaptive Importance Sampling. _Stat Comput_ **31**, 16 (2021).
 ([paper](https://doi.org/10.1007/s11222-020-09982-2))([code](https://github.com/topipa/iter-mm-paper))
-
 

@@ -110,7 +110,7 @@ kappa_n <- kappa0 + n
 mu_n <- kappa0 / kappa_n * mu0 + n / kappa_n * ybar
 
 sigma_sq_n <- (nu0 * sigma0^2 + (n - 1) * s_sq + (kappa0 * n) /
-                 kappa_n * (ybar - mu0)^2) / nu_n
+                 kappa_n * (ybar - mu0)^2) / nu_n # styler: off
 
 sigma_sq_post_mean <- nu_n * sigma_sq_n / (nu_n - 2)
 
@@ -126,11 +126,10 @@ mean_analytical_prior <- c(mu = mu_n, sigma_sq = sigma_sq_post_mean)
 sd_analytical_prior <- c(mu = mu_post_sd, sigma_sq = sqrt(sigma_sq_post_var))
 
 
-test_that("moment_match_stanfit matches analytical results", {
-
+test_that("moment_match.stanfit matches analytical results", {
+  # TODO: implement this test with expectation_fun
   # ratio = jointlikelihood
   joint_log_lik <- function(draws, fit, ...) {
-
     cdraws <- constrain_draws.stanfit(fit, draws)
     ll <- posterior::merge_chains(
       posterior::subset_draws(cdraws, variable = "log_lik")
@@ -152,7 +151,8 @@ test_that("moment_match_stanfit matches analytical results", {
   weights_mm_prior <- exp(iw_prior$log_weights)
   mean_mm_prior <- matrixStats::colWeightedMeans(
     draws_mm_prior,
-    w = weights_mm_prior)
+    w = weights_mm_prior
+  )
 
   var_weighted <- function(x, w) {
     stats::cov.wt(cbind(x), wt = w)$cov
@@ -172,8 +172,52 @@ test_that("moment_match_stanfit matches analytical results", {
 
   expect_equal(
     sd_mm_prior[c(1, 2)],
-  sd_analytical_prior,
-  tolerance = 0.1
+    sd_analytical_prior,
+    tolerance = 0.1
+  )
+})
+
+
+test_that("moment_match.stanfit works with expectation", {
+  expectation_fun_first_moment <- function(draws, ...) {
+    matrix(draws[, 1])
+  }
+  expectation_fun_second_moment <- function(draws, ...) {
+    matrix(draws[, 1]^2)
+  }
+
+  iw_first_moment <- suppressWarnings(moment_match.stanfit(
+    fit_full,
+    expectation_fun = expectation_fun_first_moment,
+    k_threshold = -Inf # ensure moment-matching is used
+  ))
+
+  iw_second_moment <- suppressWarnings(moment_match.stanfit(
+    fit_full,
+    expectation_fun = expectation_fun_second_moment,
+    k_threshold = -Inf # ensure moment-matching is used
+  ))
+
+
+  draws_fit_full <- posterior::subset_draws(
+    posterior::as_draws_matrix(fit_full),
+    variable = c("mu", "sigma_sq")
   )
 
+  mu_mean <- mean(draws_fit_full[, "mu"])
+  mu_sd <- sd(draws_fit_full[, "mu"])
+
+  iwmm_mean <- iw_first_moment$expectation
+  iwmm_sd <- sqrt(iw_second_moment$expectation - iw_first_moment$expectation^2)
+
+  expect_equal(
+    iwmm_mean,
+    mu_mean,
+    tolerance = 0.1
+  )
+  expect_equal(
+    iwmm_sd,
+    mu_sd,
+    tolerance = 0.1
+  )
 })

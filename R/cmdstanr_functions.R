@@ -21,15 +21,19 @@ moment_match.CmdStanFit <- function(x,
                                     log_ratio_fun = NULL,
                                     constrain = TRUE,
                                     ...) {
-
   # transform the model parameters to unconstrained space
   udraws <- x$unconstrain_draws()
-  udraws <- aperm(abind::abind(
-    lapply(udraws, function(x) abind::abind(x, along = 2)), along = 3),
-    perm = c(2, 3, 1))
+  udraws <- aperm(
+    abind::abind(
+      lapply(udraws, function(x) abind::abind(x, along = 2)),
+      along = 3
+    ),
+    perm = c(2, 3, 1)
+  )
 
   udraws <- matrix(
-    udraws, nrow = dim(udraws)[1] * dim(udraws)[2],
+    udraws,
+    nrow = dim(udraws)[1] * dim(udraws)[2],
     ncol = dim(udraws)[3]
   )
 
@@ -60,7 +64,6 @@ log_prob_draws_CmdStanFit <- function(fit, draws, ...) {
 }
 
 unconstrain_draws_CmdStanFit <- function(x, draws, ...) {
-
   if (!is.matrix(draws)) {
     draws <- posterior::as_draws_matrix(x)
   }
@@ -83,7 +86,6 @@ unconstrain_draws_CmdStanFit <- function(x, draws, ...) {
 }
 
 constrain_draws.CmdStanFit <- function(x, udraws, ...) {
-
   # list with one element per posterior draw
   draws <- apply(udraws, 1, x$constrain_variables)
   varnames <- posterior::variables(x$draws())[-1]
