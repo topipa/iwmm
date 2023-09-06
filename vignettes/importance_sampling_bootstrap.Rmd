@@ -56,12 +56,10 @@ algorithm (Paananen et al. 2020).
 We will load __rstan__ for fitting our models, and the
 [_iwmm package_](https://github.com/topipa/iwmm) for
 the importance weighted moment matching.
-We also load the __loo__ package for some helper functions.
 
 
 ```{r load, message=FALSE}
 library("rstan")
-library("loo")
 library("iwmm")
 seed <- 48571056
 set.seed(seed)
@@ -114,7 +112,7 @@ Stan using the rstan package:
 stanmodel <- stan_model(model_code = stancode)
 
 # generate  data
-n <- as.integer(1000)
+n <- as.integer(100)
 x <- rnorm(n = n)
 
 standata <- list(N = n, x = x)
@@ -123,7 +121,7 @@ stanfit <- sampling(stanmodel, data = standata, refresh = 0)
 # extract posterior and log-likelihood draws
 post <- as.data.frame(stanfit)[, 1:2]
 S <- nrow(post)
-ll <- loo::extract_log_lik(stanfit)
+ll <- as.matrix(stanfit, pars = "log_lik")
 ```
 
 ### Compute Bootstrap means using importance sampling
@@ -185,7 +183,7 @@ times each observation is included in the Bootstrap sample.
 ```{r helper functions, warning = FALSE}
 log_lik_stanfit <- function(fit, upars, parameter_name = "log_lik",
                             ...) {
-  ll <- loo::extract_log_lik(fit, parameter_name, merge_chains = TRUE)
+  ll <- as.matrix(fit, pars = parameter_name)
   S <- nrow(upars)
   n <- ncol(ll)
   out <- matrix(0, S, n)
@@ -303,7 +301,7 @@ stanfit <- sampling(stanmodel, data = standata, refresh = 0)
 # extract posterior and log-likelihood draws
 post <- as.data.frame(stanfit)[, 1:2]
 S <- nrow(post)
-ll <- loo::extract_log_lik(stanfit)
+ll <- as.matrix(stanfit, pars = "log_lik")
 ```
 
 
