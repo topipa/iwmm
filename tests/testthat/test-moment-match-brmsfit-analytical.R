@@ -121,7 +121,7 @@ if (brms_available) {
 
 
 
-  test_that("moment_match.stanfit matches analytical results", {
+  test_that("moment_match.brmsfit matches analytical results", {
     # TODO: implement this test with expectation_fun
 
     joint_log_lik_extra_data <- function(draws, fit, extra_data, ...) {
@@ -137,13 +137,12 @@ if (brms_available) {
       k_threshold = -Inf # ensure moment-matching is used
     )
 
-
     draws_mm_single_obs <- posterior::subset_draws(
-      posterior::as_draws_matrix(iw_single_obs$draws),
+      posterior::as_draws_matrix(iw_single_obs$adapted_importance_sampling$draws),
       variable = c("b_Intercept", "sigma_sq")
     )
 
-    weights_mm_single_obs <- exp(iw_single_obs$log_weights)
+    weights_mm_single_obs <- exp(iw_single_obs$adapted_importance_sampling$log_weights)
     mean_mm_single_obs <- matrixStats::colWeightedMeans(
       draws_mm_single_obs,
       w = weights_mm_single_obs
