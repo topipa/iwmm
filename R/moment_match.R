@@ -117,9 +117,12 @@ moment_match.matrix <- function(x,
            target density is equal to your proposal density.")
     }
 
-    lw_psis <- suppressWarnings(loo::psis(lw))
-    lw <- as.vector(weights(lw_psis))
-    k <- lw_psis$diagnostics$pareto_k
+    pareto_smoothed_w <- posterior::pareto_smooth(exp(lw - matrixStats::logSumExp(lw)),
+      tail = "right", extra_diags = TRUE, r_eff = 1
+    )
+    k <- pareto_smoothed_w$diagnostics$khat
+    lw <- log(as.vector(pareto_smoothed_w$x))
+
     if (any(is.infinite(k))) {
       stop("Something went wrong, and encountered infinite Pareto k values..")
     }
@@ -153,8 +156,14 @@ moment_match.matrix <- function(x,
     adapted_draws <- list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
   } else {
     lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, ...)
-    psisf <- suppressWarnings(loo::psis(lwf))
-    kf <- psisf$diagnostics$pareto_k
+
+    pareto_smoothed_wf <- apply(lwf, 2, function(x) {
+      posterior::pareto_smooth(exp(x),
+        tail = "right", extra_diags = TRUE, r_eff = 1
+      )
+    })
+    pareto_smoothed_wf <- do.call(mapply, c(cbind, pareto_smoothed_wf))
+    kf <- as.numeric(pareto_smoothed_wf$diagnostics["khat", ])
 
     if (split) {
       # prepare for split and check kfs
@@ -173,13 +182,13 @@ moment_match.matrix <- function(x,
         total_mapping2 <- total_mapping
       }
 
-      lwf <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
-      if (ncol(lwf) > 1) {
+      lwf_check <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
+      if (ncol(lwf_check) > 1) {
         stop("Using split = TRUE is not yet supported for expectation functions
               that return a matrix. As a workaround, you can wrap your function
               call using apply.")
       }
-      lwf <- as.vector(weights(psisf))
+      lwf <- log(as.vector(pareto_smoothed_wf$x))
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         update_properties <- list(
@@ -335,8 +344,6 @@ moment_match.matrix <- function(x,
       #   )
 
 
-      # lw_trans_psis <- suppressWarnings(loo::psis(lw_trans))
-      # lw_trans <- as.vector(weights(lw_trans_psis))
       lw_trans <- lw_trans - matrixStats::logSumExp(lw_trans)
 
 
