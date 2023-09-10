@@ -1,4 +1,4 @@
-test_that("moment_match works", {
+test_that("moment_match.matrix works", {
   set.seed(7)
 
   S <- 4000
@@ -62,6 +62,96 @@ test_that("moment_match works", {
     tolerance = 1e-1
   )
   expect_equal(iw$diagnostics$pareto_k, 0.35, tolerance = 1e-1)
+})
+
+test_that("moment_match.draws_matrix works", {
+  set.seed(7)
+
+  S <- 4000
+
+  prop_mean <- 0
+  prop_var <- sqrt(0.1)
+
+  target_mean <- 5
+  target_var <- 1
+
+  prop_sample <- matrix(rnorm(2 * S, prop_mean, prop_var), S, 2)
+  colnames(prop_sample) <- paste0("V", 1:2)
+  prop_sample <- posterior::as_draws_matrix(prop_sample)
+
+  prop_density <- function(draws, ...) {
+    dnorm(draws[, 1], prop_mean, prop_var, log = TRUE) +
+      dnorm(draws[, 2], prop_mean, prop_var, log = TRUE)
+  }
+
+  target_density <- function(draws, ...) {
+    dnorm(draws[, 1], target_mean, target_var, log = TRUE) +
+      dnorm(draws[, 2], target_mean, target_var, log = TRUE)
+  }
+
+  ratio_density <- function(draws, ...) {
+    target_density(draws, ...) - prop_density(draws, ...)
+  }
+
+  iw <- moment_match(prop_sample,
+                     log_prob_prop_fun = prop_density,
+                     log_ratio_fun = ratio_density
+  )
+
+  iw_means <- posterior::summarise_draws(
+              iw$draws,
+              matrixStats::weightedMean,
+              .args = list(w = exp(iw$log_weights))
+          )
+  iw_vars <- posterior::summarise_draws(
+    iw$draws,
+    matrixStats::weightedVar,
+    .args = list(w = 1000*exp(iw$log_weights))
+  )
+
+  expect_equal(
+    iw_means$`matrixStats::weightedMean`,
+    c(5, 5),
+    tolerance = 1e-1
+  )
+  expect_equal(
+    iw_vars$`matrixStats::weightedVar`,
+    c(1, 1),
+    tolerance = 1e-1
+  )
+  expect_equal(iw$diagnostics$pareto_k, 0.4, tolerance = 1e-1)
+
+
+  # another definition
+
+  iw <- moment_match(
+    prop_sample,
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density
+  )
+
+  iw_means <- posterior::summarise_draws(
+    iw$draws,
+    matrixStats::weightedMean,
+    .args = list(w = exp(iw$log_weights))
+  )
+  iw_vars <- posterior::summarise_draws(
+    iw$draws,
+    matrixStats::weightedVar,
+    .args = list(w = 1000*exp(iw$log_weights))
+  )
+
+  expect_equal(
+    iw_means$`matrixStats::weightedMean`,
+    c(5, 5),
+    tolerance = 1e-1
+  )
+  expect_equal(
+    iw_vars$`matrixStats::weightedVar`,
+    c(1, 1),
+    tolerance = 1e-1
+  )
+  expect_equal(iw$diagnostics$pareto_k, 0.4, tolerance = 1e-1)
 })
 
 test_that("moment_match with model works", {

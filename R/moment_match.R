@@ -5,6 +5,35 @@ moment_match <- function(x, ...) {
   UseMethod("moment_match")
 }
 
+#' @export
+moment_match.draws_matrix <- function(x,
+                                log_prob_prop_fun,
+                                log_prob_target_fun = NULL,
+                                log_ratio_fun = NULL,
+                                expectation_fun = NULL,
+                                log_expectation_fun = FALSE,
+                                is_method = "psis",
+                                adaptation_method = "iwmm",
+                                k_threshold = 0.5,
+                                cov_transform = TRUE,
+                                split = FALSE,
+                                restart_transform = FALSE,
+                                ...) {
+  return (moment_match.matrix(x=x,
+                             log_prob_prop_fun=log_prob_prop_fun,
+                             log_prob_target_fun = log_prob_target_fun,
+                             log_ratio_fun = log_ratio_fun,
+                             expectation_fun = expectation_fun,
+                             log_expectation_fun = log_expectation_fun,
+                             is_method = is_method,
+                             adaptation_method = adaptation_method,
+                             k_threshold =k_threshold,
+                             cov_transform = cov_transform,
+                             split = split,
+                             restart_transform = restart_transform,
+                             ...))
+}
+
 #' Generic importance weighted moment matching algorithm for matrices.
 #'
 #'

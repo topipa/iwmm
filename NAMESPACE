@@ -2,6 +2,7 @@
 
 S3method(constrain_draws,stanfit)
 S3method(moment_match,CmdStanFit)
+S3method(moment_match,draws_matrix)
 S3method(moment_match,matrix)
 S3method(moment_match,stanfit)
 S3method(print,adapted_importance_sampling)
