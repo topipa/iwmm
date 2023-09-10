@@ -5,6 +5,161 @@ moment_match <- function(x, ...) {
   UseMethod("moment_match")
 }
 
+#' @export
+moment_match.draws_matrix <- function(x,
+                                      log_prob_prop_fun,
+                                      log_prob_target_fun = NULL,
+                                      log_ratio_fun = NULL,
+                                      expectation_fun = NULL,
+                                      log_expectation_fun = FALSE,
+                                      is_method = "psis",
+                                      adaptation_method = "iwmm",
+                                      k_threshold = 0.5,
+                                      cov_transform = TRUE,
+                                      split = FALSE,
+                                      restart_transform = FALSE,
+                                      ...) {
+  return(moment_match.matrix(
+    x = x,
+    log_prob_prop_fun = log_prob_prop_fun,
+    log_prob_target_fun = log_prob_target_fun,
+    log_ratio_fun = log_ratio_fun,
+    expectation_fun = expectation_fun,
+    log_expectation_fun = log_expectation_fun,
+    is_method = is_method,
+    adaptation_method = adaptation_method,
+    k_threshold = k_threshold,
+    cov_transform = cov_transform,
+    split = split,
+    restart_transform = restart_transform,
+    ...
+  ))
+}
+
+#' @export
+moment_match.draws_array <- function(x,
+                                     log_prob_prop_fun,
+                                     log_prob_target_fun = NULL,
+                                     log_ratio_fun = NULL,
+                                     expectation_fun = NULL,
+                                     log_expectation_fun = FALSE,
+                                     is_method = "psis",
+                                     adaptation_method = "iwmm",
+                                     k_threshold = 0.5,
+                                     cov_transform = TRUE,
+                                     split = FALSE,
+                                     restart_transform = FALSE,
+                                     ...) {
+  return(moment_match.matrix(
+    x = posterior::as_draws_matrix(x),
+    log_prob_prop_fun = log_prob_prop_fun,
+    log_prob_target_fun = log_prob_target_fun,
+    log_ratio_fun = log_ratio_fun,
+    expectation_fun = expectation_fun,
+    log_expectation_fun = log_expectation_fun,
+    is_method = is_method,
+    adaptation_method = adaptation_method,
+    k_threshold = k_threshold,
+    cov_transform = cov_transform,
+    split = split,
+    restart_transform = restart_transform,
+    ...
+  ))
+}
+
+#' @export
+moment_match.draws_df <- function(x,
+                                  log_prob_prop_fun,
+                                  log_prob_target_fun = NULL,
+                                  log_ratio_fun = NULL,
+                                  expectation_fun = NULL,
+                                  log_expectation_fun = FALSE,
+                                  is_method = "psis",
+                                  adaptation_method = "iwmm",
+                                  k_threshold = 0.5,
+                                  cov_transform = TRUE,
+                                  split = FALSE,
+                                  restart_transform = FALSE,
+                                  ...) {
+  return(moment_match.matrix(
+    x = posterior::as_draws_matrix(x),
+    log_prob_prop_fun = log_prob_prop_fun,
+    log_prob_target_fun = log_prob_target_fun,
+    log_ratio_fun = log_ratio_fun,
+    expectation_fun = expectation_fun,
+    log_expectation_fun = log_expectation_fun,
+    is_method = is_method,
+    adaptation_method = adaptation_method,
+    k_threshold = k_threshold,
+    cov_transform = cov_transform,
+    split = split,
+    restart_transform = restart_transform,
+    ...
+  ))
+}
+
+#' @export
+moment_match.draws_list <- function(x,
+                                    log_prob_prop_fun,
+                                    log_prob_target_fun = NULL,
+                                    log_ratio_fun = NULL,
+                                    expectation_fun = NULL,
+                                    log_expectation_fun = FALSE,
+                                    is_method = "psis",
+                                    adaptation_method = "iwmm",
+                                    k_threshold = 0.5,
+                                    cov_transform = TRUE,
+                                    split = FALSE,
+                                    restart_transform = FALSE,
+                                    ...) {
+  return(moment_match.matrix(
+    x = posterior::as_draws_matrix(x),
+    log_prob_prop_fun = log_prob_prop_fun,
+    log_prob_target_fun = log_prob_target_fun,
+    log_ratio_fun = log_ratio_fun,
+    expectation_fun = expectation_fun,
+    log_expectation_fun = log_expectation_fun,
+    is_method = is_method,
+    adaptation_method = adaptation_method,
+    k_threshold = k_threshold,
+    cov_transform = cov_transform,
+    split = split,
+    restart_transform = restart_transform,
+    ...
+  ))
+}
+
+#' @export
+moment_match.draws_rvars <- function(x,
+                                     log_prob_prop_fun,
+                                     log_prob_target_fun = NULL,
+                                     log_ratio_fun = NULL,
+                                     expectation_fun = NULL,
+                                     log_expectation_fun = FALSE,
+                                     is_method = "psis",
+                                     adaptation_method = "iwmm",
+                                     k_threshold = 0.5,
+                                     cov_transform = TRUE,
+                                     split = FALSE,
+                                     restart_transform = FALSE,
+                                     ...) {
+  return(moment_match.matrix(
+    x = posterior::as_draws_matrix(x),
+    log_prob_prop_fun = log_prob_prop_fun,
+    log_prob_target_fun = log_prob_target_fun,
+    log_ratio_fun = log_ratio_fun,
+    expectation_fun = expectation_fun,
+    log_expectation_fun = log_expectation_fun,
+    is_method = is_method,
+    adaptation_method = adaptation_method,
+    k_threshold = k_threshold,
+    cov_transform = cov_transform,
+    split = split,
+    restart_transform = restart_transform,
+    ...
+  ))
+}
+
 #' Generic importance weighted moment matching algorithm for matrices.
 #'
 #'
@@ -23,6 +178,8 @@ moment_match <- function(x, ...) {
 #'   to FALSE. If set to TRUE, the expectation function must be
 #'   nonnegative (before taking the logarithm).  Ignored if
 #'   `expectation_fun` is NULL.
+#' @param is_method Which importance sampling method to use. Currently only `psis` is supported.
+#' @param adaptation_method Which adaptation method to use. Currently only `iwmm` is supported.
 #' @param k_threshold Threshold value for Pareto k values above which
 #'   the moment matching algorithm is used. The default value is 0.5.
 #' @param cov_transform Logical; Indicates whether to match the
@@ -51,6 +208,8 @@ moment_match.matrix <- function(x,
                                 log_ratio_fun = NULL,
                                 expectation_fun = NULL,
                                 log_expectation_fun = FALSE,
+                                is_method = "psis",
+                                adaptation_method = "iwmm",
                                 k_threshold = 0.5,
                                 cov_transform = TRUE,
                                 split = FALSE,
@@ -73,6 +232,13 @@ moment_match.matrix <- function(x,
   }
   if (!is.null(log_prob_target_fun) && !is.null(log_ratio_fun)) {
     stop("You cannot give both log_prob_target_fun and log_ratio_fun.")
+  }
+
+  if (is_method != "psis") {
+    stop("Currently psis is the only supported is_method.")
+  }
+  if (adaptation_method != "iwmm") {
+    stop("Currently iwmm is the only supported adaptation_method.")
   }
 
   orig_log_prob_prop <- log_prob_prop_fun(draws = draws, ...)
@@ -117,9 +283,12 @@ moment_match.matrix <- function(x,
            target density is equal to your proposal density.")
     }
 
-    lw_psis <- suppressWarnings(loo::psis(lw))
-    lw <- as.vector(weights(lw_psis))
-    k <- lw_psis$diagnostics$pareto_k
+    pareto_smoothed_w <- posterior::pareto_smooth(exp(lw - matrixStats::logSumExp(lw)),
+      tail = "right", extra_diags = TRUE, r_eff = 1
+    )
+    k <- pareto_smoothed_w$diagnostics$khat
+    lw <- log(as.vector(pareto_smoothed_w$x))
+
     if (any(is.infinite(k))) {
       stop("Something went wrong, and encountered infinite Pareto k values..")
     }
@@ -150,11 +319,25 @@ moment_match.matrix <- function(x,
   }
 
   if (is.null(expectation_fun)) {
-    adapted_draws <- list("draws" = draws, "log_weights" = lw, "pareto_k" = k)
+    adapted_draws <- list(
+      draws = draws,
+      log_weights = lw,
+      expectation = NA,
+      diagnostics = list(
+        pareto_k = k,
+        pareto_kf = NA
+      )
+    )
   } else {
     lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, ...)
-    psisf <- suppressWarnings(loo::psis(lwf))
-    kf <- psisf$diagnostics$pareto_k
+
+    pareto_smoothed_wf <- apply(lwf, 2, function(x) {
+      posterior::pareto_smooth(exp(x),
+        tail = "right", extra_diags = TRUE, r_eff = 1
+      )
+    })
+    pareto_smoothed_wf <- do.call(mapply, c(cbind, pareto_smoothed_wf))
+    kf <- as.numeric(pareto_smoothed_wf$diagnostics["khat", ])
 
     if (split) {
       # prepare for split and check kfs
@@ -173,13 +356,13 @@ moment_match.matrix <- function(x,
         total_mapping2 <- total_mapping
       }
 
-      lwf <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
-      if (ncol(lwf) > 1) {
+      lwf_check <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
+      if (ncol(lwf_check) > 1) {
         stop("Using split = TRUE is not yet supported for expectation functions
               that return a matrix. As a workaround, you can wrap your function
               call using apply.")
       }
-      lwf <- as.vector(weights(psisf))
+      lwf <- log(as.vector(pareto_smoothed_wf$x))
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         update_properties <- list(
@@ -335,8 +518,6 @@ moment_match.matrix <- function(x,
       #   )
 
 
-      # lw_trans_psis <- suppressWarnings(loo::psis(lw_trans))
-      # lw_trans <- as.vector(weights(lw_trans_psis))
       lw_trans <- lw_trans - matrixStats::logSumExp(lw_trans)
 
 
@@ -361,14 +542,16 @@ moment_match.matrix <- function(x,
     }
 
     adapted_draws <- list(
-      "expectation" = expectation,
-      "pareto_k" = k,
-      "pareto_kf" = kf,
-      "draws" = draws,
-      "log_weights" = lw
+      draws = draws,
+      log_weights = lw,
+      expectation = expectation,
+      diagnostics = list(
+        pareto_k = k,
+        pareto_kf = kf
+      )
     )
   }
-  class(adapted_draws) <- c("adapted_draws", class(adapted_draws))
+  class(adapted_draws) <- c("adapted_importance_sampling", class(adapted_draws))
 
   return(adapted_draws)
 }

@@ -4,7 +4,7 @@ Version: 0.0.1
 Authors@R: 
     c(person("Topi", "Paananen", email = "work@topipaananen.fi", role = c("cre", "aut")),
       person("Noa", "Kallioinen", role = "ctb"))
-Description: Importance weighted moment matching.
+Description: iwmm provides functions for adaptive importance sampling.
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
@@ -15,7 +15,6 @@ Depends:
 Imports:
     abind,
     checkmate,
-    loo (>= 2.3.1),
     matrixStats (>= 0.52),
     posterior,
     stats

@@ -14,6 +14,8 @@ moment_match(x, ...)
   log_ratio_fun = NULL,
   expectation_fun = NULL,
   log_expectation_fun = FALSE,
+  is_method = "psis",
+  adaptation_method = "iwmm",
   k_threshold = 0.5,
   cov_transform = TRUE,
   split = FALSE,
@@ -45,6 +47,10 @@ expectation_fun returns its values as logarithms or not. Defaults
 to FALSE. If set to TRUE, the expectation function must be
 nonnegative (before taking the logarithm).  Ignored if
 \code{expectation_fun} is NULL.}
+
+\item{is_method}{Which importance sampling method to use. Currently only \code{psis} is supported.}
+
+\item{adaptation_method}{Which adaptation method to use. Currently only \code{iwmm} is supported.}
 
 \item{k_threshold}{Threshold value for Pareto k values above which
 the moment matching algorithm is used. The default value is 0.5.}
