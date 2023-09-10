@@ -40,7 +40,7 @@ test_that("moment_match works", {
     c(1, 1),
     tolerance = 1e-1
   )
-  expect_equal(iw$pareto_k, 0.35, tolerance = 1e-1)
+  expect_equal(iw$diagnostics$pareto_k, 0.35, tolerance = 1e-1)
 
 
   # another definition
@@ -61,7 +61,7 @@ test_that("moment_match works", {
     c(1, 1),
     tolerance = 1e-1
   )
-  expect_equal(iw$pareto_k, 0.35, tolerance = 1e-1)
+  expect_equal(iw$diagnostics$pareto_k, 0.35, tolerance = 1e-1)
 })
 
 test_that("moment_match with model works", {
@@ -119,7 +119,7 @@ test_that("moment_match with model works", {
     c(1, 1),
     tolerance = 1e-1
   )
-  expect_equal(iw$pareto_k, 0.35, tolerance = 1e-1)
+  expect_equal(iw$diagnostics$pareto_k, 0.35, tolerance = 1e-1)
 
   # another definition
 
@@ -141,7 +141,7 @@ test_that("moment_match with model works", {
     c(1, 1),
     tolerance = 1e-1
   )
-  expect_equal(iw$pareto_k, 0.35, tolerance = 1e-1)
+  expect_equal(iw$diagnostics$pareto_k, 0.35, tolerance = 1e-1)
 })
 
 test_that("moment_match with expectation works for target and ratio", {
@@ -473,8 +473,8 @@ test_that("moment_match with expectation with model works", {
     ex_mm$expectation,
     tolerance = 1e-2
   )
-  expect_equal(iw$pareto_k, ex_mm$pareto_k, tolerance = 1e-2)
-  expect_equal(ex_mm$pareto_kf, c(0.4, 0.4), tolerance = 1e-1)
+  expect_equal(iw$diagnostics$pareto_k, ex_mm$diagnostics$pareto_k, tolerance = 1e-2)
+  expect_equal(ex_mm$diagnostics$pareto_kf, c(0.4, 0.4), tolerance = 1e-1)
 
   # another definition
 
@@ -498,6 +498,6 @@ test_that("moment_match with expectation with model works", {
     ex_mm$expectation,
     tolerance = 1e-2
   )
-  expect_equal(iw$pareto_k, ex_mm$pareto_k, tolerance = 1e-6)
-  expect_equal(ex_mm$pareto_kf, c(0.4, 0.4), tolerance = 1e-1)
+  expect_equal(iw$diagnostics$pareto_k, ex_mm$diagnostics$pareto_k, tolerance = 1e-6)
+  expect_equal(ex_mm$diagnostics$pareto_kf, c(0.4, 0.4), tolerance = 1e-1)
 })
