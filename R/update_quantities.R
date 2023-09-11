@@ -56,17 +56,17 @@ update_quantities <- function(draws, orig_log_prob_prop,
   )
 }
 
-#' Function for computing expectation-specific importance weights
-#' from common importance weights.
+#' Function for computing expectation-specific log importance weights
+#' from common log importance weights.
 #'
 #' @param draws A matrix of draws.
-#' @param lw common importance weights.
+#' @param lw common log importance weights.
 #' @param expectation_fun A function whose expectation is being computed.
 #' The function takes arguments `draws`.
 #' @param log_expectation_fun Logical indicating whether the expectation_fun
 #' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
 #' the expectation function must be nonnegative (before taking the logarithm).
-#' @return List with the updated log importance weights and the Pareto k.
+#' @return expectation-specific log importance weights.
 #'
 #' @noRd
 compute_lwf <- function(draws, lw,

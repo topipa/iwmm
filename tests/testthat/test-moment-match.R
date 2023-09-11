@@ -135,7 +135,7 @@ test_that("moment_match.draws_matrix works", {
     matrixStats::weightedMean,
     .args = list(w = exp(iw$log_weights))
   )
-  # TODO: why does thia fail when weights are small and sum to one?
+  # TODO: why does this fail when weights are small and sum to one?
   iw_vars <- posterior::summarise_draws(
     iw$draws,
     matrixStats::weightedVar,
