@@ -12,7 +12,7 @@ See additional arguments from \code{moment_match.matrix}}
   target_observation_weights = NULL,
   expectation_fun = NULL,
   log_expectation_fun = FALSE,
-  constrain = TRUE,
+  return_constrained_draws = TRUE,
   ...
 )
 }
@@ -42,8 +42,8 @@ to FALSE. If set to TRUE, the expectation function must be
 nonnegative (before taking the logarithm).  Ignored if
 \code{expectation_fun} is NULL.}
 
-\item{constrain}{Logical specifying whether to return draws on the
-constrained space? Default is TRUE.}
+\item{return_constrained_draws}{Logical specifying whether to return draws on the
+constrained space. Default is TRUE.}
 
 \item{...}{Further arguments passed to \code{moment_match.matrix}.}
 }

@@ -567,8 +567,8 @@ moment_match.matrix <- function(x,
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
 #'   The function takes argument `draws`, which are the unconstrained
 #'   draws.
-#' @param constrain Logical specifying whether to return draws on the
-#'   constrained space? Default is TRUE.
+#' @param return_constrained_draws Logical specifying whether to return draws on the
+#'   constrained space. Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
@@ -578,7 +578,7 @@ moment_match.matrix <- function(x,
 moment_match.CmdStanFit <- function(x,
                                     log_prob_target_fun = NULL,
                                     log_ratio_fun = NULL,
-                                    constrain = TRUE,
+                                    return_constrained_draws = TRUE,
                                     ...) {
   # transform the model parameters to unconstrained space
   udraws <- x$unconstrain_draws()
@@ -605,7 +605,7 @@ moment_match.CmdStanFit <- function(x,
     ...
   )
 
-  if (constrain) {
+  if (return_constrained_draws) {
     out$draws <- constrain_draws.CmdStanFit(x, udraws = out$draws, ...)
   }
 
@@ -635,8 +635,8 @@ moment_match.CmdStanFit <- function(x,
 #'   to FALSE. If set to TRUE, the expectation function must be
 #'   nonnegative (before taking the logarithm).  Ignored if
 #'   `expectation_fun` is NULL.
-#' @param constrain Logical specifying whether to return draws on the
-#'   constrained space? Default is TRUE.
+#' @param return_constrained_draws Logical specifying whether to return draws on the
+#'   constrained space. Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
@@ -650,7 +650,7 @@ moment_match.stanfit <- function(x,
                                  target_observation_weights = NULL,
                                  expectation_fun = NULL,
                                  log_expectation_fun = FALSE,
-                                 constrain = TRUE,
+                                 return_constrained_draws = TRUE,
                                  ...) {
   if (!is.null(target_observation_weights) && (!is.null(log_prob_target_fun) || !is.null(log_ratio_fun))) {
     stop("You must give only one of target_observation_weights, log_prob_target_fun, or log_ratio_fun.")
@@ -693,7 +693,7 @@ moment_match.stanfit <- function(x,
     ...
   )
 
-  if (constrain) {
+  if (return_constrained_draws) {
     out$draws <- constrain_draws.stanfit(x, out$draws, ...)
   }
 
