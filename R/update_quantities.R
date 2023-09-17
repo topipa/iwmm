@@ -77,7 +77,7 @@ compute_lwf <- function(draws, lw,
                         expectation_fun, log_expectation_fun,
                         draws_transformation_for_expectation_fun,
                         ...) {
-  if(!is.null(draws_transformation_for_expectation_fun)) {
+  if (!is.null(draws_transformation_for_expectation_fun)) {
     draws <- draws_transformation_for_expectation_fun(draws)
   }
   unweighted_expectation <- expectation_fun(draws, ...)

@@ -323,6 +323,9 @@ moment_match.matrix <- function(x,
   }
 
   if (is.null(expectation_fun)) {
+    if (!is.null(draws_transformation_for_expectation_fun)) {
+      draws <- draws_transformation_for_expectation_fun(draws)
+    }
     adapted_draws <- list(
       draws = draws,
       log_weights = lw,
@@ -539,12 +542,10 @@ moment_match.matrix <- function(x,
       }
     }
 
-    if(!is.null(draws_transformation_for_expectation_fun)) {
-      transformed_draws_for_expectation <- draws_transformation_for_expectation_fun(draws)
-      unweighted_expectation <- expectation_fun(transformed_draws_for_expectation, ...)
-    } else {
-      unweighted_expectation <- expectation_fun(draws, ...)
+    if (!is.null(draws_transformation_for_expectation_fun)) {
+      draws <- draws_transformation_for_expectation_fun(draws)
     }
+    unweighted_expectation <- expectation_fun(draws, ...)
 
     if (log_expectation_fun) {
       expectation <- exp(matrixStats::colLogSumExps(
@@ -593,6 +594,9 @@ moment_match.CmdStanFit <- function(x,
                                     log_ratio_fun = NULL,
                                     constrain_draws = TRUE,
                                     ...) {
+  # TODO: support expectation fun?
+  # and add tests for that
+
   # transform the model parameters to unconstrained space
   udraws <- x$unconstrain_draws()
   udraws <- aperm(
@@ -617,10 +621,6 @@ moment_match.CmdStanFit <- function(x,
     fit = x,
     ...
   )
-
-  if (constrain_draws) {
-    out$draws <- constrain_draws.CmdStanFit(x, udraws = out$draws, ...)
-  }
 
   out
 }
@@ -678,12 +678,12 @@ moment_match.stanfit <- function(x,
 
   if (!is.null(target_observation_weights)) {
     out <- tryCatch(posterior::subset_draws(draws, variable = "log_lik"),
-                    error = function(cond) {
-                      message(cond)
-                      message("\nYour stan fit does not include a parameter called log_lik.")
-                      message("To use target_observation_weights, you must define log_lik in the generated quantities block.")
-                      return(NA)
-                    }
+      error = function(cond) {
+        message(cond)
+        message("\nYour stan fit does not include a parameter called log_lik.")
+        message("To use target_observation_weights, you must define log_lik in the generated quantities block.")
+        return(NA)
+      }
     )
 
     log_ratio_fun <- function(draws, fit, ...) {
@@ -714,14 +714,10 @@ moment_match.stanfit <- function(x,
     log_ratio_fun = log_ratio_fun,
     expectation_fun = expectation_fun,
     log_expectation_fun = log_expectation_fun,
-    draws_transformation_for_expectation_fun=draws_transformation_for_expectation_fun,
+    draws_transformation_for_expectation_fun = draws_transformation_for_expectation_fun,
     fit = x,
     ...
   )
-
-  if (constrain_draws) {
-    out$draws <- constrain_draws.stanfit(x, out$draws, ...)
-  }
 
   # TODO: should this function update the parameters of the stanfit and return it?
   out
