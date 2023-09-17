@@ -178,7 +178,7 @@ moment_match.draws_rvars <- function(x,
 #'   to FALSE. If set to TRUE, the expectation function must be
 #'   nonnegative (before taking the logarithm).  Ignored if
 #'   `expectation_fun` is NULL.
-#' @param draws_transformation_for_expectation_fun Optional argument, NULL by default. A
+#' @param draws_transformation_fun Optional argument, NULL by default. A
 #'   function that transforms draws before computing expectation. The function takes
 #'   arguments `draws`.
 #' @param is_method Which importance sampling method to use. Currently only `psis` is supported.
@@ -211,7 +211,7 @@ moment_match.matrix <- function(x,
                                 log_ratio_fun = NULL,
                                 expectation_fun = NULL,
                                 log_expectation_fun = FALSE,
-                                draws_transformation_for_expectation_fun = NULL,
+                                draws_transformation_fun = NULL,
                                 is_method = "psis",
                                 adaptation_method = "iwmm",
                                 k_threshold = 0.5,
@@ -323,8 +323,8 @@ moment_match.matrix <- function(x,
   }
 
   if (is.null(expectation_fun)) {
-    if (!is.null(draws_transformation_for_expectation_fun)) {
-      draws <- draws_transformation_for_expectation_fun(draws)
+    if (!is.null(draws_transformation_fun)) {
+      draws <- draws_transformation_fun(draws)
     }
     adapted_draws <- list(
       draws = draws,
@@ -336,7 +336,7 @@ moment_match.matrix <- function(x,
       )
     )
   } else {
-    lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, draws_transformation_for_expectation_fun, ...)
+    lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, draws_transformation_fun, ...)
 
     pareto_smoothed_wf <- apply(lwf, 2, function(x) {
       posterior::pareto_smooth(exp(x),
@@ -363,7 +363,7 @@ moment_match.matrix <- function(x,
         total_mapping2 <- total_mapping
       }
 
-      lwf_check <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, draws_transformation_for_expectation_fun, ...)
+      lwf_check <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, draws_transformation_fun, ...)
       if (ncol(lwf_check) > 1) {
         stop("Using split = TRUE is not yet supported for expectation functions
               that return a matrix. As a workaround, you can wrap your function
@@ -378,7 +378,7 @@ moment_match.matrix <- function(x,
           expectation_fun = expectation_fun,
           log_expectation_fun = log_expectation_fun,
           log_prob_prop_fun = log_prob_prop_fun,
-          draws_transformation_for_expectation_fun = draws_transformation_for_expectation_fun
+          draws_transformation_fun = draws_transformation_fun
         )
       } else if (!is.null(log_prob_target_fun)) {
         update_properties <- list(
@@ -387,7 +387,7 @@ moment_match.matrix <- function(x,
           expectation_fun = expectation_fun,
           log_expectation_fun = log_expectation_fun,
           log_prob_target_fun = log_prob_target_fun,
-          draws_transformation_for_expectation_fun = draws_transformation_for_expectation_fun
+          draws_transformation_fun = draws_transformation_fun
         )
       } else if (!is.null(log_ratio_fun)) {
         update_properties <- list(
@@ -397,7 +397,7 @@ moment_match.matrix <- function(x,
           log_expectation_fun = log_expectation_fun,
           log_ratio_fun = log_ratio_fun,
           log_prob_prop_fun = log_prob_prop_fun,
-          draws_transformation_for_expectation_fun = draws_transformation_for_expectation_fun
+          draws_transformation_fun = draws_transformation_fun
         )
       }
 
@@ -542,8 +542,8 @@ moment_match.matrix <- function(x,
       }
     }
 
-    if (!is.null(draws_transformation_for_expectation_fun)) {
-      draws <- draws_transformation_for_expectation_fun(draws)
+    if (!is.null(draws_transformation_fun)) {
+      draws <- draws_transformation_fun(draws)
     }
     unweighted_expectation <- expectation_fun(draws, ...)
 
@@ -669,7 +669,7 @@ moment_match.stanfit <- function(x,
   }
 
   # TODO: should we give option to return only subset of draws?
-  # TODO: should draws_transformation_for_expectation_fun be allowed here?
+  # TODO: should draws_transformation_fun be allowed here?
   # TODO: should it be possible to set different values for returning constrained draws and
   # whether or not computing expectation with constrained draws??
 
@@ -700,11 +700,11 @@ moment_match.stanfit <- function(x,
   udraws <- unconstrain_draws.stanfit(x, draws = draws, ...)
 
   if (constrain_draws) {
-    draws_transformation_for_expectation_fun <- function(draws, ...) {
+    draws_transformation_fun <- function(draws, ...) {
       return(constrain_draws.stanfit(x, draws, ...))
     }
   } else {
-    draws_transformation_for_expectation_fun <- NULL
+    draws_transformation_fun <- NULL
   }
 
   out <- moment_match.matrix(
@@ -714,7 +714,7 @@ moment_match.stanfit <- function(x,
     log_ratio_fun = log_ratio_fun,
     expectation_fun = expectation_fun,
     log_expectation_fun = log_expectation_fun,
-    draws_transformation_for_expectation_fun = draws_transformation_for_expectation_fun,
+    draws_transformation_fun = draws_transformation_fun,
     fit = x,
     ...
   )

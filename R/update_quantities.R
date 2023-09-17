@@ -37,7 +37,7 @@ update_quantities <- function(draws, orig_log_prob_prop,
       lw_new,
       update_properties$expectation_fun,
       update_properties$log_expectation_fun,
-      update_properties$draws_transformation_for_expectation_fun,
+      update_properties$draws_transformation_fun,
       ...
     )
   }
@@ -67,7 +67,7 @@ update_quantities <- function(draws, orig_log_prob_prop,
 #' @param log_expectation_fun Logical indicating whether the expectation_fun
 #' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
 #' the expectation function must be nonnegative (before taking the logarithm).
-#' @param draws_transformation_for_expectation_fun Optional argument, NULL by default. A
+#' @param draws_transformation_fun Optional argument, NULL by default. A
 #'   function that transforms draws before computing expectation. The function takes
 #'   arguments `draws`.
 #' @return expectation-specific log importance weights.
@@ -75,10 +75,10 @@ update_quantities <- function(draws, orig_log_prob_prop,
 #' @noRd
 compute_lwf <- function(draws, lw,
                         expectation_fun, log_expectation_fun,
-                        draws_transformation_for_expectation_fun,
+                        draws_transformation_fun,
                         ...) {
-  if (!is.null(draws_transformation_for_expectation_fun)) {
-    draws <- draws_transformation_for_expectation_fun(draws)
+  if (!is.null(draws_transformation_fun)) {
+    draws <- draws_transformation_fun(draws)
   }
   unweighted_expectation <- expectation_fun(draws, ...)
 
