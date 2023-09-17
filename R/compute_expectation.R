@@ -11,18 +11,26 @@ compute_expectation.matrix <- function(x,
                                        lw,
                                        expectation_fun,
                                        log_expectation_fun = FALSE,
+                                       draws_transformation_for_expectation_fun = NULL,
                                        ...) {
   checkmate::assertVector(lw, any.missing = FALSE)
   checkmate::assertFunction(expectation_fun)
   checkmate::assertLogical(log_expectation_fun)
 
+  if(!is.null(draws_transformation_for_expectation_fun)) {
+    transformed_draws_for_expectation <- draws_transformation_for_expectation_fun(x)
+    unweighted_expectation <- expectation_fun(transformed_draws_for_expectation, ...)
+  } else {
+    unweighted_expectation <- expectation_fun(x, ...)
+  }
+
   if (log_expectation_fun) {
     expectation <- exp(matrixStats::colLogSumExps(
-      lw + expectation_fun(x, ...)
+      lw + unweighted_expectation
     ))
   } else {
     w <- exp(lw)
-    expectation <- colSums(w * expectation_fun(x, ...))
+    expectation <- colSums(w * unweighted_expectation)
   }
 
   lwf <- compute_lwf(
@@ -30,6 +38,7 @@ compute_expectation.matrix <- function(x,
     lw,
     expectation_fun,
     log_expectation_fun,
+    draws_transformation_for_expectation_fun,
     ...
   )
   pareto_smoothed_wf <- posterior::pareto_smooth(exp(lwf),
@@ -54,12 +63,14 @@ compute_expectation.matrix <- function(x,
 compute_expectation.adapted_importance_sampling <- function(x,
                                                             expectation_fun,
                                                             log_expectation_fun = FALSE,
+                                                            draws_transformation_for_expectation_fun = NULL,
                                                             ...) {
   return(compute_expectation.matrix(
     x = x$draws,
     lw = x$log_weights,
     expectation_fun = expectation_fun,
     log_expectation_fun = log_expectation_fun,
+    draws_transformation_for_expectation_fun=draws_transformation_for_expectation_fun,
     ...
   ))
 }
@@ -69,12 +80,14 @@ compute_expectation.draws_matrix <- function(x,
                                              lw,
                                              expectation_fun,
                                              log_expectation_fun = FALSE,
+                                             draws_transformation_for_expectation_fun = NULL,
                                              ...) {
   return(compute_expectation.matrix(
     x = x,
     lw = lw,
     expectation_fun = expectation_fun,
     log_expectation_fun = log_expectation_fun,
+    draws_transformation_for_expectation_fun=draws_transformation_for_expectation_fun,
     ...
   ))
 }
@@ -85,12 +98,14 @@ compute_expectation.draws_array <- function(x,
                                             lw,
                                             expectation_fun,
                                             log_expectation_fun = FALSE,
+                                            draws_transformation_for_expectation_fun = NULL,
                                             ...) {
   return(compute_expectation.draws_matrix(
     x = posterior::as_draws_matrix(x),
     lw = lw,
     expectation_fun = expectation_fun,
     log_expectation_fun = log_expectation_fun,
+    draws_transformation_for_expectation_fun=draws_transformation_for_expectation_fun,
     ...
   ))
 }

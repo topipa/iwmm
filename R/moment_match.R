@@ -178,6 +178,9 @@ moment_match.draws_rvars <- function(x,
 #'   to FALSE. If set to TRUE, the expectation function must be
 #'   nonnegative (before taking the logarithm).  Ignored if
 #'   `expectation_fun` is NULL.
+#' @param draws_transformation_for_expectation_fun Optional argument, NULL by default. A
+#'   function that transforms draws before computing expectation. The function takes
+#'   arguments `draws`.
 #' @param is_method Which importance sampling method to use. Currently only `psis` is supported.
 #' @param adaptation_method Which adaptation method to use. Currently only `iwmm` is supported.
 #' @param k_threshold Threshold value for Pareto k values above which
@@ -208,6 +211,7 @@ moment_match.matrix <- function(x,
                                 log_ratio_fun = NULL,
                                 expectation_fun = NULL,
                                 log_expectation_fun = FALSE,
+                                draws_transformation_for_expectation_fun = NULL,
                                 is_method = "psis",
                                 adaptation_method = "iwmm",
                                 k_threshold = 0.5,
@@ -329,7 +333,7 @@ moment_match.matrix <- function(x,
       )
     )
   } else {
-    lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, ...)
+    lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, draws_transformation_for_expectation_fun, ...)
 
     pareto_smoothed_wf <- apply(lwf, 2, function(x) {
       posterior::pareto_smooth(exp(x),
@@ -356,7 +360,7 @@ moment_match.matrix <- function(x,
         total_mapping2 <- total_mapping
       }
 
-      lwf_check <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, ...)
+      lwf_check <- compute_lwf(draws2, lw, expectation_fun, log_expectation_fun, draws_transformation_for_expectation_fun, ...)
       if (ncol(lwf_check) > 1) {
         stop("Using split = TRUE is not yet supported for expectation functions
               that return a matrix. As a workaround, you can wrap your function
@@ -370,7 +374,8 @@ moment_match.matrix <- function(x,
           expectation = TRUE,
           expectation_fun = expectation_fun,
           log_expectation_fun = log_expectation_fun,
-          log_prob_prop_fun = log_prob_prop_fun
+          log_prob_prop_fun = log_prob_prop_fun,
+          draws_transformation_for_expectation_fun = draws_transformation_for_expectation_fun
         )
       } else if (!is.null(log_prob_target_fun)) {
         update_properties <- list(
@@ -378,7 +383,8 @@ moment_match.matrix <- function(x,
           expectation = TRUE,
           expectation_fun = expectation_fun,
           log_expectation_fun = log_expectation_fun,
-          log_prob_target_fun = log_prob_target_fun
+          log_prob_target_fun = log_prob_target_fun,
+          draws_transformation_for_expectation_fun = draws_transformation_for_expectation_fun
         )
       } else if (!is.null(log_ratio_fun)) {
         update_properties <- list(
@@ -387,7 +393,8 @@ moment_match.matrix <- function(x,
           expectation_fun = expectation_fun,
           log_expectation_fun = log_expectation_fun,
           log_ratio_fun = log_ratio_fun,
-          log_prob_prop_fun = log_prob_prop_fun
+          log_prob_prop_fun = log_prob_prop_fun,
+          draws_transformation_for_expectation_fun = draws_transformation_for_expectation_fun
         )
       }
 
@@ -532,13 +539,20 @@ moment_match.matrix <- function(x,
       }
     }
 
+    if(!is.null(draws_transformation_for_expectation_fun)) {
+      transformed_draws_for_expectation <- draws_transformation_for_expectation_fun(draws)
+      unweighted_expectation <- expectation_fun(transformed_draws_for_expectation, ...)
+    } else {
+      unweighted_expectation <- expectation_fun(draws, ...)
+    }
+
     if (log_expectation_fun) {
       expectation <- exp(matrixStats::colLogSumExps(
-        lw + expectation_fun(draws, ...)
+        lw + unweighted_expectation
       ))
     } else {
       w <- exp(lw)
-      expectation <- colSums(w * expectation_fun(draws, ...))
+      expectation <- colSums(w * unweighted_expectation)
     }
 
     adapted_draws <- list(
@@ -567,8 +581,8 @@ moment_match.matrix <- function(x,
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
 #'   The function takes argument `draws`, which are the unconstrained
 #'   draws.
-#' @param return_constrained_draws Logical specifying whether to return draws on the
-#'   constrained space. Default is TRUE.
+#' @param constrain_draws Logical specifying whether to return draws on the
+#'   constrained space. Draws are also constrained for computing expectations. Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
@@ -578,7 +592,7 @@ moment_match.matrix <- function(x,
 moment_match.CmdStanFit <- function(x,
                                     log_prob_target_fun = NULL,
                                     log_ratio_fun = NULL,
-                                    return_constrained_draws = TRUE,
+                                    constrain_draws = TRUE,
                                     ...) {
   # transform the model parameters to unconstrained space
   udraws <- x$unconstrain_draws()
@@ -605,7 +619,7 @@ moment_match.CmdStanFit <- function(x,
     ...
   )
 
-  if (return_constrained_draws) {
+  if (constrain_draws) {
     out$draws <- constrain_draws.CmdStanFit(x, udraws = out$draws, ...)
   }
 
@@ -635,8 +649,8 @@ moment_match.CmdStanFit <- function(x,
 #'   to FALSE. If set to TRUE, the expectation function must be
 #'   nonnegative (before taking the logarithm).  Ignored if
 #'   `expectation_fun` is NULL.
-#' @param return_constrained_draws Logical specifying whether to return draws on the
-#'   constrained space. Default is TRUE.
+#' @param constrain_draws Logical specifying whether to return draws on the
+#'   constrained space. Draws are also constrained for computing expectations. Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
 #' @return Returns a list with 3 elements: transformed draws, updated
@@ -650,13 +664,16 @@ moment_match.stanfit <- function(x,
                                  target_observation_weights = NULL,
                                  expectation_fun = NULL,
                                  log_expectation_fun = FALSE,
-                                 return_constrained_draws = TRUE,
+                                 constrain_draws = TRUE,
                                  ...) {
   if (!is.null(target_observation_weights) && (!is.null(log_prob_target_fun) || !is.null(log_ratio_fun))) {
     stop("You must give only one of target_observation_weights, log_prob_target_fun, or log_ratio_fun.")
   }
 
   # TODO: should we give option to return only subset of draws?
+  # TODO: should draws_transformation_for_expectation_fun be allowed here?
+  # TODO: should it be possible to set different values for returning constrained draws and
+  # whether or not computing expectation with constrained draws??
 
   # ensure draws are in matrix form
   draws <- posterior::as_draws_matrix(x)
@@ -684,6 +701,14 @@ moment_match.stanfit <- function(x,
   # transform the draws to unconstrained space
   udraws <- unconstrain_draws.stanfit(x, draws = draws, ...)
 
+  if (constrain_draws) {
+    draws_transformation_for_expectation_fun <- function(draws, ...) {
+      return(constrain_draws.stanfit(x, draws, ...))
+    }
+  } else {
+    draws_transformation_for_expectation_fun <- NULL
+  }
+
   out <- moment_match.matrix(
     udraws,
     log_prob_prop_fun = log_prob_draws.stanfit,
@@ -691,15 +716,13 @@ moment_match.stanfit <- function(x,
     log_ratio_fun = log_ratio_fun,
     expectation_fun = expectation_fun,
     log_expectation_fun = log_expectation_fun,
+    draws_transformation_for_expectation_fun=draws_transformation_for_expectation_fun,
     fit = x,
     ...
   )
 
-  if (return_constrained_draws) {
+  if (constrain_draws) {
     out$draws <- constrain_draws.stanfit(x, out$draws, ...)
-    # TODO: should there be a better expectation specific adaptation if expectation is computed with constrained draws?
-    iw_expectation <- compute_expectation.adapted_importance_sampling(out, expectation_fun = expectation_fun)
-    out$expectation <- iw_expectation$expectation
   }
 
   # TODO: should this function update the parameters of the stanfit and return it?

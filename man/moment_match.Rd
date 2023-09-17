@@ -14,6 +14,7 @@ moment_match(x, ...)
   log_ratio_fun = NULL,
   expectation_fun = NULL,
   log_expectation_fun = FALSE,
+  draws_transformation_for_expectation_fun = NULL,
   is_method = "psis",
   adaptation_method = "iwmm",
   k_threshold = 0.5,
@@ -47,6 +48,10 @@ expectation_fun returns its values as logarithms or not. Defaults
 to FALSE. If set to TRUE, the expectation function must be
 nonnegative (before taking the logarithm).  Ignored if
 \code{expectation_fun} is NULL.}
+
+\item{draws_transformation_for_expectation_fun}{Optional argument, NULL by default. A
+function that transforms draws before computing expectation. The function takes
+arguments \code{draws}.}
 
 \item{is_method}{Which importance sampling method to use. Currently only \code{psis} is supported.}
 

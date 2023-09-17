@@ -10,7 +10,7 @@
   x,
   log_prob_target_fun = NULL,
   log_ratio_fun = NULL,
-  return_constrained_draws = TRUE,
+  constrain_draws = TRUE,
   ...
 )
 }
@@ -24,8 +24,8 @@ takes argument \code{draws}, which are the unconstrained draws.}
 The function takes argument \code{draws}, which are the unconstrained
 draws.}
 
-\item{return_constrained_draws}{Logical specifying whether to return draws on the
-constrained space. Default is TRUE.}
+\item{constrain_draws}{Logical specifying whether to return draws on the
+constrained space. Draws are also constrained for computing expectations. Default is TRUE.}
 
 \item{...}{Further arguments passed to \code{moment_match.matrix}.}
 }

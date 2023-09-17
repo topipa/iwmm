@@ -7,7 +7,14 @@
 \usage{
 compute_expectation(x, ...)
 
-\method{compute_expectation}{matrix}(x, lw, expectation_fun, log_expectation_fun = FALSE, ...)
+\method{compute_expectation}{matrix}(
+  x,
+  lw,
+  expectation_fun,
+  log_expectation_fun = FALSE,
+  draws_transformation_for_expectation_fun = NULL,
+  ...
+)
 }
 \description{
 Compute an expectation.
