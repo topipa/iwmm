@@ -176,14 +176,12 @@ test_that("moment_match.stanfit matches analytical results", {
   )
 })
 
-
 test_that("moment_match.stanfit works with expectation", {
-  # TODO: how to do this easily for constrained parameters?
   expectation_fun_first_moment <- function(draws, ...) {
-    matrix(draws[, 1])
+    draws
   }
   expectation_fun_second_moment <- function(draws, ...) {
-    matrix(draws[, 1]^2)
+    draws^2
   }
 
   iw_first_moment <- suppressWarnings(moment_match.stanfit(
@@ -198,26 +196,29 @@ test_that("moment_match.stanfit works with expectation", {
     k_threshold = -Inf # ensure moment-matching is used
   ))
 
+  # iw_expectation_first_moment <- compute_expectation(iw_first_moment, expectation_fun = expectation_fun_first_moment)
+  # iw_expectation_second_moment <- compute_expectation(iw_second_moment, expectation_fun = expectation_fun_second_moment)
+  # TODO: for now the diagnostic differ because we do not pass constraining into moment match for computing diagnostics and adaptations
 
   draws_fit_full <- posterior::subset_draws(
     posterior::as_draws_matrix(fit_full),
     variable = c("mu", "sigma_sq")
   )
 
-  mu_mean <- mean(draws_fit_full[, "mu"])
-  mu_sd <- sd(draws_fit_full[, "mu"])
+  fit_means <- colMeans(draws_fit_full[, c("mu", "sigma_sq")])
+  fit_sds <- matrixStats::colSds(draws_fit_full[, c("mu", "sigma_sq")])
 
-  iwmm_mean <- iw_first_moment$expectation
-  iwmm_sd <- sqrt(iw_second_moment$expectation - iw_first_moment$expectation^2)
+  iwmm_mean <- iw_first_moment$expectation[, 1:2]
+  iwmm_sd <- sqrt(iw_second_moment$expectation[, 1:2] - iw_first_moment$expectation[, 1:2]^2)
 
   expect_equal(
     iwmm_mean,
-    mu_mean,
+    fit_means,
     tolerance = 0.1
   )
   expect_equal(
     iwmm_sd,
-    mu_sd,
+    fit_sds,
     tolerance = 0.1
   )
 })

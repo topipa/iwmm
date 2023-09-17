@@ -50,7 +50,7 @@ moment_match.draws_array <- function(x,
                                      split = FALSE,
                                      restart_transform = FALSE,
                                      ...) {
-  return(moment_match.matrix(
+  return(moment_match.draws_matrix(
     x = posterior::as_draws_matrix(x),
     log_prob_prop_fun = log_prob_prop_fun,
     log_prob_target_fun = log_prob_target_fun,
@@ -656,6 +656,8 @@ moment_match.stanfit <- function(x,
     stop("You must give only one of target_observation_weights, log_prob_target_fun, or log_ratio_fun.")
   }
 
+  # TODO: should we give option to return only subset of draws?
+
   # ensure draws are in matrix form
   draws <- posterior::as_draws_matrix(x)
 
@@ -695,7 +697,11 @@ moment_match.stanfit <- function(x,
 
   if (return_constrained_draws) {
     out$draws <- constrain_draws.stanfit(x, out$draws, ...)
+    # TODO: should there be a better expectation specific adaptation if expectation is computed with constrained draws?
+    iw_expectation <- compute_expectation.adapted_importance_sampling(out, expectation_fun = expectation_fun)
+    out$expectation <- iw_expectation$expectation
   }
 
+  # TODO: should this function update the parameters of the stanfit and return it?
   out
 }
