@@ -658,3 +658,59 @@ test_that("moment_match with expectation with model works", {
   expect_equal(iw$diagnostics$pareto_k, ex_mm$diagnostics$pareto_k, tolerance = 1e-6)
   expect_equal(ex_mm$diagnostics$pareto_kf, c(0.4, 0.4), tolerance = 1e-1)
 })
+
+test_that("moment_match with expectation works with transformation", {
+  set.seed(6)
+  S <- 4000
+
+  prop_mean <- 0
+  prop_var <- sqrt(0.1)
+
+  target_mean <- 5
+  target_var <- 1
+
+  prop_sample <- matrix(rnorm(2 * S, prop_mean, prop_var), S, 2)
+  prop_density <- function(draws, ...) {
+    dnorm(draws[, 1], prop_mean, prop_var, log = TRUE) +
+      dnorm(draws[, 2], prop_mean, prop_var, log = TRUE)
+  }
+
+  target_density <- function(draws, ...) {
+    dnorm(draws[, 1], target_mean, target_var, log = TRUE) +
+      dnorm(draws[, 2], target_mean, target_var, log = TRUE)
+  }
+
+  ratio_density <- function(draws, ...) {
+    target_density(draws, ...) - prop_density(draws, ...)
+  }
+
+  target_sample <- matrix(rnorm(2 * S, target_mean, target_var), S, 2)
+
+  iw_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      exp(draws[, 1:2])
+    },
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
+    draws_transformation_fun = NULL
+  )
+
+  draws_transformation_fun <- function(draws, ...) {
+    exp(draws[, 1:2])
+  }
+
+  iw2_mean <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) {
+      draws[, 1:2]
+    },
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
+    draws_transformation_fun = draws_transformation_fun
+  )
+
+
+  expect_equal(iw_mean$expectation, c(245, 245), tolerance = 1e-2)
+  expect_equal(iw2_mean$expectation, iw_mean$expectation, tolerance = 1e-6)
+})
