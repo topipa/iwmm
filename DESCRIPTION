@@ -26,6 +26,7 @@ Suggests:
     rstan,
     testthat
 Enhances:
+    brms,
     cmdstanr
 VignetteBuilder: knitr
 Config/testthat/parallel: true

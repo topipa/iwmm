@@ -288,7 +288,7 @@ moment_match.matrix <- function(x,
     }
 
     pareto_smoothed_w <- posterior::pareto_smooth(exp(lw - matrixStats::logSumExp(lw)),
-      tail = "right", extra_diags = TRUE, r_eff = 1
+      tail = "right", extra_diags = TRUE, r_eff = 1, return_k = TRUE, verbose = FALSE
     )
     k <- pareto_smoothed_w$diagnostics$khat
     lw <- log(as.vector(pareto_smoothed_w$x))
@@ -340,7 +340,7 @@ moment_match.matrix <- function(x,
 
     pareto_smoothed_wf <- apply(lwf, 2, function(x) {
       posterior::pareto_smooth(exp(x),
-        tail = "right", extra_diags = TRUE, r_eff = 1
+        tail = "right", extra_diags = TRUE, r_eff = 1, return_k = TRUE, verbose = FALSE
       )
     })
     pareto_smoothed_wf <- do.call(mapply, c(cbind, pareto_smoothed_wf))
