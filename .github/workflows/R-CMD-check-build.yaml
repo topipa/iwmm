@@ -49,7 +49,6 @@ jobs:
             rcmdcheck
             checkmate
             jsonlite
-            posterior
             processx
             R6
             BH
