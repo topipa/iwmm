@@ -13,7 +13,7 @@ log_prob_draws.CmdStanFit <- function(fit, draws, ...) {
     draws,
     1,
     fit$log_prob,
-    jacobian_adjustment = TRUE
+    jacobian = TRUE
   )
 }
 
