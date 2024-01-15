@@ -45,6 +45,7 @@ jobs:
           cache-version: 1
           extra-packages: |
             stan-dev/cmdstanr
+            stan-dev/posterior
             rcmdcheck
             checkmate
             jsonlite
