@@ -8,6 +8,7 @@ constrain_draws <- function(x, ...) {
   UseMethod("constrain_draws")
 }
 
+##' @export
 constrain_draws.CmdStanFit <- function(x, udraws, ...) {
   # list with one element per posterior draw
   draws <- apply(udraws, 1, x$constrain_variables)

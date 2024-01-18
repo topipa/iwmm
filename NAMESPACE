@@ -2,6 +2,7 @@
 
 S3method(constrain_draws,stanfit)
 S3method(moment_match,CmdStanFit)
+S3method(moment_match,brmsfit)
 S3method(moment_match,draws_array)
 S3method(moment_match,draws_df)
 S3method(moment_match,draws_list)

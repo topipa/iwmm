@@ -2,6 +2,7 @@ cmdstanr_available <- require(cmdstanr)
 
 # Run these tests only if cmdstanr is installed
 if (cmdstanr_available) {
+
   stancode <- "data {
   int<lower=0> N;
   vector[N] x;
@@ -125,6 +126,7 @@ if (cmdstanr_available) {
 
   test_that("moment_match.CmdStanFit matches analytical results", {
     # ratio = jointlikelihood
+
     joint_log_lik <- function(draws, fit, ...) {
       cdraws <- constrain_draws.CmdStanFit(x = fit, udraws = draws)
       ll <- posterior::merge_chains(
@@ -145,6 +147,7 @@ if (cmdstanr_available) {
     )
 
     weights_mm_prior <- exp(iw_prior$log_weights)
+
     mean_mm_prior <- matrixStats::colWeightedMeans(
       draws_mm_prior,
       w = weights_mm_prior
@@ -172,4 +175,5 @@ if (cmdstanr_available) {
       tolerance = 0.1
     )
   })
+
 } # close conditional on cmdstanr
