@@ -342,7 +342,6 @@ moment_match.matrix <- function(x,
     lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, draws_transformation_fun, ...)
 
     pareto_smoothed_wf <- apply(lwf, 2, function(x) {
-
       posterior::pareto_smooth(
         x, are_log_weights = TRUE,
         tail = "right", extra_diags = TRUE, r_eff = 1,
