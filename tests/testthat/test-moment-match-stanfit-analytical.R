@@ -174,10 +174,13 @@ test_that("moment_match.stanfit matches analytical results", {
     sd_analytical,
     tolerance = 0.1
   )
+
 })
 
 
-test_that("moment_match.stanfit works with expectation using constrained parameters", {
+test_that("moment_match.stanfit works with expectation", {
+  # TODO: how to do this easily for constrained parameters?
+
   expectation_fun_first_moment <- function(draws, ...) {
     draws
   }
