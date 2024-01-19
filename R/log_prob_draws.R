@@ -1,9 +1,9 @@
 ##' Return log probability of posterior
 ##'
-##' @param x model fit object
+##' @param fit model fit object
 ##' @param ... arguments passed to methods
 ##' @return TODO
-log_prob_draws <- function(x, ...) {
+log_prob_draws <- function(fit, ...) {
   UseMethod("log_prob_draws")
 }
 

@@ -57,13 +57,13 @@ moment_match.brmsfit <- function(x,
 
     function(draws, fit, extra_data, ...) {
       fit <- brms:::.update_pars(x = fit, upars = draws)
-      ll <- log_lik(fit, newdata = extra_data)
+      ll <- brms::log_lik(fit, newdata = extra_data)
       rowSums(ll)
     }
 
     log_ratio_fun <- function(draws, fit, ...) {
       fit <- brms:::.update_pars(x = fit, upars = draws)
-      ll <- log_lik(fit)
+      ll <- brms::log_lik(fit)
       colSums(t(drop(ll)) * (target_observation_weights - 1))
     }
   }
@@ -172,7 +172,7 @@ unconstrain_draws.brmsfit <- function(x, draws, ...) {
   # bring draws into the right structure
   new_draws <- named_list(x$fit@sim$fnames_oi_old, list(numeric(ndraws)))
   if (length(new_draws) != nrow(pars)) {
-    stop2("Updating parameters in 'brmsfit' failed. ")
+    stop("Updating parameters in 'brmsfit' failed. ")
   }
   for (i in seq_len(npars)) {
     new_draws[[i]] <- pars[i, ]
