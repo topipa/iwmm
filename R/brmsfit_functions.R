@@ -46,7 +46,7 @@ moment_match.brmsfit <- function(x,
   # draws <- as.matrix(draws)
 
   if (!is.null(target_observation_weights)) {
-    out <- tryCatch(log_lik(x),
+    out <- tryCatch(brms::log_lik(x),
                     error = function(cond) {
                       message(cond)
                       message("\nYour brmsfit does not include a parameter called log_lik.")
@@ -85,37 +85,81 @@ moment_match.brmsfit <- function(x,
   )
 
   # TODO: this does not work for some reason
-  # x <- brms:::.update_pars(x = x, upars = out$draws)
-  # x <- update_pars_brmsfit(x = x, draws = out$draws)
+  x <- .update_pars(x = x, upars = out$draws)
 
-  if (constrain) {
-    out$draws <- constrain_draws.stanfit(x$fit, out$draws, ...)
-  }
+   if (constrain) {
+     out$draws <- constrain_draws(x, out$draws, ...)
+   }
 
   list(adapted_importance_sampling = out,
-       brmsfit_object = x)
+         brmsfit_object = x)
+
+  #out
 }
 
 
+#' @export
+constrain_draws.brmsfit <- function(fit, draws, ...) {
+  # list with one element per posterior draw
+  x <- fit$fit
+  udraws <- draws
+  draws <- apply(draws, 1, rstan::constrain_pars, object = x)
+  varnames <- rep(names(draws[[1]]), lengths(draws[[1]]))
+  # transform draws
+  ndraws <- length(draws)
+  draws <- unlist(draws)
+  nvars <- length(draws) / ndraws
+  dim(draws) <- c(nvars, ndraws)
+  rownames(draws) <- varnames
+  # lp__ is not computed automatically
+  lp__ <- log_prob_draws.stanfit(x, draws = udraws, ...)
+  draws <- rbind(draws, lp__ = lp__)
+
+  # bring draws into the right structure
+  new_draws <- named_list(
+    x@sim$fnames_oi_old,
+    list(numeric(ndraws))
+  )
+
+  new_varnames <- sub("\\[.+", "", names(new_draws))
+  new_varnames_unique <- unique(new_varnames)
+  for (v in new_varnames_unique) {
+    sub_vars <- draws[rownames(draws) == v, , drop = FALSE]
+    sel <- which(new_varnames == v)
+    for (i in seq_along(sel)) {
+      new_draws[[sel[i]]] <- sub_vars[i, ]
+    }
+  }
+
+  posterior::as_draws_array(new_draws)
+
+}
+
+#' @export
 log_prob_draws.brmsfit <- function(fit, draws, ...) {
   # x <- update_misc_env(x, only_windows = TRUE)
   log_prob_draws.stanfit(fit$fit, draws = draws, ...)
 }
 
+#' @export
 unconstrain_draws.brmsfit <- function(x, draws, ...) {
   unconstrain_draws.stanfit(x$fit, draws = draws, ...)
 }
 
-constrain_draws.brmsfit <- function(x, udraws, ...) {
-  out <- rstan::constrain_pars(udraws, object = x$fit)
+
+# the following functions are copied from brms
+
+# wrapper around rstan::constrain_pars
+# ensures that the right posterior draws are excluded
+.constrain_pars <- function(upars, x) {
+  out <- rstan::constrain_pars(upars, object = x$fit)
   out[x$exclude] <- NULL
   out
-}
+  }
 
-# # transform parameters to the constraint space
-update_pars_brmsfit <- function(x, draws, ...) {
+.update_pars <- function(x, upars, ...) {
   # list with one element per posterior draw
-  pars <- apply(draws, 1, constrain_draws.brmsfit, x = x)
+  pars <- apply(upars, 1, .constrain_pars, x = x)
   # select required parameters only
   pars <- lapply(pars, "[", x$fit@sim$pars_oi_old)
   # transform draws
@@ -128,7 +172,7 @@ update_pars_brmsfit <- function(x, draws, ...) {
   # bring draws into the right structure
   new_draws <- named_list(x$fit@sim$fnames_oi_old, list(numeric(ndraws)))
   if (length(new_draws) != nrow(pars)) {
-    stop2("Updating parameters in `update_pars_brmsfit' failed.")
+    stop2("Updating parameters in 'brmsfit' failed. ")
   }
   for (i in seq_len(npars)) {
     new_draws[[i]] <- pars[i, ]
