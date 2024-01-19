@@ -56,13 +56,13 @@ moment_match.brmsfit <- function(x,
     )
 
     function(draws, fit, extra_data, ...) {
-      fit <- brms:::.update_pars(x = fit, upars = draws)
+      fit <- .update_pars(x = fit, upars = draws)
       ll <- brms::log_lik(fit, newdata = extra_data)
       rowSums(ll)
     }
 
     log_ratio_fun <- function(draws, fit, ...) {
-      fit <- brms:::.update_pars(x = fit, upars = draws)
+      fit <- .update_pars(x = fit, upars = draws)
       ll <- brms::log_lik(fit)
       colSums(t(drop(ll)) * (target_observation_weights - 1))
     }
@@ -99,9 +99,9 @@ moment_match.brmsfit <- function(x,
 
 
 #' @export
-constrain_draws.brmsfit <- function(fit, draws, ...) {
+constrain_draws.brmsfit <- function(x, draws, ...) {
   # list with one element per posterior draw
-  x <- fit$fit
+  x <- x$fit
   udraws <- draws
   draws <- apply(draws, 1, rstan::constrain_pars, object = x)
   varnames <- rep(names(draws[[1]]), lengths(draws[[1]]))
