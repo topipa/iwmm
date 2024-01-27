@@ -37,12 +37,14 @@ update_quantities <- function(draws, orig_log_prob_prop,
       lw_new,
       update_properties$expectation_fun,
       update_properties$log_expectation_fun,
+      update_properties$draws_transformation_fun,
       ...
     )
   }
 
   pareto_smoothed_w_new <- posterior::pareto_smooth(exp(lw_new - matrixStats::logSumExp(lw_new)),
-    tail = "right", r_eff = 1
+                                                    tail = "right", r_eff = 1,
+                                                    return_k = TRUE
   )
   k <- pareto_smoothed_w_new$diagnostics$khat
   lw <- log(as.vector(pareto_smoothed_w_new$x))
@@ -56,26 +58,35 @@ update_quantities <- function(draws, orig_log_prob_prop,
   )
 }
 
-#' Function for computing expectation-specific importance weights
-#' from common importance weights.
+#' Function for computing expectation-specific log importance weights
+#' from common log importance weights.
 #'
 #' @param draws A matrix of draws.
-#' @param lw common importance weights.
+#' @param lw common log importance weights.
 #' @param expectation_fun A function whose expectation is being computed.
 #' The function takes arguments `draws`.
 #' @param log_expectation_fun Logical indicating whether the expectation_fun
 #' returns its values as logarithms or not. Defaults to FALSE. If set to TRUE,
 #' the expectation function must be nonnegative (before taking the logarithm).
-#' @return List with the updated log importance weights and the Pareto k.
+#' @param draws_transformation_fun Optional argument, NULL by default. A
+#'   function that transforms draws before computing expectation. The function takes
+#'   arguments `draws`.
+#' @return expectation-specific log importance weights.
 #'
 #' @noRd
 compute_lwf <- function(draws, lw,
                         expectation_fun, log_expectation_fun,
+                        draws_transformation_fun,
                         ...) {
+  if (!is.null(draws_transformation_fun)) {
+    draws <- draws_transformation_fun(draws)
+  }
+  unweighted_expectation <- expectation_fun(draws, ...)
+
   if (log_expectation_fun) {
-    lwf <- lw + expectation_fun(draws, ...)
+    lwf <- lw + unweighted_expectation
   } else {
-    lwf <- lw + log(abs(expectation_fun(draws, ...)))
+    lwf <- lw + log(abs(unweighted_expectation))
   }
   lwf
 }

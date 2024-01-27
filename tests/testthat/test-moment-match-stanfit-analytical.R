@@ -178,13 +178,12 @@ test_that("moment_match.stanfit matches analytical results", {
 })
 
 
-test_that("moment_match.stanfit works with expectation", {
-  # TODO: how to do this easily for constrained parameters?
+test_that("moment_match.stanfit works with expectation using constrained parameters", {
   expectation_fun_first_moment <- function(draws, ...) {
-    matrix(draws[, 1])
+    draws
   }
   expectation_fun_second_moment <- function(draws, ...) {
-    matrix(draws[, 1]^2)
+    draws^2
   }
 
   iw_first_moment <- suppressWarnings(moment_match.stanfit(
@@ -205,20 +204,69 @@ test_that("moment_match.stanfit works with expectation", {
     variable = c("mu", "sigma_sq")
   )
 
-  mu_mean <- mean(draws_fit_full[, "mu"])
-  mu_sd <- sd(draws_fit_full[, "mu"])
+  fit_means <- colMeans(draws_fit_full[, c("mu", "sigma_sq")])
+  fit_sds <- matrixStats::colSds(draws_fit_full[, c("mu", "sigma_sq")])
+
+  iwmm_mean <- iw_first_moment$expectation[, 1:2]
+  iwmm_sd <- sqrt(iw_second_moment$expectation[, 1:2] - iw_first_moment$expectation[, 1:2]^2)
+
+  expect_equal(
+    iwmm_mean,
+    fit_means,
+    tolerance = 0.1
+  )
+  expect_equal(
+    iwmm_sd,
+    fit_sds,
+    tolerance = 0.1
+  )
+})
+
+
+test_that("moment_match.stanfit works with expectation on unconstrained parameters", {
+  expectation_fun_first_moment <- function(draws, ...) {
+    draws
+  }
+  expectation_fun_second_moment <- function(draws, ...) {
+    draws^2
+  }
+
+  iw_first_moment <- suppressWarnings(moment_match.stanfit(
+    fit_full,
+    expectation_fun = expectation_fun_first_moment,
+    k_threshold = -Inf, # ensure moment-matching is used
+    constrain_draws = FALSE
+  ))
+
+  iw_second_moment <- suppressWarnings(moment_match.stanfit(
+    fit_full,
+    expectation_fun = expectation_fun_second_moment,
+    k_threshold = -Inf, # ensure moment-matching is used
+    constrain_draws = FALSE
+  ))
+
+
+  draws_fit_full <- posterior::subset_draws(
+    posterior::as_draws_matrix(fit_full),
+    variable = c("mu", "sigma_sq")
+  )
+
+  draws_fit_full <- posterior::mutate_variables(draws_fit_full, log_sigma_sq = log(sigma_sq))
+
+  fit_means <- colMeans(draws_fit_full[, c("mu", "log_sigma_sq")])
+  fit_sds <- matrixStats::colSds(draws_fit_full[, c("mu", "log_sigma_sq")])
 
   iwmm_mean <- iw_first_moment$expectation
   iwmm_sd <- sqrt(iw_second_moment$expectation - iw_first_moment$expectation^2)
 
   expect_equal(
     iwmm_mean,
-    mu_mean,
+    unname(fit_means),
     tolerance = 0.1
   )
   expect_equal(
     iwmm_sd,
-    mu_sd,
+    unname(fit_sds),
     tolerance = 0.1
   )
 })
