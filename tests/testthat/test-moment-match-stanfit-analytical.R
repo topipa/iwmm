@@ -178,9 +178,7 @@ test_that("moment_match.stanfit matches analytical results", {
 })
 
 
-test_that("moment_match.stanfit works with expectation", {
-  # TODO: how to do this easily for constrained parameters?
-
+test_that("moment_match.stanfit works with expectation using constrained parameters", {
   expectation_fun_first_moment <- function(draws, ...) {
     draws
   }
@@ -226,7 +224,6 @@ test_that("moment_match.stanfit works with expectation", {
 
 
 test_that("moment_match.stanfit works with expectation on unconstrained parameters", {
-
   expectation_fun_first_moment <- function(draws, ...) {
     draws
   }
