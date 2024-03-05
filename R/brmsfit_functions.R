@@ -73,7 +73,6 @@ moment_match.brmsfit <- function(x,
   udraws <- unconstrain_draws.brmsfit(x, draws = draws, ...)
 
   out <- moment_match.matrix(
-    # as.matrix(udraws),
     udraws,
     log_prob_prop_fun = log_prob_draws.brmsfit,
     log_prob_target_fun = log_prob_target_fun,
@@ -84,17 +83,15 @@ moment_match.brmsfit <- function(x,
     ...
   )
 
-  # TODO: this does not work for some reason
   x <- .update_pars(x = x, upars = out$draws)
 
    if (constrain) {
-     out$draws <- constrain_draws(x, out$draws, ...)
+     out$draws <- posterior::as_draws(x)
    }
 
-  list(adapted_importance_sampling = out,
-         brmsfit_object = x)
+  out$fit <- x
 
-  #out
+  out
 }
 
 
@@ -177,9 +174,14 @@ unconstrain_draws.brmsfit <- function(x, draws, ...) {
   for (i in seq_len(npars)) {
     new_draws[[i]] <- pars[i, ]
   }
+
+  # create dummy sampler_params for new sim object
+  newsamples <- list(new_draws)
+  attr(newsamples[[1]], "sampler_params") <- .create_dummy_sampler_params(x)
+
   # create new sim object to overwrite x$fit@sim
   x$fit@sim <- list(
-    samples = list(new_draws),
+    samples = newsamples,
     iter = ndraws,
     thin = 1,
     warmup = 0,
@@ -195,8 +197,20 @@ unconstrain_draws.brmsfit <- function(x, draws, ...) {
   x$fit@stan_args <- list(
     list(chain_id = 1, iter = ndraws, thin = 1, warmup = 0)
   )
+
   brms::rename_pars(x)
 }
+
+.create_dummy_sampler_params <- function(x) {
+
+  params <- attr(x$fit@sim$samples[[1]], "sampler_params")
+  newparams <- params
+  for (i in seq_along(params)) {
+    newparams[[i]] <- numeric()
+  }
+  newparams
+}
+
 
 # update .MISC environment of the stanfit object
 # allows to call log_prob and other C++ using methods

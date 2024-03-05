@@ -138,11 +138,11 @@ if (brms_available) {
     )
 
     draws_mm_single_obs <- posterior::subset_draws(
-      posterior::as_draws_matrix(iw_single_obs$adapted_importance_sampling$draws),
+      posterior::as_draws_matrix(iw_single_obs$draws),
       variable = c("b_Intercept", "sigma_sq")
     )
 
-    weights_mm_single_obs <- exp(iw_single_obs$adapted_importance_sampling$log_weights)
+    weights_mm_single_obs <- exp(iw_single_obs$log_weights)
     mean_mm_single_obs <- matrixStats::colWeightedMeans(
       draws_mm_single_obs,
       w = weights_mm_single_obs

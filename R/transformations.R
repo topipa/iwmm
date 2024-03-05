@@ -55,6 +55,7 @@ shift_and_scale <- function(draws, lw) {
     draws_new <- sweep(draws_new, 2, mean_weighted, "+")
   } else {
     draws_new <- draws
+    scaling <- NA
   }
 
   list(
@@ -169,7 +170,6 @@ transform_loop <- function(draws,
       k <- quantities$k
       next
     }
-
     if (cov_transform) {
       # 3. match means and covariances
       trans <- shift_and_cov(draws, lw)
