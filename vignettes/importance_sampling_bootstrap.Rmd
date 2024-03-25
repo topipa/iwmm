@@ -262,7 +262,6 @@ legend("topright",
 ```
 
 ```{r plotdraws2}
-
 hist(post$logsigma,
   col = rgb(0, 0, 1, 1 / 4),
   freq = FALSE,

@@ -2,7 +2,6 @@ cmdstanr_available <- require(cmdstanr)
 
 # Run these tests only if cmdstanr is installed
 if (cmdstanr_available) {
-
   stancode <- "data {
   int<lower=0> N;
   vector[N] x;
@@ -175,5 +174,4 @@ if (cmdstanr_available) {
       tolerance = 0.1
     )
   })
-
 } # close conditional on cmdstanr
