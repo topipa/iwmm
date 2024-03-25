@@ -19,4 +19,6 @@ unconstrain_draws.stanfit <- function(x, draws, ...) {
     dim(udraws) <- c(1, length(udraws))
   }
   out <- posterior::as_draws_matrix(t(udraws))
+
+  out
 }
