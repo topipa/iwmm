@@ -47,12 +47,12 @@ moment_match.brmsfit <- function(x,
 
   if (!is.null(target_observation_weights)) {
     out <- tryCatch(brms::log_lik(x),
-                    error = function(cond) {
-                      message(cond)
-                      message("\nYour brmsfit does not include a parameter called log_lik.")
-                      message("This should not happen. Perhaps you are using an unsupported observation model?")
-                      return(NA)
-                    }
+      error = function(cond) {
+        message(cond)
+        message("\nYour brmsfit does not include a parameter called log_lik.")
+        message("This should not happen. Perhaps you are using an unsupported observation model?")
+        return(NA)
+      }
     )
 
     function(draws, fit, extra_data, ...) {
@@ -85,9 +85,9 @@ moment_match.brmsfit <- function(x,
 
   x <- .update_pars(x = x, upars = out$draws)
 
-   if (constrain) {
-     out$draws <- posterior::as_draws(x)
-   }
+  if (constrain) {
+    out$draws <- posterior::as_draws(x)
+  }
 
   out$fit <- x
 
@@ -129,7 +129,6 @@ constrain_draws.brmsfit <- function(x, draws, ...) {
   }
 
   posterior::as_draws_array(new_draws)
-
 }
 
 #' @export
@@ -152,7 +151,7 @@ unconstrain_draws.brmsfit <- function(x, draws, ...) {
   out <- rstan::constrain_pars(upars, object = x$fit)
   out[x$exclude] <- NULL
   out
-  }
+}
 
 .update_pars <- function(x, upars, ...) {
   # list with one element per posterior draw
@@ -202,7 +201,6 @@ unconstrain_draws.brmsfit <- function(x, draws, ...) {
 }
 
 .create_dummy_sampler_params <- function(x) {
-
   params <- attr(x$fit@sim$samples[[1]], "sampler_params")
   newparams <- params
   for (i in seq_along(params)) {

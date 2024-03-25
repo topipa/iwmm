@@ -288,7 +288,8 @@ moment_match.matrix <- function(x,
     }
 
     pareto_smoothed_w <- posterior::pareto_smooth(
-      lw - matrixStats::logSumExp(lw), are_log_weights = TRUE,
+      lw - matrixStats::logSumExp(lw),
+      are_log_weights = TRUE,
       tail = "right", extra_diags = TRUE, r_eff = 1,
       return_k = TRUE,
       verbose = FALSE
@@ -343,7 +344,8 @@ moment_match.matrix <- function(x,
 
     pareto_smoothed_wf <- apply(lwf, 2, function(x) {
       posterior::pareto_smooth(
-        x, are_log_weights = TRUE,
+        x,
+        are_log_weights = TRUE,
         tail = "right", extra_diags = TRUE, r_eff = 1,
         return_k = TRUE, verbose = FALSE
       )
@@ -603,7 +605,7 @@ moment_match.CmdStanFit <- function(x,
   # and add tests for that
 
   # transform the model parameters to unconstrained space
-    udraws <- x$unconstrain_draws(format = "draws_matrix")
+  udraws <- x$unconstrain_draws(format = "draws_matrix")
 
   if (constrain_draws) {
     draws_transformation_fun <- function(draws, ...) {

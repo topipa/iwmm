@@ -1,5 +1,4 @@
 test_that("moment_match.matrix works", {
-
   set.seed(7)
 
   S <- 4000

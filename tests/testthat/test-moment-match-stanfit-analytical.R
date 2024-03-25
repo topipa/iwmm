@@ -174,7 +174,6 @@ test_that("moment_match.stanfit matches analytical results", {
     sd_analytical,
     tolerance = 0.1
   )
-
 })
 
 

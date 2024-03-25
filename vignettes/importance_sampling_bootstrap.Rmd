@@ -262,7 +262,6 @@ legend("topright",
 ```
 
 ```{r plotdraws2}
-
 hist(post$logsigma,
   col = rgb(0, 0, 1, 1 / 4),
   freq = FALSE,
@@ -274,7 +273,7 @@ hist(post$logsigma,
 hist(bs_postmeans_is_mm$logsigma,
   col = rgb(1, 0, 0, 1 / 4),
   add = TRUE, freq = FALSE,
-#  breaks = seq(-0.1, 0.15, length.out = 30)
+  #  breaks = seq(-0.1, 0.15, length.out = 30)
 )
 legend("topright",
   legend = c("model posterior", "Bootstrap posterior means"),
@@ -373,12 +372,12 @@ hist(post$logsigma,
   xlab = "log(sigma)",
   ylab = "count",
   main = "Posterior of log(sigma)",
-#  breaks = seq(0.2, 1.0, length.out = 30)
+  #  breaks = seq(0.2, 1.0, length.out = 30)
 )
 hist(bs_postmeans_is_mm$logsigma,
   col = rgb(1, 0, 0, 1 / 4),
   add = TRUE, freq = FALSE,
-#  breaks = seq(0.2, 1.0, length.out = 30)
+  #  breaks = seq(0.2, 1.0, length.out = 30)
 )
 legend("topright",
   legend = c("model posterior", "Bootstrap posterior means"),
