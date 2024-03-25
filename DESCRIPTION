@@ -9,14 +9,13 @@ License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.0
 Depends:
     R (>= 3.1.2)
 Imports:
-    abind,
     checkmate,
     matrixStats (>= 0.52),
-    posterior,
+    posterior (>= 1.5.0),
     stats
 Suggests: 
     bayesplot,
@@ -26,6 +25,7 @@ Suggests:
     rstan,
     testthat
 Enhances:
+    brms,
     cmdstanr
 VignetteBuilder: knitr
 Config/testthat/parallel: true

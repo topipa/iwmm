@@ -8,6 +8,7 @@ constrain_draws <- function(x, ...) {
   UseMethod("constrain_draws")
 }
 
+##' @export
 constrain_draws.CmdStanFit <- function(x, udraws, ...) {
   # list with one element per posterior draw
   draws <- apply(udraws, 1, x$constrain_variables)
@@ -38,6 +39,8 @@ constrain_draws.CmdStanFit <- function(x, udraws, ...) {
   posterior::as_draws_array(new_draws)
 }
 
+
+
 ##' @export
 constrain_draws.stanfit <- function(x, udraws, ...) {
   # list with one element per posterior draw
@@ -55,9 +58,10 @@ constrain_draws.stanfit <- function(x, udraws, ...) {
 
   # bring draws into the right structure
   new_draws <- named_list(
-    x@sim$fnames_oi[-length(x@sim$fnames_oi)],
+    x@sim$fnames_oi,
     list(numeric(ndraws))
   )
+
   new_varnames <- sub("\\[.+", "", names(new_draws))
   new_varnames_unique <- unique(new_varnames)
   for (v in new_varnames_unique) {

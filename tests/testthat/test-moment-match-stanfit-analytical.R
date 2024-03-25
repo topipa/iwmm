@@ -256,16 +256,19 @@ test_that("moment_match.stanfit works with expectation on unconstrained paramete
   fit_sds <- matrixStats::colSds(draws_fit_full[, c("mu", "log_sigma_sq")])
 
   iwmm_mean <- iw_first_moment$expectation
+  names(iwmm_mean) <- c("mu", "log_sigma_sq")
+
   iwmm_sd <- sqrt(iw_second_moment$expectation - iw_first_moment$expectation^2)
+  names(iwmm_sd) <- c("mu", "log_sigma_sq")
 
   expect_equal(
     iwmm_mean,
-    unname(fit_means),
+    fit_means,
     tolerance = 0.1
   )
   expect_equal(
     iwmm_sd,
-    unname(fit_sds),
+    fit_sds,
     tolerance = 0.1
   )
 })
