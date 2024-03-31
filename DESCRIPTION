@@ -28,5 +28,5 @@ Enhances:
     brms,
     cmdstanr
 VignetteBuilder: knitr
-Config/testthat/parallel: true
+Config/testthat/parallel: false
 Config/testthat/edition: 3
