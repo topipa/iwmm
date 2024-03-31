@@ -39,8 +39,6 @@ constrain_draws.CmdStanFit <- function(x, udraws, ...) {
   posterior::as_draws_array(new_draws)
 }
 
-
-
 ##' @export
 constrain_draws.stanfit <- function(x, udraws, ...) {
   # list with one element per posterior draw
