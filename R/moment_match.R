@@ -286,15 +286,15 @@ moment_match.matrix <- function(x,
            target density is equal to your proposal density.")
     }
 
-    pareto_smoothed_w <- posterior::pareto_smooth(
+    pareto_smoothed_lw <- posterior::pareto_smooth(
       lw - matrixStats::logSumExp(lw),
       are_log_weights = TRUE,
       tail = "right", extra_diags = TRUE, r_eff = 1,
       return_k = TRUE,
       verbose = FALSE
     )
-    k <- pareto_smoothed_w$diagnostics$khat
-    lw <- as.vector(pareto_smoothed_w$x)
+    k <- pareto_smoothed_lw$diagnostics$khat
+    lw <- as.vector(pareto_smoothed_lw$x)
 
     if (any(is.infinite(k))) {
       stop("Something went wrong, and encountered infinite Pareto k values..")
@@ -341,7 +341,7 @@ moment_match.matrix <- function(x,
   } else {
     lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, draws_transformation_fun, ...)
 
-    pareto_smoothed_wf <- apply(lwf, 2, function(x) {
+    pareto_smoothed_lwf <- apply(lwf, 2, function(x) {
       posterior::pareto_smooth(
         x,
         are_log_weights = TRUE,
@@ -349,8 +349,8 @@ moment_match.matrix <- function(x,
         return_k = TRUE, verbose = FALSE
       )
     })
-    pareto_smoothed_wf <- do.call(mapply, c(cbind, pareto_smoothed_wf))
-    kf <- as.numeric(pareto_smoothed_wf$diagnostics["khat", ])
+    pareto_smoothed_lwf <- do.call(mapply, c(cbind, pareto_smoothed_lwf))
+    kf <- as.numeric(pareto_smoothed_lwf$diagnostics["khat", ])
 
     if (split) {
       # prepare for split and check kfs
@@ -375,7 +375,7 @@ moment_match.matrix <- function(x,
               that return a matrix. As a workaround, you can wrap your function
               call using apply.")
       }
-      lwf <- as.vector(pareto_smoothed_wf$x)
+      lwf <- as.vector(pareto_smoothed_lwf$x)
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         update_properties <- list(
