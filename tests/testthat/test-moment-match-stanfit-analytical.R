@@ -276,4 +276,57 @@ if (rstan_available) {
     )
   })
 
+  test_that("moment_match.stanfit works with target_observation_weights", {
+    normal_model <- example_iwmm_model("normal_model")
+
+    fit <- rstan::stan(
+      model_code = normal_model$model_code,
+      data = normal_model$data,
+      refresh = FALSE,
+      seed = 1234
+    )
+
+    expectation_fun_first_moment <- function(draws, ...) {
+      draws
+    }
+
+    first_moment <- moment_match(
+      fit,
+      expectation_fun = expectation_fun_first_moment
+    )
+
+    expect_equal(
+      first_moment$expectation[,c("mu", "log_sigma")],
+      colMeans(as.matrix(fit))[c("mu", "log_sigma")],
+      tolerance = 0.001
+    )
+
+    # leave-one-out expectation
+
+    first_moment_loo <- moment_match(
+      fit,
+      target_observation_weights=append(rep(1,9), 0),
+      expectation_fun = expectation_fun_first_moment,
+      k_threshold=0.7
+    )
+
+    loo_data <- normal_model$data
+    loo_data$x <- loo_data$x[-loo_data$N]
+    loo_data$N <- loo_data$N - 1
+
+    fit_loo <- rstan::stan(
+      model_code = normal_model$model_code,
+      data = loo_data,
+      refresh = FALSE,
+      seed = 1234
+    )
+
+    expect_equal(
+      first_moment_loo$expectation[,c("mu", "log_sigma")],
+      colMeans(as.matrix(fit_loo))[c("mu", "log_sigma")],
+      tolerance = 0.1
+    )
+
+  })
+
 } # close conditional on rstan
