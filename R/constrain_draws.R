@@ -74,3 +74,39 @@ constrain_draws.stanfit <- function(x, udraws, ...) {
 
   new_draws
 }
+
+#' @export
+constrain_draws.brmsfit <- function(x, draws, ...) {
+  # list with one element per posterior draw
+  x <- x$fit
+  udraws <- draws
+  draws <- apply(draws, 1, rstan::constrain_pars, object = x)
+  varnames <- rep(names(draws[[1]]), lengths(draws[[1]]))
+  # transform draws
+  ndraws <- length(draws)
+  draws <- unlist(draws)
+  nvars <- length(draws) / ndraws
+  dim(draws) <- c(nvars, ndraws)
+  rownames(draws) <- varnames
+  # lp__ is not computed automatically
+  lp__ <- log_prob_draws.stanfit(x, draws = udraws, ...)
+  draws <- rbind(draws, lp__ = lp__)
+
+  # bring draws into the right structure
+  new_draws <- named_list(
+    x@sim$fnames_oi_old,
+    list(numeric(ndraws))
+  )
+
+  new_varnames <- sub("\\[.+", "", names(new_draws))
+  new_varnames_unique <- unique(new_varnames)
+  for (v in new_varnames_unique) {
+    sub_vars <- draws[rownames(draws) == v, , drop = FALSE]
+    sel <- which(new_varnames == v)
+    for (i in seq_along(sel)) {
+      new_draws[[sel[i]]] <- sub_vars[i, ]
+    }
+  }
+
+  posterior::as_draws_array(new_draws)
+}

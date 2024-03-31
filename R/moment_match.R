@@ -724,3 +724,101 @@ moment_match.stanfit <- function(x,
   # TODO: should this function update the parameters of the stanfit and return it?
   out
 }
+
+#' Generic importance weighted moment matching algorithm for `brmsfit` objects.
+#' See additional arguments from `moment_match.matrix`
+#'
+#' @param x A fitted `brmsfit` object.
+#' @param log_prob_target_fun Log density of the target.  The function
+#'   takes argument `draws`, which are the unconstrained draws.
+#'   Can also take the argument `fit` which is the stan model fit.
+#' @param log_ratio_fun Log of the density ratio (target/proposal).
+#'   The function takes argument `draws`, which are the unconstrained
+#'   draws. Can also take the argument `fit` which is the stan model fit.
+#' @param target_observation_weights A vector of weights for observations for
+#' defining the target distribution. A value 0 means dropping the observation,
+#' a value 1 means including the observation similarly as in the current data,
+#' and a value 2 means including the observation twice.
+#' @param expectation_fun Optional argument, NULL by default. A
+#'   function whose expectation is being computed. The function takes
+#'   arguments `draws`.
+#' @param log_expectation_fun Logical indicating whether the
+#'   expectation_fun returns its values as logarithms or not. Defaults
+#'   to FALSE. If set to TRUE, the expectation function must be
+#'   nonnegative (before taking the logarithm).  Ignored if
+#'   `expectation_fun` is NULL.
+#' @param constrain Logical specifying whether to return draws on the
+#'   constrained space? Default is TRUE.
+#' @param ... Further arguments passed to `moment_match.matrix`.
+#'
+#' @return Returns a list with 3 elements: transformed draws, updated
+#'   importance weights, and the pareto k diagnostic value. If expectation_fun
+#'   is given, also returns the expectation.
+#'
+#' @export
+moment_match.brmsfit <- function(x,
+                                 log_prob_target_fun = NULL,
+                                 log_ratio_fun = NULL,
+                                 target_observation_weights = NULL,
+                                 expectation_fun = NULL,
+                                 log_expectation_fun = FALSE,
+                                 constrain = TRUE,
+                                 ...) {
+  if (!is.null(target_observation_weights) && (!is.null(log_prob_target_fun) || !is.null(log_ratio_fun))) {
+    stop("You must give only one of target_observation_weights, log_prob_target_fun, or log_ratio_fun.")
+  }
+
+  # ensure draws are in matrix form
+  draws <- posterior::as_draws_matrix(x)
+  # draws <- as.matrix(draws)
+
+  if (!is.null(target_observation_weights)) {
+    out <- tryCatch(brms::log_lik(x),
+                    error = function(cond) {
+                      message(cond)
+                      message("\nYour brmsfit does not include a parameter called log_lik.")
+                      message("This should not happen. Perhaps you are using an unsupported observation model?")
+                      return(NA)
+                    }
+    )
+
+    # TODO: what is the point of this?
+    #function(draws, fit, extra_data, ...) {
+    #  fit <- .update_pars(x = fit, upars = draws)
+    #  ll <- brms::log_lik(fit, newdata = extra_data)
+    #  rowSums(ll)
+    #}
+
+    log_ratio_fun <- function(draws, fit, ...) {
+      fit <- .update_pars(x = fit, upars = draws)
+      ll <- brms::log_lik(fit)
+      colSums(t(drop(ll)) * (target_observation_weights - 1))
+    }
+  }
+
+
+  # transform the draws to unconstrained space
+  udraws <- unconstrain_draws.brmsfit(x, draws = draws, ...)
+
+  out <- moment_match.matrix(
+    udraws,
+    log_prob_prop_fun = log_prob_draws.brmsfit,
+    log_prob_target_fun = log_prob_target_fun,
+    log_ratio_fun = log_ratio_fun,
+    expectation_fun = expectation_fun,
+    log_expectation_fun = log_expectation_fun,
+    fit = x,
+    ...
+  )
+
+  x <- .update_pars(x = x, upars = out$draws)
+
+  if (constrain) {
+    out$draws <- posterior::as_draws(x)
+  }
+
+  out$fit <- x
+
+
+  out
+}
