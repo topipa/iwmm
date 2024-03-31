@@ -204,7 +204,6 @@ moment_match.draws_rvars <- function(x,
 #'
 #' @rdname moment_match
 #' @export
-#' @importFrom stats weights
 moment_match.matrix <- function(x,
                                 log_prob_prop_fun,
                                 log_prob_target_fun = NULL,
