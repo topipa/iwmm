@@ -146,11 +146,12 @@ iw_list <- lapply(X = seq(bs_S), FUN = function(i) {
   obs_w_matrix <- matrix(obs_ws[, i], S, n, byrow = TRUE)
   lw <- rowSums((obs_w_matrix - 1) * ll)
   lw <- lw - matrixStats::logSumExp(lw)
-  psis <- psis(lw)
-  c(colSums(exp(lw) * post), psis$diagnostics$pareto_k)
+  khat <- posterior::pareto_khat(lw, are_log_weights = TRUE, tail = "right")
+  c(colSums(exp(lw) * post), khat)
 })
 
 iw_list <- array(as.numeric(unlist(iw_list)), c(3, bs_S))
+bs_postmeans_is <- data.frame("mu" = iw_list[1, ], "logsigma" = iw_list[2, ])
 ks <- iw_list[3, ]
 ```
 
@@ -229,7 +230,7 @@ Let us check the Pareto k diagnostic values :
 ```{r plotk2}
 plot(sort(ks),
   pch = 20,
-  ylim = c(min(ks_mm), max(ks)),
+  ylim = c(min(c(ks, ks_mm)), max(c(ks, ks_mm))),
   col = "black",
   xlab = "Bootstrap index",
   ylab = "Pareto k",
@@ -268,12 +269,11 @@ hist(post$logsigma,
   xlab = "log(sigma)",
   ylab = "count",
   main = "Posterior of log(sigma)",
-  breaks = seq(-0.1, 0.15, length.out = 30)
 )
 hist(bs_postmeans_is_mm$logsigma,
   col = rgb(1, 0, 0, 1 / 4),
   add = TRUE, freq = FALSE,
-  breaks = seq(-0.1, 0.15, length.out = 30)
+  #  breaks = seq(-0.1, 0.15, length.out = 30)
 )
 legend("topright",
   legend = c("model posterior", "Bootstrap posterior means"),
@@ -372,12 +372,12 @@ hist(post$logsigma,
   xlab = "log(sigma)",
   ylab = "count",
   main = "Posterior of log(sigma)",
-  breaks = seq(0.2, 1.0, length.out = 30)
+  #  breaks = seq(0.2, 1.0, length.out = 30)
 )
 hist(bs_postmeans_is_mm$logsigma,
   col = rgb(1, 0, 0, 1 / 4),
   add = TRUE, freq = FALSE,
-  breaks = seq(0.2, 1.0, length.out = 30)
+  #  breaks = seq(0.2, 1.0, length.out = 30)
 )
 legend("topright",
   legend = c("model posterior", "Bootstrap posterior means"),
