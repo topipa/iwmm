@@ -22,11 +22,11 @@ Suggests:
     knitr,
     parallel,
     rmarkdown,
-    rstan,
     testthat
 Enhances:
     brms,
-    cmdstanr
+    cmdstanr,
+    rstan
 VignetteBuilder: knitr
 Config/testthat/parallel: false
 Config/testthat/edition: 3

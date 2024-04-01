@@ -25,10 +25,7 @@ iwmm_examples <- function() {
   }
   parameters {
     real mu;
-    real log_sigma;
-  }
-  transformed parameters {
-    real<lower=0> sigma = exp(log_sigma);
+    real<lower=0> sigma;
   }
   model {
     target += normal_lpdf(x | mu, sigma);
