@@ -587,6 +587,10 @@ moment_match.matrix <- function(x,
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
 #'   The function takes argument `draws`, which are the unconstrained
 #'   draws.
+#' @param target_observation_weights A vector of weights for observations for
+#' defining the target distribution. A value 0 means dropping the observation,
+#' a value 1 means including the observation similarly as in the current data,
+#' and a value 2 means including the observation twice.
 #' @param constrain Logical specifying whether to return draws on the
 #'   constrained space. Draws are also constrained for computing expectations. Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
@@ -598,8 +602,15 @@ moment_match.matrix <- function(x,
 moment_match.CmdStanFit <- function(x,
                                     log_prob_target_fun = NULL,
                                     log_ratio_fun = NULL,
+                                    target_observation_weights = NULL,
                                     constrain = TRUE,
                                     ...) {
+  if (!is.null(target_observation_weights) && (!is.null(log_prob_target_fun) || !is.null(log_ratio_fun))) {
+    stop("You must give only one of target_observation_weights, log_prob_target_fun, or log_ratio_fun.")
+  }
+
+  # TODO: actually implement target_observation_weights
+
   # TODO: support expectation fun?
   # and add tests for that
 
