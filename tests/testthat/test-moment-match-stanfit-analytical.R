@@ -237,14 +237,14 @@ if (rstan_available) {
       fit_full,
       expectation_fun = expectation_fun_first_moment,
       k_threshold = -Inf, # ensure moment-matching is used
-      constrain_draws = FALSE
+      constrain = FALSE
     ))
 
     iw_second_moment <- suppressWarnings(moment_match.stanfit(
       fit_full,
       expectation_fun = expectation_fun_second_moment,
       k_threshold = -Inf, # ensure moment-matching is used
-      constrain_draws = FALSE
+      constrain = FALSE
     ))
 
 
@@ -296,18 +296,18 @@ if (rstan_available) {
     )
 
     expect_equal(
-      first_moment$expectation[,c("mu", "log_sigma")],
-      colMeans(as.matrix(fit))[c("mu", "log_sigma")],
+      first_moment$expectation,
+      colMeans(as.matrix(fit))[c("mu", "sigma")],
       tolerance = 0.001
     )
+    # TODO: check that returned model draws also match
 
     # leave-one-out expectation
 
     first_moment_loo <- moment_match(
       fit,
       target_observation_weights=append(rep(1,9), 0),
-      expectation_fun = expectation_fun_first_moment,
-      k_threshold=0.7
+      expectation_fun = expectation_fun_first_moment
     )
 
     loo_data <- normal_model$data
@@ -322,11 +322,13 @@ if (rstan_available) {
     )
 
     expect_equal(
-      first_moment_loo$expectation[,c("mu", "log_sigma")],
-      colMeans(as.matrix(fit_loo))[c("mu", "log_sigma")],
+      first_moment_loo$expectation,
+      colMeans(as.matrix(fit_loo))[c("mu", "sigma")],
       tolerance = 0.1
     )
+    # TODO: check that returned model draws also match
 
   })
+
 
 } # close conditional on rstan

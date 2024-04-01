@@ -680,12 +680,12 @@ moment_match.stanfit <- function(x,
 
   if (!is.null(target_observation_weights)) {
     out <- tryCatch(posterior::subset_draws(draws, variable = "log_lik"),
-      error = function(cond) {
-        message(cond)
-        message("\nYour stan fit does not include a parameter called log_lik.")
-        message("To use target_observation_weights, you must define log_lik in the generated quantities block.")
-        return(NA)
-      }
+                    error = function(cond) {
+                      message(cond)
+                      message("\nYour stan fit does not include a parameter called log_lik.")
+                      message("To use target_observation_weights, you must define log_lik in the generated quantities block.")
+                      return(NA)
+                    }
     )
 
     log_ratio_fun <- function(draws, fit, ...) {
@@ -697,13 +697,14 @@ moment_match.stanfit <- function(x,
     }
   }
 
-
   # transform the draws to unconstrained space
   udraws <- unconstrain_draws(x, draws = draws, ...)
 
   if (constrain) {
     draws_transformation_fun <- function(draws, ...) {
-      return(constrain_draws(x, draws, ...))
+      n_pars <- dim(draws)[2]
+      constrained_draws <- constrain_draws(x, draws, ...)
+      return(constrained_draws[,1:n_pars])
     }
   } else {
     draws_transformation_fun <- NULL
