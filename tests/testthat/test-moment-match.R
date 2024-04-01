@@ -713,4 +713,10 @@ test_that("moment_match with expectation works with transformation", {
 
   expect_equal(iw_mean$expectation, c(245, 245), tolerance = 1e-2)
   expect_equal(iw2_mean$expectation, iw_mean$expectation, tolerance = 1e-6)
+
+  expect_equal(colMeans(iw_mean$draws), c(5, 5), tolerance = 1e-1)
+  expect_equal(colMeans(iw2_mean$draws), c(5, 5), tolerance = 1e-1)
+
+  expect_equal(iw_mean$tdraws, NA)
+  expect_equal(colMeans(iw2_mean$tdraws), c(245, 245), tolerance = 1e-1)
 })

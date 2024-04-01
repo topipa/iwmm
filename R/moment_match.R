@@ -549,9 +549,12 @@ moment_match.matrix <- function(x,
     }
 
     if (!is.null(draws_transformation_fun)) {
-      draws <- draws_transformation_fun(draws)
+      tdraws <- draws_transformation_fun(draws)
+      unweighted_expectation <- expectation_fun(tdraws, ...)
+    } else {
+      tdraws <- NA
+      unweighted_expectation <- expectation_fun(draws, ...)
     }
-    unweighted_expectation <- expectation_fun(draws, ...)
 
     if (log_expectation_fun) {
       expectation <- exp(matrixStats::colLogSumExps(
@@ -562,8 +565,13 @@ moment_match.matrix <- function(x,
       expectation <- colSums(w * unweighted_expectation)
     }
 
+    # TODO: How to distinguish naming of transformation we take as input
+    # and transformation we do in moment matching?
+    # Now draws is the draws transformed by moment matching
+    # tdraws is draws additionally transformed by draws_transformation_fun
     adapted_draws <- list(
       draws = draws,
+      tdraws = tdraws,
       log_weights = lw,
       expectation = expectation,
       diagnostics = list(
