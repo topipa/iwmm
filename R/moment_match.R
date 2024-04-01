@@ -181,6 +181,9 @@ moment_match.draws_rvars <- function(x,
 #' @param draws_transformation_fun Optional argument, NULL by default. A
 #'   function that transforms draws before computing expectation. The function takes
 #'   arguments `draws`.
+#' @param tdraws_fun Optional argument, NULL by default. A
+#'   function that transforms draws that are returned. The function takes
+#'   arguments `draws`.
 #' @param is_method Which importance sampling method to use. Currently only `psis` is supported.
 #' @param adaptation_method Which adaptation method to use. Currently only `iwmm` is supported.
 #' @param k_threshold Threshold value for Pareto k values above which
@@ -211,6 +214,7 @@ moment_match.matrix <- function(x,
                                 expectation_fun = NULL,
                                 log_expectation_fun = FALSE,
                                 draws_transformation_fun = NULL,
+                                tdraws_fun = NULL,
                                 is_method = "psis",
                                 adaptation_method = "iwmm",
                                 k_threshold = 0.5,
@@ -549,7 +553,11 @@ moment_match.matrix <- function(x,
     }
 
     if (!is.null(draws_transformation_fun)) {
-      tdraws <- draws_transformation_fun(draws)
+      if (!is.null(tdraws_fun)) {
+        tdraws <- tdraws_fun(draws)
+      } else {
+        tdraws <- draws_transformation_fun(draws)
+      }
       unweighted_expectation <- expectation_fun(tdraws, ...)
     } else {
       tdraws <- NA
@@ -802,7 +810,7 @@ moment_match.brmsfit <- function(x,
                     }
     )
 
-    # TODO: what is the point of this?
+    # TODO: what is the point of this? was this left by accident?
     #function(draws, fit, extra_data, ...) {
     #  fit <- .update_pars(x = fit, upars = draws)
     #  ll <- brms::log_lik(fit, newdata = extra_data)
@@ -816,9 +824,23 @@ moment_match.brmsfit <- function(x,
     }
   }
 
-
   # transform the draws to unconstrained space
-  udraws <- unconstrain_draws.brmsfit(x, draws = draws, ...)
+  udraws <- unconstrain_draws(x, draws = draws, ...)
+
+  if (constrain) {
+    draws_transformation_fun <- function(draws, ...) {
+      n_pars <- dim(draws)[2]
+      constrained_draws <- constrain_draws(x, draws, ...)
+      return(constrained_draws[,1:n_pars])
+    }
+    tdraws_fun <- function(draws, ...) {
+      constrained_draws <- constrain_draws(x, draws, ...)
+      return(constrained_draws)
+    }
+  } else {
+    draws_transformation_fun <- NULL
+    tdraws_fun <- NULL
+  }
 
   out <- moment_match.matrix(
     udraws,
@@ -827,18 +849,19 @@ moment_match.brmsfit <- function(x,
     log_ratio_fun = log_ratio_fun,
     expectation_fun = expectation_fun,
     log_expectation_fun = log_expectation_fun,
+    draws_transformation_fun = draws_transformation_fun,
+    tdraws_fun = tdraws_fun,
     fit = x,
     ...
   )
 
-  x <- .update_pars(x = x, upars = out$draws)
-
   if (constrain) {
-    out$draws <- posterior::as_draws(x)
+    udraws <- unconstrain_draws(x, draws = out$tdraws, ...)
+    x <- .update_pars(x = x, upars = udraws)
+  } else {
+    x <- .update_pars(x = x, upars = out$draws)
   }
-
   out$fit <- x
-
 
   out
 }
