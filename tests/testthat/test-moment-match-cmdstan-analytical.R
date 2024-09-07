@@ -1,7 +1,8 @@
 cmdstanr_available <- require(cmdstanr)
+cmdstan_path_available <- !is.null(cmdstanr::cmdstan_version(error_on_NA=FALSE))
 
 # Run these tests only if cmdstanr is installed
-if (cmdstanr_available) {
+if (cmdstanr_available && cmdstan_path_available) {
   stancode <- "data {
   int<lower=0> N;
   vector[N] x;
