@@ -4,10 +4,10 @@
 \alias{log_prob_draws}
 \title{Return log probability of posterior}
 \usage{
-log_prob_draws(x, ...)
+log_prob_draws(fit, ...)
 }
 \arguments{
-\item{x}{model fit object}
+\item{fit}{model fit object}
 
 \item{...}{arguments passed to methods}
 }

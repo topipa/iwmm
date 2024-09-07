@@ -56,9 +56,10 @@ constrain_draws.stanfit <- function(x, udraws, ...) {
 
   # bring draws into the right structure
   new_draws <- named_list(
-    x@sim$fnames_oi[-length(x@sim$fnames_oi)],
+    x@sim$fnames_oi,
     list(numeric(ndraws))
   )
+
   new_varnames <- sub("\\[.+", "", names(new_draws))
   new_varnames_unique <- unique(new_varnames)
   for (v in new_varnames_unique) {

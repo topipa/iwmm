@@ -204,7 +204,6 @@ moment_match.draws_rvars <- function(x,
 #'
 #' @rdname moment_match
 #' @export
-#' @importFrom stats weights
 moment_match.matrix <- function(x,
                                 log_prob_prop_fun,
                                 log_prob_target_fun = NULL,
@@ -287,14 +286,15 @@ moment_match.matrix <- function(x,
            target density is equal to your proposal density.")
     }
 
-    pareto_smoothed_w <- posterior::pareto_smooth(
-      lw - matrixStats::logSumExp(lw), are_log_weights = TRUE,
+    pareto_smoothed_lw <- posterior::pareto_smooth(
+      lw - matrixStats::logSumExp(lw),
+      are_log_weights = TRUE,
       tail = "right", extra_diags = TRUE, r_eff = 1,
       return_k = TRUE,
       verbose = FALSE
     )
-    k <- pareto_smoothed_w$diagnostics$khat
-    lw <- as.vector(pareto_smoothed_w$x)
+    k <- pareto_smoothed_lw$diagnostics$khat
+    lw <- as.vector(pareto_smoothed_lw$x)
 
     if (any(is.infinite(k))) {
       stop("Something went wrong, and encountered infinite Pareto k values..")
@@ -341,15 +341,16 @@ moment_match.matrix <- function(x,
   } else {
     lwf <- compute_lwf(draws, lw, expectation_fun, log_expectation_fun, draws_transformation_fun, ...)
 
-    pareto_smoothed_wf <- apply(lwf, 2, function(x) {
+    pareto_smoothed_lwf <- apply(lwf, 2, function(x) {
       posterior::pareto_smooth(
-        x, are_log_weights = TRUE,
+        x,
+        are_log_weights = TRUE,
         tail = "right", extra_diags = TRUE, r_eff = 1,
         return_k = TRUE, verbose = FALSE
       )
     })
-    pareto_smoothed_wf <- do.call(mapply, c(cbind, pareto_smoothed_wf))
-    kf <- as.numeric(pareto_smoothed_wf$diagnostics["khat", ])
+    pareto_smoothed_lwf <- do.call(mapply, c(cbind, pareto_smoothed_lwf))
+    kf <- as.numeric(pareto_smoothed_lwf$diagnostics["khat", ])
 
     if (split) {
       # prepare for split and check kfs
@@ -374,7 +375,7 @@ moment_match.matrix <- function(x,
               that return a matrix. As a workaround, you can wrap your function
               call using apply.")
       }
-      lwf <- as.vector(pareto_smoothed_wf$x)
+      lwf <- as.vector(pareto_smoothed_lwf$x)
 
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         update_properties <- list(
@@ -603,7 +604,7 @@ moment_match.CmdStanFit <- function(x,
   # and add tests for that
 
   # transform the model parameters to unconstrained space
-    udraws <- x$unconstrain_draws(format = "draws_matrix")
+  udraws <- x$unconstrain_draws(format = "draws_matrix")
 
   if (constrain_draws) {
     draws_transformation_fun <- function(draws, ...) {
