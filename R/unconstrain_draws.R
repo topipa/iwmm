@@ -22,3 +22,9 @@ unconstrain_draws.stanfit <- function(x, draws, ...) {
 
   out
 }
+
+
+#' @export
+unconstrain_draws.brmsfit <- function(x, draws, ...) {
+  unconstrain_draws.stanfit(x$fit, draws = draws, ...)
+}
