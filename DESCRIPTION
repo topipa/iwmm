@@ -22,7 +22,8 @@ Suggests:
     knitr,
     parallel,
     rmarkdown,
-    testthat
+    testthat,
+    styler (>= 1.3.0)
 Enhances:
     brms,
     cmdstanr,
