@@ -306,7 +306,7 @@ if (rstan_available) {
 
     first_moment_loo <- moment_match(
       fit,
-      target_observation_weights=append(rep(1,9), 0),
+      target_observation_weights = append(rep(1, 9), 0),
       expectation_fun = expectation_fun_first_moment
     )
 
@@ -327,8 +327,5 @@ if (rstan_available) {
       tolerance = 0.1
     )
     # TODO: check that returned model draws also match
-
   })
-
-
 } # close conditional on rstan

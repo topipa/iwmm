@@ -707,12 +707,12 @@ moment_match.stanfit <- function(x,
 
   if (!is.null(target_observation_weights)) {
     out <- tryCatch(posterior::subset_draws(draws, variable = "log_lik"),
-                    error = function(cond) {
-                      message(cond)
-                      message("\nYour stan fit does not include a parameter called log_lik.")
-                      message("To use target_observation_weights, you must define log_lik in the generated quantities block.")
-                      return(NA)
-                    }
+      error = function(cond) {
+        message(cond)
+        message("\nYour stan fit does not include a parameter called log_lik.")
+        message("To use target_observation_weights, you must define log_lik in the generated quantities block.")
+        return(NA)
+      }
     )
 
     log_ratio_fun <- function(draws, fit, ...) {
@@ -731,7 +731,7 @@ moment_match.stanfit <- function(x,
     draws_transformation_fun <- function(draws, ...) {
       n_pars <- dim(draws)[2]
       constrained_draws <- constrain_draws(x, draws, ...)
-      return(constrained_draws[,1:n_pars])
+      return(constrained_draws[, 1:n_pars])
     }
   } else {
     draws_transformation_fun <- NULL
@@ -802,20 +802,20 @@ moment_match.brmsfit <- function(x,
 
   if (!is.null(target_observation_weights)) {
     out <- tryCatch(brms::log_lik(x),
-                    error = function(cond) {
-                      message(cond)
-                      message("\nYour brmsfit does not include a parameter called log_lik.")
-                      message("This should not happen. Perhaps you are using an unsupported observation model?")
-                      return(NA)
-                    }
+      error = function(cond) {
+        message(cond)
+        message("\nYour brmsfit does not include a parameter called log_lik.")
+        message("This should not happen. Perhaps you are using an unsupported observation model?")
+        return(NA)
+      }
     )
 
     # TODO: what is the point of this? was this left by accident?
-    #function(draws, fit, extra_data, ...) {
+    # function(draws, fit, extra_data, ...) {
     #  fit <- .update_pars(x = fit, upars = draws)
     #  ll <- brms::log_lik(fit, newdata = extra_data)
     #  rowSums(ll)
-    #}
+    # }
 
     log_ratio_fun <- function(draws, fit, ...) {
       fit <- .update_pars(x = fit, upars = draws)
@@ -831,7 +831,7 @@ moment_match.brmsfit <- function(x,
     draws_transformation_fun <- function(draws, ...) {
       n_pars <- dim(draws)[2]
       constrained_draws <- constrain_draws(x, draws, ...)
-      return(constrained_draws[,1:n_pars])
+      return(constrained_draws[, 1:n_pars])
     }
     tdraws_fun <- function(draws, ...) {
       constrained_draws <- constrain_draws(x, draws, ...)

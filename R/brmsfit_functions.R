@@ -1,5 +1,3 @@
-
-
 # the following functions are copied from brms
 
 # wrapper around rstan::constrain_pars
