@@ -29,8 +29,6 @@ log_prob_draws.stanfit <- function(fit, draws, ...) {
   )
 }
 
-
-
 #' @export
 log_prob_draws.brmsfit <- function(fit, draws, ...) {
   # x <- update_misc_env(x, only_windows = TRUE)

@@ -70,11 +70,11 @@ constrain_draws.stanfit <- function(x, udraws, ...) {
     }
   }
 
-  new_draws <- posterior::as_draws_array(new_draws)
+  # new_draws <- posterior::as_draws_array(new_draws)
+  new_draws <- posterior::as_draws_matrix(new_draws)
 
   new_draws
 }
-
 
 #' @export
 constrain_draws.brmsfit <- function(x, draws, ...) {
@@ -93,9 +93,14 @@ constrain_draws.brmsfit <- function(x, draws, ...) {
   lp__ <- log_prob_draws.stanfit(x, draws = udraws, ...)
   draws <- rbind(draws, lp__ = lp__)
 
+  # TODO: what is difference between fnames_oi_old and fnames_oi
   # bring draws into the right structure
+  # new_draws <- named_list(
+  #   x@sim$fnames_oi_old,
+  #   list(numeric(ndraws))
+  # )
   new_draws <- named_list(
-    x@sim$fnames_oi_old,
+    x@sim$fnames_oi,
     list(numeric(ndraws))
   )
 
@@ -109,5 +114,6 @@ constrain_draws.brmsfit <- function(x, draws, ...) {
     }
   }
 
-  posterior::as_draws_array(new_draws)
+  # posterior::as_draws_array(new_draws)
+  posterior::as_draws_matrix(new_draws)
 }

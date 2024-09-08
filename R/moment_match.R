@@ -181,6 +181,9 @@ moment_match.draws_rvars <- function(x,
 #' @param draws_transformation_fun Optional argument, NULL by default. A
 #'   function that transforms draws before computing expectation. The function takes
 #'   arguments `draws`.
+#' @param tdraws_fun Optional argument, NULL by default. A
+#'   function that transforms draws that are returned. The function takes
+#'   arguments `draws`.
 #' @param is_method Which importance sampling method to use. Currently only `psis` is supported.
 #' @param adaptation_method Which adaptation method to use. Currently only `iwmm` is supported.
 #' @param k_threshold Threshold value for Pareto k values above which
@@ -211,6 +214,7 @@ moment_match.matrix <- function(x,
                                 expectation_fun = NULL,
                                 log_expectation_fun = FALSE,
                                 draws_transformation_fun = NULL,
+                                tdraws_fun = NULL,
                                 is_method = "psis",
                                 adaptation_method = "iwmm",
                                 k_threshold = 0.5,
@@ -549,9 +553,16 @@ moment_match.matrix <- function(x,
     }
 
     if (!is.null(draws_transformation_fun)) {
-      draws <- draws_transformation_fun(draws)
+      if (!is.null(tdraws_fun)) {
+        tdraws <- tdraws_fun(draws)
+      } else {
+        tdraws <- draws_transformation_fun(draws)
+      }
+      unweighted_expectation <- expectation_fun(tdraws, ...)
+    } else {
+      tdraws <- NA
+      unweighted_expectation <- expectation_fun(draws, ...)
     }
-    unweighted_expectation <- expectation_fun(draws, ...)
 
     if (log_expectation_fun) {
       expectation <- exp(matrixStats::colLogSumExps(
@@ -562,8 +573,13 @@ moment_match.matrix <- function(x,
       expectation <- colSums(w * unweighted_expectation)
     }
 
+    # TODO: How to distinguish naming of transformation we take as input
+    # and transformation we do in moment matching?
+    # Now draws is the draws transformed by moment matching
+    # tdraws is draws additionally transformed by draws_transformation_fun
     adapted_draws <- list(
       draws = draws,
+      tdraws = tdraws,
       log_weights = lw,
       expectation = expectation,
       diagnostics = list(
@@ -587,7 +603,11 @@ moment_match.matrix <- function(x,
 #' @param log_ratio_fun Log of the density ratio (target/proposal).
 #'   The function takes argument `draws`, which are the unconstrained
 #'   draws.
-#' @param constrain_draws Logical specifying whether to return draws on the
+#' @param target_observation_weights A vector of weights for observations for
+#' defining the target distribution. A value 0 means dropping the observation,
+#' a value 1 means including the observation similarly as in the current data,
+#' and a value 2 means including the observation twice.
+#' @param constrain Logical specifying whether to return draws on the
 #'   constrained space. Draws are also constrained for computing expectations. Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
@@ -598,15 +618,22 @@ moment_match.matrix <- function(x,
 moment_match.CmdStanFit <- function(x,
                                     log_prob_target_fun = NULL,
                                     log_ratio_fun = NULL,
-                                    constrain_draws = TRUE,
+                                    target_observation_weights = NULL,
+                                    constrain = TRUE,
                                     ...) {
+  if (!is.null(target_observation_weights) && (!is.null(log_prob_target_fun) || !is.null(log_ratio_fun))) {
+    stop("You must give only one of target_observation_weights, log_prob_target_fun, or log_ratio_fun.")
+  }
+
+  # TODO: actually implement target_observation_weights
+
   # TODO: support expectation fun?
   # and add tests for that
 
   # transform the model parameters to unconstrained space
   udraws <- x$unconstrain_draws(format = "draws_matrix")
 
-  if (constrain_draws) {
+  if (constrain) {
     draws_transformation_fun <- function(draws, ...) {
       return(constrain_draws(x, draws, ...))
     }
@@ -649,7 +676,7 @@ moment_match.CmdStanFit <- function(x,
 #'   to FALSE. If set to TRUE, the expectation function must be
 #'   nonnegative (before taking the logarithm).  Ignored if
 #'   `expectation_fun` is NULL.
-#' @param constrain_draws Logical specifying whether to return draws on the
+#' @param constrain Logical specifying whether to return draws on the
 #'   constrained space. Draws are also constrained for computing expectations. Default is TRUE.
 #' @param ... Further arguments passed to `moment_match.matrix`.
 #'
@@ -664,7 +691,7 @@ moment_match.stanfit <- function(x,
                                  target_observation_weights = NULL,
                                  expectation_fun = NULL,
                                  log_expectation_fun = FALSE,
-                                 constrain_draws = TRUE,
+                                 constrain = TRUE,
                                  ...) {
   if (!is.null(target_observation_weights) && (!is.null(log_prob_target_fun) || !is.null(log_ratio_fun))) {
     stop("You must give only one of target_observation_weights, log_prob_target_fun, or log_ratio_fun.")
@@ -697,13 +724,14 @@ moment_match.stanfit <- function(x,
     }
   }
 
-
   # transform the draws to unconstrained space
   udraws <- unconstrain_draws(x, draws = draws, ...)
 
-  if (constrain_draws) {
+  if (constrain) {
     draws_transformation_fun <- function(draws, ...) {
-      return(constrain_draws(x, draws, ...))
+      n_pars <- dim(draws)[2]
+      constrained_draws <- constrain_draws(x, draws, ...)
+      return(constrained_draws[, 1:n_pars])
     }
   } else {
     draws_transformation_fun <- NULL
@@ -782,11 +810,12 @@ moment_match.brmsfit <- function(x,
       }
     )
 
-    function(draws, fit, extra_data, ...) {
-      fit <- .update_pars(x = fit, upars = draws)
-      ll <- brms::log_lik(fit, newdata = extra_data)
-      rowSums(ll)
-    }
+    # TODO: what is the point of this? was this left by accident?
+    # function(draws, fit, extra_data, ...) {
+    #  fit <- .update_pars(x = fit, upars = draws)
+    #  ll <- brms::log_lik(fit, newdata = extra_data)
+    #  rowSums(ll)
+    # }
 
     log_ratio_fun <- function(draws, fit, ...) {
       fit <- .update_pars(x = fit, upars = draws)
@@ -795,9 +824,23 @@ moment_match.brmsfit <- function(x,
     }
   }
 
-
   # transform the draws to unconstrained space
-  udraws <- unconstrain_draws.brmsfit(x, draws = draws, ...)
+  udraws <- unconstrain_draws(x, draws = draws, ...)
+
+  if (constrain) {
+    draws_transformation_fun <- function(draws, ...) {
+      n_pars <- dim(draws)[2]
+      constrained_draws <- constrain_draws(x, draws, ...)
+      return(constrained_draws[, 1:n_pars])
+    }
+    tdraws_fun <- function(draws, ...) {
+      constrained_draws <- constrain_draws(x, draws, ...)
+      return(constrained_draws)
+    }
+  } else {
+    draws_transformation_fun <- NULL
+    tdraws_fun <- NULL
+  }
 
   out <- moment_match.matrix(
     udraws,
@@ -806,18 +849,19 @@ moment_match.brmsfit <- function(x,
     log_ratio_fun = log_ratio_fun,
     expectation_fun = expectation_fun,
     log_expectation_fun = log_expectation_fun,
+    draws_transformation_fun = draws_transformation_fun,
+    tdraws_fun = tdraws_fun,
     fit = x,
     ...
   )
 
-  x <- .update_pars(x = x, upars = out$draws)
-
   if (constrain) {
-    out$draws <- posterior::as_draws(x)
+    udraws <- unconstrain_draws(x, draws = out$tdraws, ...)
+    x <- .update_pars(x = x, upars = udraws)
+  } else {
+    x <- .update_pars(x = x, upars = out$draws)
   }
-
   out$fit <- x
-
 
   out
 }
