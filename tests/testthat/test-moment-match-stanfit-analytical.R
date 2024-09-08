@@ -2,7 +2,6 @@ rstan_available <- require(rstan)
 
 # Run these tests only if rstan is installed
 if (rstan_available) {
-  # rstan_options(auto_write = TRUE)
   options(mc.cores = 1)
 
   stancode <- "data {
@@ -112,7 +111,7 @@ if (rstan_available) {
   mu_n <- kappa0 / kappa_n * mu0 + n / kappa_n * ybar
 
   sigma_sq_n <- (nu0 * sigma0^2 + (n - 1) * s_sq + (kappa0 * n) /
-                   kappa_n * (ybar - mu0)^2) / nu_n # styler: off
+                  kappa_n * (ybar - mu0)^2) / nu_n # styler: off
 
   sigma_sq_post_mean <- nu_n * sigma_sq_n / (nu_n - 2)
 
