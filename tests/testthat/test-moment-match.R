@@ -714,3 +714,31 @@ test_that("moment_match with expectation works with transformation", {
   expect_equal(iw_mean$expectation, c(245, 245), tolerance = 1e-2)
   expect_equal(iw2_mean$expectation, iw_mean$expectation, tolerance = 1e-6)
 })
+
+test_that("split = TRUE is exact when the scaling step is accepted", {
+  # Proposal N(0, I). The expectation is a likelihood that is narrow in
+  # both coordinates, so moment matching shifts and scales the draws.
+  # The split estimate then uses the inverse of the accumulated affine
+  # transformation, which was exact only for pure shifts.
+  y <- 1.5
+  s <- 0.05
+  exact <- 2 * dnorm(y, 0, sqrt(1 + s^2), log = TRUE)
+  err <- vapply(1:3, function(seed) {
+    set.seed(seed)
+    draws <- matrix(rnorm(8000), 4000, 2)
+    mm <- moment_match(
+      draws,
+      log_prob_prop_fun = function(draws, ...) -0.5 * rowSums(draws^2),
+      expectation_fun = function(draws, ...) {
+        matrix(dnorm(y, draws[, 1], s, log = TRUE) +
+          dnorm(y, draws[, 2], s, log = TRUE))
+      },
+      log_expectation_fun = TRUE,
+      k_threshold = 0.5,
+      cov_transform = TRUE,
+      split = TRUE
+    )
+    log(mm$expectation) - exact
+  }, numeric(1))
+  expect_lt(max(abs(err)), 0.05)
+})

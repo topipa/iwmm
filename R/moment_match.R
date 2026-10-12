@@ -455,26 +455,23 @@ moment_match.matrix <- function(x,
       }
       draws_T2 <- sweep(draws_T2, 2, total_shift2 + mean_original, "+")
 
-      # inverse accumulated affine transformation
-      draws_T2_T1inv <- sweep(draws_T2, 2, mean_original + total_shift2, "-")
+      # inverse accumulated affine transformations
+      # T_k(x) = M_k diag(s_k) (x - m) + m + shift_k, so
+      # T_k^{-1}(z) = diag(s_k)^{-1} M_k^{-1} (z - m - shift_k) + m:
+      # remove the shift of T_k first, then undo its mapping and scaling.
+      draws_T2_T1inv <- sweep(draws_T2, 2, mean_original + total_shift, "-")
       if (cov_transform) {
         draws_T2_T1inv <- tcrossprod(draws_T2_T1inv, solve(total_mapping))
       }
       draws_T2_T1inv <- sweep(draws_T2_T1inv, 2, total_scaling, "/")
-      draws_T2_T1inv <- sweep(
-        draws_T2_T1inv, 2,
-        mean_original + total_shift2 - total_shift, "+"
-      )
+      draws_T2_T1inv <- sweep(draws_T2_T1inv, 2, mean_original, "+")
 
-      draws_T1_T2inv <- sweep(draws_T1, 2, mean_original + total_shift, "-")
+      draws_T1_T2inv <- sweep(draws_T1, 2, mean_original + total_shift2, "-")
       if (cov_transform) {
         draws_T1_T2inv <- tcrossprod(draws_T1_T2inv, solve(total_mapping2))
       }
       draws_T1_T2inv <- sweep(draws_T1_T2inv, 2, total_scaling2, "/")
-      draws_T1_T2inv <- sweep(
-        draws_T1_T2inv, 2,
-        mean_original + total_shift - total_shift2, "+"
-      )
+      draws_T1_T2inv <- sweep(draws_T1_T2inv, 2, mean_original, "+")
 
       # these are the real used draws
       # first half of draws_trans are T1(theta)
