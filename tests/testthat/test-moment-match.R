@@ -742,3 +742,52 @@ test_that("split = TRUE is exact when the scaling step is accepted", {
   }, numeric(1))
   expect_lt(max(abs(err)), 0.05)
 })
+
+test_that("split = TRUE evaluates the proposal at the inverse transformations", {
+  # The returned draws are T1(theta) in the first half and T2(theta) in
+  # the second half. The last two calls of log_prob_prop_fun evaluate
+  # T2^-1 of the first half and T1^-1 of the second half. With a target
+  # density, T1 shifts and scales the draws; with restart_transform =
+  # TRUE, T2 is found again from the original draws, so T2 differs from
+  # T1 and both inverses are tested.
+  set.seed(6)
+  S <- 4000
+  prop_sample <- matrix(rnorm(2 * S, 0, sqrt(0.1)), S, 2)
+  calls <- list()
+  prop_density <- function(draws, ...) {
+    calls[[length(calls) + 1]] <<- draws
+    dnorm(draws[, 1], 0, sqrt(0.1), log = TRUE) +
+      dnorm(draws[, 2], 0, sqrt(0.1), log = TRUE)
+  }
+  target_density <- function(draws, ...) {
+    dnorm(draws[, 1], 5, 1, log = TRUE) + dnorm(draws[, 2], 5, 1, log = TRUE)
+  }
+  mm <- moment_match(
+    prop_sample,
+    expectation_fun = function(draws, ...) matrix(draws[, 1]),
+    log_prob_prop_fun = prop_density,
+    log_prob_target_fun = target_density,
+    k_threshold = -10,
+    split = TRUE,
+    cov_transform = TRUE,
+    restart_transform = TRUE
+  )
+  first <- seq_len(S / 2)
+  second <- -first
+  # the affine maps T1 and T2 from the (theta, T(theta)) pairs
+  affine <- function(from, to) {
+    x <- cbind(1, from)
+    coef <- solve(crossprod(x), crossprod(x, to))
+    function(z) cbind(1, z) %*% coef
+  }
+  T1 <- affine(prop_sample[first, ], mm$draws[first, ])
+  T2 <- affine(prop_sample[second, ], mm$draws[second, ])
+  # the two transformations must differ, else the test cannot detect a
+  # mix-up of their shifts
+  expect_gt(max(abs(T1(prop_sample[1:10, ]) - T2(prop_sample[1:10, ]))), 0.01)
+  n_calls <- length(calls)
+  inv1 <- calls[[n_calls - 1]][first, , drop = FALSE]
+  inv2 <- calls[[n_calls]][second, , drop = FALSE]
+  expect_equal(unname(T2(inv1)), unname(mm$draws[first, ]), tolerance = 1e-8)
+  expect_equal(unname(T1(inv2)), unname(mm$draws[second, ]), tolerance = 1e-8)
+})
