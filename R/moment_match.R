@@ -492,35 +492,29 @@ moment_match.matrix <- function(x,
       log_prob_trans_inv1 <- log_prob_prop_fun(draws_trans_inv1, ...)
       log_prob_trans_inv2 <- log_prob_prop_fun(draws_trans_inv2, ...)
 
+      # log density of the split proposal (the mixture of the two
+      # transformed proposals, up to a constant). Use log-sum-exp:
+      # unnormalized log densities of large magnitude (for example
+      # -1000) make exp() underflow or overflow, and then every weight
+      # is NaN.
+      log_prob_split_prop <- matrixStats::rowLogSumExps(cbind(
+        log_prob_trans_inv1 - log(prod(total_scaling2)) -
+          log(det(total_mapping2)),
+        log_prob_trans_inv2 - log(prod(total_scaling)) -
+          log(det(total_mapping))
+      ))
+
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         log_prob_prop_trans <- log_prob_prop_fun(draws_trans, ...)
-        lw_trans <- log_prob_prop_trans -
-          log(
-            exp(log_prob_trans_inv1 - log(prod(total_scaling2)) -
-                  log(det(total_mapping2))) + # styler: off
-              exp(log_prob_trans_inv2 -
-                    log(prod(total_scaling)) - # styler: off
-                    log(det(total_mapping))) # styler: off
-          )
+        lw_trans <- log_prob_prop_trans - log_prob_split_prop
       } else if (!is.null(log_prob_target_fun)) {
         log_prob_target_trans <- log_prob_target_fun(draws_trans, ...)
-        lw_trans <- log_prob_target_trans -
-          log(
-            exp(log_prob_trans_inv1 - log(prod(total_scaling2)) -
-                  log(det(total_mapping2))) + # styler: off
-              exp(log_prob_trans_inv2 - log(prod(total_scaling)) -
-                    log(det(total_mapping))) # styler: off
-          )
+        lw_trans <- log_prob_target_trans - log_prob_split_prop
       } else if (!is.null(log_ratio_fun)) {
         log_prob_ratio_trans <- log_ratio_fun(draws_trans, ...)
         log_prob_prop_trans <- log_prob_prop_fun(draws_trans, ...)
         lw_trans <- log_prob_ratio_trans + log_prob_prop_trans -
-          log(
-            exp(log_prob_trans_inv1 - log(prod(total_scaling2))
-                - log(det(total_mapping2))) + # styler: off
-              exp(log_prob_trans_inv2 - log(prod(total_scaling))
-                  - log(det(total_mapping))) # styler: off
-          )
+          log_prob_split_prop
       }
 
       # log_prob_target_trans <- log_prob_target_fun(draws_trans, ...)
