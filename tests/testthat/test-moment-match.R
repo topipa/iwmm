@@ -714,3 +714,67 @@ test_that("moment_match with expectation works with transformation", {
   expect_equal(iw_mean$expectation, c(245, 245), tolerance = 1e-2)
   expect_equal(iw2_mean$expectation, iw_mean$expectation, tolerance = 1e-6)
 })
+
+test_that("split weights do not depend on a constant in the log densities", {
+  # Unnormalized log densities (for example a Stan model's lp__) can have
+  # a large magnitude. A constant in the log densities cancels in the
+  # self-normalized weights, so the split result must not change.
+  S <- 4000
+  prop_mean <- 0
+  prop_var <- sqrt(0.1)
+  target_mean <- 5
+  target_var <- 1
+
+  set.seed(6)
+  prop_sample <- matrix(rnorm(2 * S, prop_mean, prop_var), S, 2)
+  set.seed(7)
+  target_sample <- matrix(rnorm(2 * S, target_mean, target_var), S, 2)
+
+  run <- function(offset, mode) {
+    prop_density <- function(draws, ...) {
+      dnorm(draws[, 1], prop_mean, prop_var, log = TRUE) +
+        dnorm(draws[, 2], prop_mean, prop_var, log = TRUE) + offset
+    }
+    target_density <- function(draws, ...) {
+      dnorm(draws[, 1], target_mean, target_var, log = TRUE) +
+        dnorm(draws[, 2], target_mean, target_var, log = TRUE) + offset
+    }
+    ratio_density <- function(draws, ...) {
+      target_density(draws, ...) - prop_density(draws, ...)
+    }
+    args <- list(
+      expectation_fun = function(draws, ...) {
+        matrix(draws[, 1])
+      },
+      k_threshold = -10.0,
+      split = TRUE,
+      cov_transform = TRUE
+    )
+    if (mode == "simple") {
+      args <- c(list(target_sample, log_prob_prop_fun = target_density), args)
+    } else if (mode == "target") {
+      args <- c(list(prop_sample,
+        log_prob_prop_fun = prop_density,
+        log_prob_target_fun = target_density
+      ), args)
+    } else {
+      args <- c(list(prop_sample,
+        log_prob_prop_fun = prop_density,
+        log_ratio_fun = ratio_density
+      ), args)
+    }
+    do.call(moment_match, args)$expectation
+  }
+
+  for (mode in c("simple", "target", "ratio")) {
+    reference <- run(0, mode)
+    expect_equal(reference, 5, tolerance = 1e-2)
+    for (offset in c(-1000, 1000)) {
+      shifted <- run(offset, mode)
+      expect_true(is.finite(shifted), label = paste(mode, offset))
+      expect_equal(shifted, reference, tolerance = 1e-8,
+        label = paste(mode, offset)
+      )
+    }
+  }
+})
