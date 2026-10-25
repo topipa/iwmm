@@ -170,4 +170,86 @@ if (brms_available) {
       tolerance = 0.1
     )
   })
+
+  test_that("moment_match.brmsfit works with target_observation_weights", {
+    normal_model <- example_iwmm_model("normal_model")
+
+    bprior <- c(
+      prior("", class = "sigma"),
+      prior("", class = "Intercept")
+    )
+
+    fit <- brm(x ~ 1,
+      data = normal_model$data,
+      prior = bprior,
+      save_pars = save_pars(all = TRUE),
+      chains = 4,
+      iter = 1000,
+      refresh = 0,
+      seed = 1234
+    )
+
+    expectation_fun_first_moment <- function(draws, ...) {
+      draws
+    }
+
+    first_moment <- moment_match(
+      fit,
+      expectation_fun = expectation_fun_first_moment,
+    )
+
+    expect_equal(
+      first_moment$expectation,
+      posterior_summary(fit)[, 1],
+      tolerance = 0.001
+    )
+    # TODO: why lprior and lp__ are zeros?
+    expect_equal(
+      posterior_summary(fit, variable = c("b_Intercept", "sigma", "Intercept")),
+      posterior_summary(first_moment$fit, variable = c("b_Intercept", "sigma", "Intercept")),
+      tolerance = 0.001
+    )
+
+    # leave-one-out expectation
+
+    first_moment_loo <- moment_match(
+      fit,
+      target_observation_weights = append(rep(1, 9), 0),
+      expectation_fun = expectation_fun_first_moment,
+    )
+
+    loo_data <- normal_model$data
+    loo_data$x <- loo_data$x[-loo_data$N]
+    loo_data$N <- loo_data$N - 1
+
+    fit_loo <- brm(x ~ 1,
+      data = loo_data,
+      prior = bprior,
+      save_pars = save_pars(all = TRUE),
+      chains = 4,
+      iter = 1000,
+      refresh = 0,
+      seed = 1234
+    )
+
+    # TODO: why lprior and lp__ are zeros?
+    expect_equal(
+      first_moment_loo$expectation,
+      posterior_summary(fit_loo)[, 1],
+      tolerance = 0.001
+    )
+
+    expect_equal(
+      first_moment_loo$expectation[c("b_Intercept", "sigma", "Intercept")],
+      posterior_summary(fit_loo, variable = c("b_Intercept", "sigma", "Intercept"))[, 1],
+      tolerance = 0.1
+    )
+    # TODO: why lprior and lp__ are zeros?
+    # TODO: check other estimares than mean
+    expect_equal(
+      posterior_summary(fit_loo, variable = c("b_Intercept", "sigma", "Intercept"))[, 1],
+      posterior_summary(first_moment_loo$fit, variable = c("b_Intercept", "sigma", "Intercept"))[, 1],
+      tolerance = 0.1
+    )
+  })
 }

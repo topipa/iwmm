@@ -18,11 +18,13 @@ unconstrain_draws.stanfit <- function(x, draws, ...) {
   if (is.null(dim(udraws))) {
     dim(udraws) <- c(1, length(udraws))
   }
-  out <- posterior::as_draws_matrix(t(udraws))
+
+  udraws <- t(udraws)
+  colnames(udraws) <- colnames(draws)[1:ncol(udraws)]
+  out <- posterior::as_draws_matrix(udraws)
 
   out
 }
-
 
 #' @export
 unconstrain_draws.brmsfit <- function(x, draws, ...) {
