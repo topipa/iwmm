@@ -51,6 +51,45 @@ test_that("transformations work", {
   )
 })
 
+test_that("the total transformation composes the accepted steps in order", {
+  # transform_loop() starts again with the shift step after every accepted
+  # step, so a scaling step can follow a covariance step. The total
+  # transformation T(x) = M diag(s) (x - m) + m + shift, which the split step
+  # rebuilds from the totals (M only with cov_transform = TRUE), must map the
+  # original draws to the draws that the steps produced one after another.
+  set.seed(7)
+  S <- 400
+  draws <- cbind(rnorm(S), 0.5 * rnorm(S) + 0.3 * rnorm(S))
+  lw <- dnorm(draws[, 1], 0.5, 0.7, log = TRUE) +
+    dnorm(draws[, 2], -0.2, 0.6, log = TRUE)
+  lw <- lw - matrixStats::logSumExp(lw)
+  m <- colMeans(draws)
+  sequences <- list(
+    list(cov = TRUE, steps = c("cov", "scale", "shift", "cov", "scale")),
+    list(cov = FALSE, steps = c("scale", "shift", "scale"))
+  )
+  for (sq in sequences) {
+    total <- list(shift = c(0, 0), scaling = c(1, 1), mapping = diag(2))
+    u <- draws
+    for (step in sq$steps) {
+      trans <- switch(step,
+        shift = shift(u, lw),
+        scale = shift_and_scale(u, lw),
+        cov = shift_and_cov(u, lw)
+      )
+      u <- trans$draws
+      total <- add_step_to_total(total, trans, sq$cov)
+    }
+    rebuilt <- sweep(draws, 2, m, "-")
+    rebuilt <- sweep(rebuilt, 2, total$scaling, "*")
+    if (sq$cov) {
+      rebuilt <- tcrossprod(rebuilt, total$mapping)
+    }
+    rebuilt <- sweep(rebuilt, 2, total$shift + m, "+")
+    expect_equal(unname(rebuilt), unname(u))
+  }
+})
+
 test_that("transformation assertions work", {
   # only 1 argument
   expect_error(shift(matrix(0, 2, 2)))
