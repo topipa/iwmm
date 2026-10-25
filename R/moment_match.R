@@ -489,35 +489,25 @@ moment_match.matrix <- function(x,
       log_prob_trans_inv1 <- log_prob_prop_fun(draws_trans_inv1, ...)
       log_prob_trans_inv2 <- log_prob_prop_fun(draws_trans_inv2, ...)
 
+      # log density of the split proposal. Use log-sum-exp
+      log_prob_split_prop <- matrixStats::rowLogSumExps(cbind(
+        log_prob_trans_inv1 - log(prod(total_scaling2)) -
+          log(det(total_mapping2)),
+        log_prob_trans_inv2 - log(prod(total_scaling)) -
+          log(det(total_mapping))
+      ))
+
       if (is.null(log_prob_target_fun) && is.null(log_ratio_fun)) {
         log_prob_prop_trans <- log_prob_prop_fun(draws_trans, ...)
-        lw_trans <- log_prob_prop_trans -
-          log(
-            exp(log_prob_trans_inv1 - log(prod(total_scaling2)) -
-                  log(det(total_mapping2))) + # styler: off
-              exp(log_prob_trans_inv2 -
-                    log(prod(total_scaling)) - # styler: off
-                    log(det(total_mapping))) # styler: off
-          )
+        lw_trans <- log_prob_prop_trans - log_prob_split_prop
       } else if (!is.null(log_prob_target_fun)) {
         log_prob_target_trans <- log_prob_target_fun(draws_trans, ...)
-        lw_trans <- log_prob_target_trans -
-          log(
-            exp(log_prob_trans_inv1 - log(prod(total_scaling2)) -
-                  log(det(total_mapping2))) + # styler: off
-              exp(log_prob_trans_inv2 - log(prod(total_scaling)) -
-                    log(det(total_mapping))) # styler: off
-          )
+        lw_trans <- log_prob_target_trans - log_prob_split_prop
       } else if (!is.null(log_ratio_fun)) {
         log_prob_ratio_trans <- log_ratio_fun(draws_trans, ...)
         log_prob_prop_trans <- log_prob_prop_fun(draws_trans, ...)
         lw_trans <- log_prob_ratio_trans + log_prob_prop_trans -
-          log(
-            exp(log_prob_trans_inv1 - log(prod(total_scaling2))
-                - log(det(total_mapping2))) + # styler: off
-              exp(log_prob_trans_inv2 - log(prod(total_scaling))
-                  - log(det(total_mapping))) # styler: off
-          )
+          log_prob_split_prop
       }
 
       # log_prob_target_trans <- log_prob_target_fun(draws_trans, ...)
